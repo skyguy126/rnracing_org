@@ -4,13 +4,13 @@ export const PLACEHOLDER_BIO =
 export const TEAM_MEMBERS = [
 	{ name: 'Vamsi', title: 'Co-Founder' },
 	{ name: 'Rohith', title: 'Co-Founder' },
-	{ name: 'Kamran', title: 'Human Resources' },
-	{ name: 'Nyle', title: 'CEO and Team Captain' },
-	{ name: 'Danial', title: 'Lead Chirp Engineer' },
-	{ name: 'Varoon', title: 'Immigration Lawyer' },
-	{ name: 'Vasu', title: 'Section 8 Garage Supervisor' },
-	{ name: 'Sid', title: "Kamran's Intern" },
-	{ name: 'Baggy', title: 'Lead Ragebaiter' },
+	{ name: 'Kamran', title: 'Head of Human Resources' },
+	{ name: 'Nyle', title: 'CEO & Team Captain' },
+	{ name: 'Danial', title: 'Lead Chirp Systems Engineer' },
+	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
+	{ name: 'Vasu', title: 'Garage Supervisor — Section 8' },
+	{ name: 'Sid', title: 'HR Intern (Reports to Kamran)' },
+	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 ] as const;
 
 export type TeamMember = (typeof TEAM_MEMBERS)[number] & { bio: string };

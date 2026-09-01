@@ -122,11 +122,15 @@ h3 {
 
 .action-grid {
 	display: grid;
+	align-items: stretch;
 	gap: 1rem;
 	max-width: var(--content-max-width);
 }
 
 .action-card {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 	padding: 1.5rem;
 	border: 1px solid var(--border);
 	border-radius: 0.625rem;
@@ -143,6 +147,10 @@ h3 {
 	font-size: 1rem;
 	line-height: 1.65;
 	color: var(--muted);
+}
+
+.action-card-action {
+	margin-top: auto;
 }
 
 .btn-primary {
@@ -168,13 +176,6 @@ h3 {
 	background: var(--blue-soft);
 	color: var(--white);
 	transform: translateY(-1px);
-}
-
-.contact-link {
-	display: inline-flex;
-	align-items: center;
-	font-size: 1.0625rem;
-	font-weight: 600;
 }
 
 @media (min-width: 640px) {

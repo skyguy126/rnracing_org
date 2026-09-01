@@ -1,0 +1,102 @@
+---
+interface Props {
+	email: string;
+}
+
+const { email } = Astro.props;
+---
+
+<div class="copy-email" data-copy-email>
+	<button type="button" class="btn-primary copy-email-button" data-email={email}>
+		{email}
+	</button>
+	<span class="copy-email-tooltip" role="status" aria-live="polite">Copied to clipboard</span>
+</div>
+
+<script>
+	document.querySelectorAll('[data-copy-email]').forEach((root) => {
+		const button = root.querySelector<HTMLButtonElement>('.copy-email-button');
+		const tooltip = root.querySelector<HTMLElement>('.copy-email-tooltip');
+		if (!button || !tooltip) return;
+
+		let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+
+		const showTooltip = () => {
+			clearTimeout(hideTimeout);
+			tooltip.classList.add('is-visible');
+			hideTimeout = setTimeout(() => tooltip.classList.remove('is-visible'), 2000);
+		};
+
+		button.addEventListener('click', async () => {
+			const email = button.dataset.email;
+			if (!email) return;
+
+			try {
+				await navigator.clipboard.writeText(email);
+				showTooltip();
+			} catch {
+				// Fallback for older browsers or denied permissions
+				const input = document.createElement('textarea');
+				input.value = email;
+				input.setAttribute('readonly', '');
+				input.style.position = 'absolute';
+				input.style.left = '-9999px';
+				document.body.appendChild(input);
+				input.select();
+				document.execCommand('copy');
+				document.body.removeChild(input);
+				showTooltip();
+			}
+		});
+	});
+</script>
+
+<style>
+	.copy-email {
+		position: relative;
+		display: inline-flex;
+	}
+
+	.copy-email-button {
+		max-width: 100%;
+		word-break: break-all;
+	}
+
+	.copy-email-tooltip {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 0.625rem);
+		transform: translateX(-50%) translateY(0.25rem);
+		padding: 0.4375rem 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background: var(--surface);
+		color: var(--text);
+		font-family: var(--font-body);
+		font-size: 0.8125rem;
+		font-weight: 500;
+		line-height: 1.2;
+		white-space: nowrap;
+		box-shadow: 0 8px 24px color-mix(in srgb, var(--black) 20%, transparent);
+		opacity: 0;
+		pointer-events: none;
+		transition:
+			opacity 0.15s ease,
+			transform 0.15s ease;
+	}
+
+	.copy-email-tooltip::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 100%;
+		transform: translateX(-50%);
+		border: 0.375rem solid transparent;
+		border-top-color: var(--surface);
+	}
+
+	.copy-email-tooltip.is-visible {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+</style>
