@@ -1,0 +1,121 @@
+---
+const navLinks = [
+	{ href: '/', label: 'Home' },
+	{ href: 'https://www.instagram.com/_rnracing_/', label: 'Instagram', external: true },
+];
+---
+
+<header class="site-header">
+	<nav class="nav" aria-label="Main navigation">
+		<a class="brand" href="/">
+			<span class="brand-mark" aria-hidden="true">RN</span>
+			<span class="brand-name">RN Racing</span>
+		</a>
+
+		<ul class="nav-links">
+			{
+				navLinks.map((link) => (
+					<li>
+						<a
+							class="nav-link"
+							href={link.href}
+							target={link.external ? '_blank' : undefined}
+							rel={link.external ? 'noopener noreferrer' : undefined}
+						>
+							{link.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		border-bottom: 1px solid color-mix(in srgb, var(--brand-white) 12%, transparent);
+		background: color-mix(in srgb, var(--brand-blue) 92%, black);
+		backdrop-filter: blur(12px);
+	}
+
+	.nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		width: 100%;
+		max-width: var(--layout-max-width);
+		margin: 0 auto;
+		padding: 0.875rem 1.5rem;
+	}
+
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--brand-white);
+		text-decoration: none;
+	}
+
+	.brand:hover {
+		color: var(--brand-white);
+		text-decoration: none;
+	}
+
+	.brand-mark {
+		display: inline-grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.5rem;
+		background: var(--brand-white);
+		color: var(--brand-blue);
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: -0.04em;
+	}
+
+	.brand-name {
+		font-size: 1rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.nav-link {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5rem 0.875rem;
+		border-radius: 999px;
+		color: color-mix(in srgb, var(--brand-white) 88%, transparent);
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			background-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.nav-link:hover {
+		background: color-mix(in srgb, var(--brand-white) 12%, transparent);
+		color: var(--brand-white);
+		text-decoration: none;
+	}
+
+	@media (max-width: 480px) {
+		.brand-name {
+			display: none;
+		}
+	}
+</style>

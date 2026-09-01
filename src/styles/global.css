@@ -6,14 +6,19 @@
 
 :root {
 	color-scheme: dark;
-	--bg: #0a0a0a;
-	--surface: #141414;
-	--text: #f5f5f5;
-	--muted: #a3a3a3;
-	--accent: #e11d48;
-	--accent-hover: #f43f5e;
-	--border: #262626;
-	--max-width: 42rem;
+	--brand-blue: #2a4d8b;
+	--brand-blue-dark: #1a355f;
+	--brand-blue-light: #3d6bb5;
+	--brand-white: #f2f3f3;
+	--bg: #0d1524;
+	--surface: #152a4a;
+	--text: #f2f3f3;
+	--muted: #a8b8d4;
+	--accent: #2a4d8b;
+	--accent-hover: #3d6bb5;
+	--border: #243b63;
+	--layout-max-width: 72rem;
+	--content-max-width: 42rem;
 }
 
 html {
@@ -34,9 +39,9 @@ body {
 main {
 	flex: 1;
 	width: 100%;
-	max-width: var(--max-width);
+	max-width: var(--content-max-width);
 	margin: 0 auto;
-	padding: 4rem 1.5rem 3rem;
+	padding: 3rem 1.5rem;
 }
 
 a {

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import NavBar from '../components/NavBar.astro';
 
 interface Props {
 	title?: string;
@@ -23,6 +24,7 @@ const {
 		<title>{title}</title>
 	</head>
 	<body>
+		<NavBar />
 		<slot />
 		<footer>
 			<p>&copy; {new Date().getFullYear()} RN Racing</p>
