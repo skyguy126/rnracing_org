@@ -1,50 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { STORY } from '../data/site';
 ---
 
 <BaseLayout>
 	<main>
-		<header class="page-header">
-			<h1>RN Racing</h1>
-			<p class="lead">
-				Official home of RN Racing. Updates, results, and media coming soon.
-			</p>
-		</header>
+		<PageHeader
+			title="RN Racing"
+			lead="Official home of RN Racing. Updates, results, and media coming soon."
+		/>
 
-		<section class="story-section" aria-labelledby="story-heading">
+		<section class="content-section" aria-labelledby="story-heading">
 			<h2 id="story-heading">The Story</h2>
-			<p>
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent
-				libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum
-				imperdiet. Duis sagittis ipsum praesent mauris.
-			</p>
-			<p>
-				Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget
-				nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
-				inceptos himenaeos.
-			</p>
+			{STORY.map((paragraph) => <p>{paragraph}</p>)}
 		</section>
 	</main>
 </BaseLayout>
-
-<style>
-	.story-section {
-		max-width: var(--content-max-width);
-	}
-
-	.story-section h2 {
-		margin: 0 0 1rem;
-		font-size: clamp(1.75rem, 4vw, 2.25rem);
-	}
-
-	.story-section p {
-		margin: 0 0 1rem;
-		font-size: 1.0625rem;
-		line-height: 1.75;
-		color: var(--muted);
-	}
-
-	.story-section p:last-child {
-		margin-bottom: 0;
-	}
-</style>

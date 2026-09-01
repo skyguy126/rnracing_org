@@ -1,11 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
-
-const navLinks = [
-	{ href: '/', label: 'Home' },
-	{ href: '/team', label: 'The Crew' },
-	{ href: '/about', label: 'Who We Are' },
-];
+import { NAV_LINKS } from '../data/site';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
@@ -20,17 +15,15 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 		<div class="nav-actions">
 			<ul class="nav-links">
 				{
-					navLinks.map((link) => {
-						const linkPath = link.external ? null : link.href.replace(/\/$/, '') || '/';
-						const isActive = linkPath !== null && linkPath === currentPath;
+					NAV_LINKS.map((link) => {
+						const linkPath = link.href.replace(/\/$/, '') || '/';
+						const isActive = linkPath === currentPath;
 
 						return (
 							<li>
 								<a
 									class:list={['nav-link', { 'is-active': isActive }]}
 									href={link.href}
-									target={link.external ? '_blank' : undefined}
-									rel={link.external ? 'noopener noreferrer' : undefined}
 									aria-current={isActive ? 'page' : undefined}
 								>
 									{link.label}
@@ -82,10 +75,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 		text-decoration: none;
 	}
 
-	.brand:hover {
-		color: var(--text);
-	}
-
 	.brand-mark {
 		display: inline-grid;
 		place-items: center;
@@ -130,9 +119,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 		font-weight: 500;
 		line-height: var(--display-line);
 		text-decoration: none;
-		transition:
-			color 0.15s ease,
-			background-color 0.15s ease;
+		transition: color 0.15s ease, background-color 0.15s ease;
 	}
 
 	.nav-link:hover,
