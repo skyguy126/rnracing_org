@@ -40,6 +40,58 @@ const {
 		<NavBar />
 		<slot />
 		<footer>
+			<ul class="footer-social" aria-label="Social links">
+				<li>
+					<a
+						href="https://www.instagram.com/_rnracing_/"
+						class="footer-social-link"
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label="Instagram"
+					>
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<rect
+								x="3.5"
+								y="3.5"
+								width="17"
+								height="17"
+								rx="5"
+								ry="5"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.75"></rect>
+							<circle
+								cx="12"
+								cy="12"
+								r="4.1"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.75"></circle>
+							<circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"></circle>
+						</svg>
+					</a>
+				</li>
+				<li>
+					<a href="#" class="footer-social-link" aria-label="Twitter">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path
+								fill="currentColor"
+								d="M17.3 4.5h2.2l-4.8 5.5 5.6 7.5h-4.4l-3.5-4.6-4 4.6H6l5.1-5.9L5.7 4.5h4.5l3.2 4.2 3.9-4.2Zm-.8 12.1h1.2L8.9 5.9H7.6l8.9 10.7Z"
+							></path>
+						</svg>
+					</a>
+				</li>
+				<li>
+					<a href="#" class="footer-social-link" aria-label="GitHub">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path
+								fill="currentColor"
+								d="M12 3c-4.97 0-9 4.03-9 9 0 3.98 2.44 7.39 5.91 8.79.43.08.59-.19.59-.42 0-.21-.01-.91-.01-1.65-2.37.52-2.87-.57-2.87-.57-.39-.98-.96-1.24-.96-1.24-.78-.53.06-.52.06-.52.86.06 1.32.89 1.32.89.77 1.32 2.03.94 2.52.72.08-.56.3-.94.54-1.16-1.89-.21-3.88-.95-3.88-4.23 0-.93.33-1.69.87-2.29-.09-.21-.38-1.07.08-2.23 0 0 .71-.23 2.33.87a8.06 8.06 0 0 1 2.14-.29c.73 0 1.46.1 2.14.29 1.62-1.1 2.33-.87 2.33-.87.46 1.16.17 2.02.08 2.23.54.6.87 1.36.87 2.29 0 3.29-1.99 4.02-3.89 4.23.31.27.59.8.59 1.62 0 1.17-.01 2.11-.01 2.4 0 .23.16.51.6.42A9.01 9.01 0 0 0 21 12c0-4.97-4.03-9-9-9Z"
+							></path>
+						</svg>
+					</a>
+				</li>
+			</ul>
 			<p>&copy; {new Date().getFullYear()} RN Racing</p>
 		</footer>
 	</body>

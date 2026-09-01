@@ -5,62 +5,46 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout>
 	<main>
 		<header class="page-header">
-			<p class="eyebrow">Motorsport</p>
 			<h1>RN Racing</h1>
 			<p class="lead">
 				Official home of RN Racing. Updates, results, and media coming soon.
 			</p>
 		</header>
 
-		<section class="links" aria-label="Social links">
-			<a
-				class="link-card"
-				href="https://www.instagram.com/_rnracing_/"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<span class="link-label">Instagram</span>
-				<span class="link-handle">@_rnracing_</span>
-			</a>
+		<section class="story-section" aria-labelledby="story-heading">
+			<h2 id="story-heading">The Story</h2>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent
+				libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum
+				imperdiet. Duis sagittis ipsum praesent mauris.
+			</p>
+			<p>
+				Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget
+				nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
+				inceptos himenaeos.
+			</p>
 		</section>
 	</main>
 </BaseLayout>
 
 <style>
-	.links {
-		display: grid;
-		gap: 0.75rem;
+	.story-section {
 		max-width: var(--content-max-width);
 	}
 
-	.link-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		padding: 1.125rem 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		background: transparent;
-		text-decoration: none;
-		transition: border-color 0.15s ease, background-color 0.15s ease;
+	.story-section h2 {
+		margin: 0 0 1rem;
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
 	}
 
-	.link-card:hover {
-		border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
-		background: var(--surface);
-	}
-
-	.link-label {
-		font-size: 0.6875rem;
-		font-weight: 500;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+	.story-section p {
+		margin: 0 0 1rem;
+		font-size: 1.0625rem;
+		line-height: 1.75;
 		color: var(--muted);
 	}
 
-	.link-handle {
-		font-size: 1rem;
-		font-weight: 500;
-		color: var(--text);
+	.story-section p:last-child {
+		margin-bottom: 0;
 	}
 </style>
