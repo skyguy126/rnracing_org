@@ -14,13 +14,26 @@ const {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 	<head>
 		<meta charset="utf-8" />
+		<script is:inline>
+			(function () {
+				var match = document.cookie.match(/(?:^|; )rnracing-theme=([^;]*)/);
+				var theme = match ? decodeURIComponent(match[1]) : 'dark';
+				document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+			})();
+		</script>
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
 		<meta name="generator" content={Astro.generator} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Gloria+Hallelujah&display=swap"
+			rel="stylesheet"
+		/>
 		<title>{title}</title>
 	</head>
 	<body>

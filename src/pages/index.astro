@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout>
 	<main>
-		<header>
+		<header class="page-header">
 			<p class="eyebrow">Motorsport</p>
 			<h1>RN Racing</h1>
 			<p class="lead">
@@ -27,38 +27,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
-	header {
-		margin-bottom: 3.5rem;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.75rem;
-		font-size: 0.6875rem;
-		font-weight: 500;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--blue);
-	}
-
-	h1 {
-		margin: 0 0 1.25rem;
-		font-size: clamp(2.25rem, 7vw, 3.5rem);
-		font-weight: 700;
-		line-height: 1.08;
-		letter-spacing: -0.04em;
-	}
-
-	.lead {
-		margin: 0;
-		max-width: 34ch;
-		font-size: 1.0625rem;
-		line-height: 1.7;
-		color: var(--muted);
-	}
-
 	.links {
 		display: grid;
 		gap: 0.75rem;
+		max-width: var(--content-max-width);
 	}
 
 	.link-card {

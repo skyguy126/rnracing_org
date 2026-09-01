@@ -1,8 +1,13 @@
 ---
+import ThemeToggle from './ThemeToggle.astro';
+
 const navLinks = [
 	{ href: '/', label: 'Home' },
+	{ href: '/team', label: 'The Team' },
 	{ href: 'https://www.instagram.com/_rnracing_/', label: 'Instagram', external: true },
 ];
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
 <header class="site-header">
@@ -12,22 +17,31 @@ const navLinks = [
 			<span class="brand-name">RN Racing</span>
 		</a>
 
-		<ul class="nav-links">
-			{
-				navLinks.map((link) => (
-					<li>
-						<a
-							class="nav-link"
-							href={link.href}
-							target={link.external ? '_blank' : undefined}
-							rel={link.external ? 'noopener noreferrer' : undefined}
-						>
-							{link.label}
-						</a>
-					</li>
-				))
-			}
-		</ul>
+		<div class="nav-actions">
+			<ul class="nav-links">
+				{
+					navLinks.map((link) => {
+						const linkPath = link.external ? null : link.href.replace(/\/$/, '') || '/';
+						const isActive = linkPath !== null && linkPath === currentPath;
+
+						return (
+							<li>
+								<a
+									class:list={['nav-link', { 'is-active': isActive }]}
+									href={link.href}
+									target={link.external ? '_blank' : undefined}
+									rel={link.external ? 'noopener noreferrer' : undefined}
+									aria-current={isActive ? 'page' : undefined}
+								>
+									{link.label}
+								</a>
+							</li>
+						);
+					})
+				}
+			</ul>
+			<ThemeToggle />
+		</div>
 	</nav>
 </header>
 
@@ -45,11 +59,19 @@ const navLinks = [
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1.5rem;
+		gap: 1rem;
 		width: 100%;
 		max-width: var(--layout-max-width);
 		margin: 0 auto;
 		padding: 1rem 1.5rem;
+	}
+
+	.nav-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		min-width: 0;
 	}
 
 	.brand {
@@ -68,24 +90,28 @@ const navLinks = [
 		display: inline-grid;
 		place-items: center;
 		width: 2rem;
-		height: 2rem;
+		min-height: 2rem;
+		padding-block: 0.125rem;
 		border: 1px solid var(--border);
 		border-radius: 0.375rem;
 		color: var(--blue);
-		font-size: 0.6875rem;
-		font-weight: 700;
-		letter-spacing: -0.03em;
+		font-family: var(--font-display);
+		font-size: 0.8125rem;
+		line-height: var(--display-line);
 	}
 
 	.brand-name {
-		font-size: 0.9375rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
+		font-family: var(--font-display);
+		font-size: 1.125rem;
+		line-height: var(--display-line);
+		padding-bottom: var(--display-descender);
 	}
 
 	.nav-links {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
+		flex-wrap: wrap;
+		justify-content: flex-end;
 		gap: 0.125rem;
 		margin: 0;
 		padding: 0;
@@ -94,21 +120,42 @@ const navLinks = [
 
 	.nav-link {
 		display: inline-flex;
-		align-items: center;
-		padding: 0.4375rem 0.75rem;
+		align-items: flex-end;
+		padding: 0.375rem 0.75rem 0.5rem;
 		border-radius: 0.375rem;
 		color: var(--muted);
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-family: var(--font-display);
+		font-size: 1rem;
+		line-height: var(--display-line);
 		text-decoration: none;
 		transition:
 			color 0.15s ease,
 			background-color 0.15s ease;
 	}
 
-	.nav-link:hover {
+	.nav-link:hover,
+	.nav-link.is-active {
 		background: var(--surface);
 		color: var(--text);
+	}
+
+	.nav-link.is-active {
+		color: var(--blue-soft);
+	}
+
+	@media (max-width: 640px) {
+		.nav {
+			padding: 0.875rem 1rem;
+		}
+
+		.nav-actions {
+			gap: 0.5rem;
+		}
+
+		.nav-link {
+			padding: 0.375rem 0.625rem 0.5rem;
+			font-size: 0.875rem;
+		}
 	}
 
 	@media (max-width: 480px) {
