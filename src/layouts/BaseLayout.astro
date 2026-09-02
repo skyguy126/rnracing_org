@@ -42,7 +42,7 @@ const {
 	</head>
 	<body>
 		<NavBar />
-		{fullWidth ? <slot /> : <main><slot /></main>}
+		{fullWidth ? <slot /> : <main class="layout-inner"><slot /></main>}
 		<Footer />
 	</body>
 </html>

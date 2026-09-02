@@ -1,9 +1,9 @@
 ---
-import PhotoPlaceholder from './PhotoPlaceholder.astro';
-import type { TeamMember } from '../data/team';
+import PhotoPlaceholder from '../PhotoPlaceholder.astro';
+import type { CrewMember } from '../../data/crew';
 
 interface Props {
-	members: TeamMember[];
+	members: CrewMember[];
 }
 
 const { members } = Astro.props;
@@ -35,11 +35,11 @@ const { members } = Astro.props;
 	</div>
 </div>
 
-<script id="team-members-data" type="application/json" set:html={JSON.stringify(members)} />
+<script id="crew-members-data" type="application/json" set:html={JSON.stringify(members)} />
 
 <script>
 	const members = JSON.parse(
-		document.getElementById('team-members-data')?.textContent || '[]',
+		document.getElementById('crew-members-data')?.textContent || '[]',
 	) as Array<{ name: string; title: string; bio: string }>;
 
 	const modal = document.querySelector('.member-modal') as HTMLDivElement | null;

@@ -1,5 +1,4 @@
 ---
-import { STORY } from '../data/site';
 import '../styles/home-scroll.css';
 ---
 
@@ -12,25 +11,71 @@ import '../styles/home-scroll.css';
 
 	<div class="home-scroll__track">
 		<section class="scroll-panel scroll-panel--hero">
-			<header class="page-header home-scroll__header">
-				<h1>RN Racing</h1>
-				<p class="lead">
-					Official home of RN Racing. Updates, results, and media coming soon.
+			<div class="home-scroll__glow home-scroll__hero">
+				<h1 class="home-scroll__hero-title">
+					<span class="home-scroll__hero-rn">RN</span>
+					<span class="home-scroll__hero-racing">RACING</span>
+				</h1>
+				<p class="home-scroll__hero-tag">24 Hours of Lemons&ensp;·&ensp;Bay Area</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">
+					What happens when a bunch of friends from the Bay Area buy a
+					&rsquo;96&nbsp;Camry for&nbsp;$500?
 				</p>
-			</header>
-			<p class="scroll-cue">Scroll</p>
+			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
-
-		<section class="scroll-panel">
-			<section class="content-section home-scroll__card" aria-labelledby="story-heading">
-				<h2 id="story-heading">The Story</h2>
-				{STORY.map((paragraph) => <p>{paragraph}</p>)}
-			</section>
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-hero">They race it.</p>
+			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">9&nbsp;friends. 1&nbsp;car. Zero&nbsp;experience.</p>
+				<p class="home-scroll__text-sub">
+					Welcome to the 24&nbsp;Hours of Lemons&nbsp;— the world&rsquo;s most accessible
+					endurance racing series.
+				</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">
+					Born from weekend wrenching and terrible financial&nbsp;decisions.
+				</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">
+					Every&nbsp;bolt.<br />
+					Every&nbsp;lap.<br />
+					Every&nbsp;moment.
+				</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--number">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__car-number">#71</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story scroll-panel--closing">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__track-phrase">See you at the track.</p>
+			</div>
+		</section>
 	</div>
 </div>
 

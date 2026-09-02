@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import ActionCard from '../components/ActionCard.astro';
+import CopyEmailButton from '../components/CopyEmailButton.astro';
+import { getPage, pageTitle, SITE } from '../data/site';
+
+const page = getPage('/who-we-are');
+---
+
+<BaseLayout
+	title={pageTitle(page.heading)}
+	description="Who we are — support RN Racing and get in touch."
+>
+	<PageHeader
+		title={page.heading}
+		lead="RN Racing is a motorsport team building something worth following. More updates coming soon."
+	/>
+
+	<section class="action-grid" aria-label="Support and contact">
+		<ActionCard
+			title="Support the team"
+			description="Help fuel the next race weekend. Donations are not live yet — this is a preview."
+		>
+			<button type="button" class="btn-primary">Donate</button>
+		</ActionCard>
+
+		<ActionCard
+			title="Contact"
+			description="For partnerships, media, or general inquiries, reach out anytime."
+		>
+			<CopyEmailButton email={SITE.email} />
+		</ActionCard>
+
+		<ActionCard
+			title="Instagram"
+			description="Follow @_rnracing_ for race updates, behind-the-scenes content, and team news."
+		>
+			<a class="btn-primary" href={SITE.instagram} target="_blank" rel="noopener noreferrer">
+				Visit Instagram
+			</a>
+		</ActionCard>
+	</section>
+</BaseLayout>

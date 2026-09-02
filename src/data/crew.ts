@@ -1,7 +1,7 @@
 export const PLACEHOLDER_BIO =
 	'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
-export const TEAM_MEMBERS = [
+export const CREW_MEMBERS = [
 	{ name: 'Vamsi', title: 'Co-Founder' },
 	{ name: 'Rohith', title: 'Co-Founder' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
@@ -13,9 +13,9 @@ export const TEAM_MEMBERS = [
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 ] as const;
 
-export type TeamMember = (typeof TEAM_MEMBERS)[number] & { bio: string };
+export type CrewMember = (typeof CREW_MEMBERS)[number] & { bio: string };
 
-export const teamMembers: TeamMember[] = TEAM_MEMBERS.map((member) => ({
+export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	...member,
 	bio: PLACEHOLDER_BIO,
 }));

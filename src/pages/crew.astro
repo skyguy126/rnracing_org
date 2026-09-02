@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import PhotoPlaceholder from '../components/PhotoPlaceholder.astro';
+import CrewMemberModal from '../components/crew/CrewMemberModal.astro';
+import { crewMembers, getInitials } from '../data/crew';
+import { getPage, pageTitle } from '../data/site';
+import '../styles/pages/crew.css';
+
+const page = getPage('/crew');
+---
+
+<BaseLayout title={pageTitle(page.heading)} description="Meet the RN Racing crew.">
+	<main>
+		<PageHeader title={page.heading} />
+
+		<ul class="crew-grid">
+			{
+				crewMembers.map((member, index) => (
+					<li class="crew-card">
+						<button
+							type="button"
+							class="photo-trigger"
+							data-member-index={index}
+							aria-haspopup="dialog"
+							aria-label={`View profile for ${member.name}`}
+						>
+							<PhotoPlaceholder initials={getInitials(member.name)} />
+						</button>
+						<div class="crew-member-info">
+							<h2>{member.name}</h2>
+							<p>{member.title}</p>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</main>
+
+	<CrewMemberModal members={crewMembers} />
+</BaseLayout>

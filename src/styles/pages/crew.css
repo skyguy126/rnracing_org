@@ -1,0 +1,60 @@
+.crew-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+	gap: 1.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.crew-card {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.crew-member-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+}
+
+.photo-trigger {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	text-align: left;
+}
+
+.photo-trigger:hover .photo-placeholder,
+.photo-trigger:focus-visible .photo-placeholder {
+	border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
+	background:
+		linear-gradient(
+			145deg,
+			color-mix(in srgb, var(--surface) 70%, var(--blue)) 0%,
+			var(--surface) 100%
+		);
+	transform: translateY(-2px);
+}
+
+.photo-trigger:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 3px;
+	border-radius: 0.5rem;
+}
+
+.crew-member-info h2 {
+	margin: 0;
+	font-size: 1.75rem;
+}
+
+.crew-member-info p {
+	margin: 0;
+	font-size: 0.9375rem;
+	line-height: 1.55;
+	color: var(--muted);
+}

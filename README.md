@@ -25,12 +25,16 @@ npm run build
 
 ```
 src/
-├── components/   # NavBar, Footer, HomeScroll, PageHeader, etc.
-├── data/         # Site constants and team roster
-├── layouts/      # BaseLayout
-├── lib/          # Theme toggle and home scroll helpers
-├── pages/        # Routes
-└── styles/       # Global and home scroll CSS
-public/           # Static assets (frames, CNAME, favicon)
-docs/             # Built site (committed for GitHub Pages)
+├── components/       # NavBar, Footer, HomeScroll, PageHeader, etc.
+│   └── crew/         # Crew page modal
+├── data/             # Site constants (site.ts) and crew roster (crew.ts)
+├── layouts/          # BaseLayout
+├── lib/              # Theme toggle and home scroll helpers
+├── pages/            # index, timeline, crew, who-we-are
+└── styles/
+    ├── global.css
+    ├── home-scroll.css
+    └── pages/        # Per-page styles (timeline, crew)
+public/               # Static assets (frames, CNAME)
+docs/                 # Built site (committed for GitHub Pages)
 ```

@@ -11,6 +11,8 @@
 	--blue-soft: #60a5fa;
 	--layout-max-width: 72rem;
 	--content-max-width: 40rem;
+	--page-gutter: clamp(1rem, 2.5vw, 1.5rem);
+	--control-size: 2rem;
 	--font-display: 'Caveat', 'Segoe Print', cursive;
 	--font-body: 'Barlow', system-ui, -apple-system, sans-serif;
 	--display-line: 1.35;
@@ -57,12 +59,22 @@ body {
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-main {
-	flex: 1;
+.layout-inner {
 	width: 100%;
 	max-width: var(--layout-max-width);
-	margin: 0 auto;
-	padding: 4rem 1.5rem 3rem;
+	margin-inline: auto;
+	padding-inline: var(--page-gutter);
+}
+
+main.layout-inner {
+	flex: 1;
+	padding-block: 4rem 3rem;
+}
+
+@media (max-width: 640px) {
+	main.layout-inner {
+		padding-block: 3rem 2.5rem;
+	}
 }
 
 .page-header {
@@ -191,18 +203,28 @@ h3 {
 	}
 }
 
-a {
+a:where(:not(.nav-link):not(.brand)) {
 	color: var(--accent);
 	text-decoration: none;
 }
 
-a:hover {
+a:where(:not(.nav-link):not(.brand)):hover {
 	color: var(--accent-hover);
 }
 
-footer {
+.site-footer {
+	position: relative;
+	z-index: 3;
+	flex-shrink: 0;
+	width: 100%;
+	max-width: none;
+	margin-inline: 0;
 	border-top: 1px solid var(--border);
-	padding: 1.5rem;
+	background: var(--bg);
+}
+
+.site-footer__inner {
+	padding-block: 1.5rem;
 	text-align: center;
 	font-size: 0.8125rem;
 	color: var(--muted);

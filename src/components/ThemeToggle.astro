@@ -53,7 +53,6 @@
 	.theme-toggle {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
 		flex-shrink: 0;
 	}
 
@@ -83,8 +82,8 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.375rem;
-		min-width: 2.25rem;
-		height: 2rem;
+		min-width: var(--control-size);
+		height: var(--control-size);
 		padding: 0 0.625rem;
 		border: 0;
 		border-radius: 999px;
@@ -125,8 +124,7 @@
 		}
 
 		.theme-toggle-option {
-			min-width: 2rem;
-			padding: 0 0.5rem;
+			padding-inline: 0.5rem;
 		}
 	}
 </style>

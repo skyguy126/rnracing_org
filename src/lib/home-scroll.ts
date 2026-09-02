@@ -4,14 +4,15 @@ function frameSrc(index: number) {
 	return `/frames/frame-${String(index + 1).padStart(3, '0')}.jpg`;
 }
 
+/** Matches the original scroll experience timing. */
 function scrollToFrame(scroll: number) {
-	if (scroll <= 0.08) return 0;
-	if (scroll <= 0.55) {
-		const progress = (scroll - 0.08) / 0.47;
+	if (scroll <= 0.05) return 0;
+	if (scroll <= 0.45) {
+		const progress = (scroll - 0.05) / 0.4;
 		return Math.round(progress * (TOTAL_FRAMES - 1));
 	}
-	if (scroll <= 0.88) {
-		const progress = (scroll - 0.55) / 0.33;
+	if (scroll <= 0.85) {
+		const progress = (scroll - 0.45) / 0.4;
 		return Math.round((1 - progress) * (TOTAL_FRAMES - 1));
 	}
 	return 0;
@@ -28,6 +29,26 @@ function preloadFrames() {
 			});
 		}),
 	);
+}
+
+function initFadeIns(root: HTMLElement) {
+	const fadeIns = root.querySelectorAll<HTMLElement>('.home-scroll__fade-in');
+	if (!fadeIns.length) return;
+
+	const observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					entry.target.classList.add('is-visible');
+				}
+			});
+		},
+		{ threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+	);
+
+	fadeIns.forEach((element) => observer.observe(element));
+
+	return () => observer.disconnect();
 }
 
 export function initHomeScroll(root: HTMLElement) {
@@ -59,6 +80,8 @@ export function initHomeScroll(root: HTMLElement) {
 		rafId = requestAnimationFrame(updateFrame);
 	};
 
+	const disconnectFadeIns = initFadeIns(root);
+
 	preloadFrames()
 		.then((images) => {
 			frames = images;
@@ -76,5 +99,6 @@ export function initHomeScroll(root: HTMLElement) {
 	return () => {
 		cancelAnimationFrame(rafId);
 		window.removeEventListener('scroll', onScroll);
+		disconnectFadeIns?.();
 	};
 }
