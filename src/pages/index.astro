@@ -1,19 +1,23 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeader from '../components/PageHeader.astro';
-import { STORY } from '../data/site';
+import '../styles/experience.css';
+import App from '../components/experience/App';
 ---
 
-<BaseLayout>
-	<main>
-		<PageHeader
-			title="RN Racing"
-			lead="Official home of RN Racing. Updates, results, and media coming soon."
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="RN Racing — 24 Hours of Lemons | Bay Area" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap"
+			rel="stylesheet"
 		/>
-
-		<section class="content-section" aria-labelledby="story-heading">
-			<h2 id="story-heading">The Story</h2>
-			{STORY.map((paragraph) => <p>{paragraph}</p>)}
-		</section>
-	</main>
-</BaseLayout>
+		<title>RN Racing</title>
+	</head>
+	<body>
+		<App client:only="react" />
+	</body>
+</html>

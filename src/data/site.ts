@@ -7,6 +7,7 @@ export const SITE = {
 
 export const NAV_LINKS = [
 	{ href: '/', label: 'Home' },
+	{ href: '/changelog', label: 'Build Log' },
 	{ href: '/team', label: 'The Crew' },
 	{ href: '/about', label: 'Who We Are' },
 ] as const;
