@@ -4,7 +4,7 @@ export type Theme = 'light' | 'dark';
 function getThemeFromCookie(cookieString: string): Theme {
 	const match = cookieString.match(new RegExp(`(?:^|; )${THEME_COOKIE}=([^;]*)`));
 	const value = match ? decodeURIComponent(match[1]) : null;
-	return value === 'light' ? 'light' : 'dark';
+	return value === 'dark' ? 'dark' : 'light';
 }
 
 function setThemeCookie(theme: Theme) {

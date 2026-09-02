@@ -25,12 +25,12 @@ npm run build
 
 ```
 src/
-├── components/   # NavBar, Footer, PageHeader, ActionCard, etc.
+├── components/   # NavBar, Footer, HomeScroll, PageHeader, etc.
 ├── data/         # Site constants and team roster
 ├── layouts/      # BaseLayout
-├── lib/          # Theme toggle helpers
+├── lib/          # Theme toggle and home scroll helpers
 ├── pages/        # Routes
-└── styles/       # Global CSS
-public/           # Static assets copied to build output
+└── styles/       # Global and home scroll CSS
+public/           # Static assets (frames, CNAME, favicon)
 docs/             # Built site (committed for GitHub Pages)
 ```

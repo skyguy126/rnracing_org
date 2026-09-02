@@ -1,0 +1,43 @@
+---
+import { STORY } from '../data/site';
+import '../styles/home-scroll.css';
+---
+
+<div class="home-scroll" data-home-scroll>
+	<div class="home-scroll__media" aria-hidden="true">
+		<canvas class="home-scroll__canvas"></canvas>
+		<p class="home-scroll__loader">Loading…</p>
+	</div>
+	<div class="home-scroll__vignette" aria-hidden="true"></div>
+
+	<div class="home-scroll__track">
+		<section class="scroll-panel scroll-panel--hero">
+			<header class="page-header home-scroll__header">
+				<h1>RN Racing</h1>
+				<p class="lead">
+					Official home of RN Racing. Updates, results, and media coming soon.
+				</p>
+			</header>
+			<p class="scroll-cue">Scroll</p>
+		</section>
+
+		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
+
+		<section class="scroll-panel">
+			<section class="content-section home-scroll__card" aria-labelledby="story-heading">
+				<h2 id="story-heading">The Story</h2>
+				{STORY.map((paragraph) => <p>{paragraph}</p>)}
+			</section>
+		</section>
+
+		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
+	</div>
+</div>
+
+<script>
+	import { initHomeScroll } from '../lib/home-scroll';
+
+	document.querySelectorAll('[data-home-scroll]').forEach((root) => {
+		initHomeScroll(root as HTMLElement);
+	});
+</script>

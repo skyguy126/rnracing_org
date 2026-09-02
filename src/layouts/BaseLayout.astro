@@ -7,23 +7,25 @@ import { SITE } from '../data/site';
 interface Props {
 	title?: string;
 	description?: string;
+	fullWidth?: boolean;
 }
 
 const {
 	title = SITE.name,
 	description = SITE.description,
+	fullWidth = false,
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 	<head>
 		<meta charset="utf-8" />
 		<script is:inline define:vars={{ cookieName: 'rnracing-theme' }}>
 			(function () {
 				var match = document.cookie.match(new RegExp('(?:^|; )' + cookieName + '=([^;]*)'));
-				var theme = match ? decodeURIComponent(match[1]) : 'dark';
-				document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+				var theme = match ? decodeURIComponent(match[1]) : 'light';
+				document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
 			})();
 		</script>
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -40,7 +42,7 @@ const {
 	</head>
 	<body>
 		<NavBar />
-		<slot />
+		{fullWidth ? <slot /> : <main><slot /></main>}
 		<Footer />
 	</body>
 </html>
