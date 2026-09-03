@@ -1,10 +1,26 @@
 export const THEME_COOKIE = 'rnracing-theme';
 export type Theme = 'light' | 'dark';
 
+/** Solid chrome colors matching `--bg` — used by iOS Safari status bar / Dynamic Island. */
+export const THEME_CHROME: Record<Theme, string> = {
+	light: '#fafafa',
+	dark: '#09090b',
+};
+
+function applySafariChrome(theme: Theme) {
+	const themeColor = document.querySelector('meta[name="theme-color"]');
+	themeColor?.setAttribute('content', THEME_CHROME[theme]);
+
+	const statusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+	statusBar?.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
+
+	document.documentElement.style.colorScheme = theme;
+}
+
 function getThemeFromCookie(cookieString: string): Theme {
 	const match = cookieString.match(new RegExp(`(?:^|; )${THEME_COOKIE}=([^;]*)`));
 	const value = match ? decodeURIComponent(match[1]) : null;
-	return value === 'dark' ? 'dark' : 'light';
+	return value === 'light' ? 'light' : 'dark';
 }
 
 function setThemeCookie(theme: Theme) {
@@ -15,6 +31,7 @@ function setThemeCookie(theme: Theme) {
 export function setTheme(theme: Theme) {
 	document.documentElement.dataset.theme = theme;
 	setThemeCookie(theme);
+	applySafariChrome(theme);
 }
 
 export function initThemeToggle(root: HTMLElement) {

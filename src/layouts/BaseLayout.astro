@@ -18,18 +18,32 @@ const {
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="color-scheme: dark">
 	<head>
 		<meta charset="utf-8" />
+		<meta name="theme-color" content="#09090b" />
+		<meta name="color-scheme" content="dark light" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<script is:inline define:vars={{ cookieName: 'rnracing-theme' }}>
 			(function () {
 				var match = document.cookie.match(new RegExp('(?:^|; )' + cookieName + '=([^;]*)'));
 				var theme = match ? decodeURIComponent(match[1]) : 'dark';
-				document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
+				theme = theme === 'light' ? 'light' : 'dark';
+				document.documentElement.dataset.theme = theme;
+				document.documentElement.style.colorScheme = theme;
+
+				var color = theme === 'dark' ? '#09090b' : '#fafafa';
+				var themeColor = document.querySelector('meta[name="theme-color"]');
+				if (themeColor) themeColor.setAttribute('content', color);
+
+				var statusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+				if (statusBar) {
+					statusBar.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
+				}
 			})();
 		</script>
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="description" content={description} />
 		<meta name="generator" content={Astro.generator} />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
