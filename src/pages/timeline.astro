@@ -361,12 +361,11 @@ const page = getPage('/timeline');
 		const crashSparks = document.getElementById('crashSparks') as HTMLElement;
 
 		const CRASH_START = 0.45;
-		const CRASH_END   = 0.47;
+		const CRASH_END   = 0.54;
 		const CAR_HEIGHT  = 120;
 		const LEAD_GAP    = 160;
 
-		let crashScrollY  = 0;
-		let sparksFired   = false;
+		let impactScrollY = 0;
 		let bangFired     = false;
 
 		function lerp(a: number, b: number, t: number) {
@@ -400,7 +399,6 @@ const page = getPage('/timeline');
 
 			if (progress < CRASH_START) {
 				// Racing normally
-				sparksFired = false;
 				bangFired   = false;
 				crashSparks.classList.remove('active');
 				carBack.style.left = `${baseX - 30 + backWobble}px`;
@@ -408,17 +406,11 @@ const page = getPage('/timeline');
 				carBack.style.transform = 'rotate(90deg)';
 				carBack.style.opacity = '1';
 			} else {
-				// Record the scroll position when the crash sequence starts
-				if (!sparksFired) {
-					crashScrollY = scrollTop;
-					sparksFired = true;
-				}
-
 				// How far through the crash (0 → 1 over CRASH_START..CRASH_END)
 				const crashT = clamp((progress - CRASH_START) / (CRASH_END - CRASH_START), 0, 1);
 
-				// Ease-in for the drift — starts slow, accelerates into the wall
-				const easedT = crashT * crashT;
+				// Mild ease-in so the drift builds without rushing the last frames
+				const easedT = Math.pow(crashT, 1.35);
 
 				// Gradually steer the front toward the right wall
 				// 90° = nose right (racing), 65° = front angled into wall
@@ -429,23 +421,24 @@ const page = getPage('/timeline');
 				const wallX   = vw - CAR_HEIGHT * 0.4;
 				const crashX  = lerp(normalX, wallX, easedT);
 
-				// Lock vertical position to the page so it scrolls away
-				const scrollDelta = scrollTop - crashScrollY;
+				// Hold the car on screen through the impact, then let it scroll away
 				const crashYPos = lerp(-CAR_HEIGHT - LEAD_GAP, vh + CAR_HEIGHT - LEAD_GAP, CRASH_START * 1.2);
-				const lockedY = crashYPos - scrollDelta;
+				let lockedY = crashYPos;
+				if (crashT >= 1) {
+					if (!bangFired) {
+						bangFired = true;
+						impactScrollY = scrollTop;
+						crashSparks.style.left = `${vw - 10}px`;
+						crashSparks.style.top  = `${crashYPos + CAR_HEIGHT * 0.3}px`;
+						crashSparks.classList.add('active');
+						setTimeout(() => crashSparks.classList.remove('active'), 600);
+					}
+					lockedY = crashYPos - (scrollTop - impactScrollY);
+				}
 
 				carBack.style.left = `${crashX}px`;
 				carBack.style.top  = `${lockedY}px`;
 				carBack.style.transform = `rotate(${crashRot}deg)`;
-
-				// Fire the bang when it hits the wall (crashT reaches 1)
-				if (crashT >= 1 && !bangFired) {
-					bangFired = true;
-					crashSparks.style.left = `${vw - 10}px`;
-					crashSparks.style.top  = `${lockedY + CAR_HEIGHT * 0.3}px`;
-					crashSparks.classList.add('active');
-					setTimeout(() => crashSparks.classList.remove('active'), 600);
-				}
 			}
 		}
 

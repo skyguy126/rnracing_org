@@ -1,4 +1,5 @@
 ---
+import PhotoPlaceholder from '../PhotoPlaceholder.astro';
 import type { CrewMember } from '../../data/crew';
 
 interface Props {
@@ -21,10 +22,16 @@ const { members } = Astro.props;
 			<span aria-hidden="true">&times;</span>
 		</button>
 
-		<div class="member-modal-content">
-			<h2 id="member-modal-name"></h2>
-			<p class="member-modal-title" id="member-modal-title"></p>
-			<p class="member-modal-bio" id="member-modal-bio"></p>
+		<div class="member-modal-layout">
+			<div class="member-modal-photo" id="member-modal-photo">
+				<img class="member-modal-image" alt="" hidden />
+				<PhotoPlaceholder initials="RN" large />
+			</div>
+			<div class="member-modal-content">
+				<h2 id="member-modal-name"></h2>
+				<p class="member-modal-title" id="member-modal-title"></p>
+				<p class="member-modal-bio" id="member-modal-bio"></p>
+			</div>
 		</div>
 	</div>
 </div>
@@ -34,36 +41,97 @@ const { members } = Astro.props;
 <script>
 	const members = JSON.parse(
 		document.getElementById('crew-members-data')?.textContent || '[]',
-	) as Array<{ name: string; title: string; bio: string }>;
+	) as Array<{
+		name: string;
+		title: string;
+		bio: string;
+		image?: string;
+		imageFit?: 'cover' | 'contain';
+		imagePosition?: string;
+	}>;
 
 	const modal = document.querySelector('.member-modal') as HTMLDivElement | null;
 	const panel = document.querySelector('.member-modal-panel') as HTMLDivElement | null;
 	const nameEl = document.getElementById('member-modal-name');
 	const titleEl = document.getElementById('member-modal-title');
 	const bioEl = document.getElementById('member-modal-bio');
+	const photoEl = document.getElementById('member-modal-photo');
+	const photoImg = photoEl?.querySelector<HTMLImageElement>('.member-modal-image');
+	const photoPlaceholder = photoEl?.querySelector<HTMLElement>('.photo-placeholder');
 	const triggers = document.querySelectorAll<HTMLButtonElement>('.photo-trigger');
 
 	let lastFocused: HTMLElement | null = null;
+	let openRequest = 0;
+
+	const clearPhoto = () => {
+		if (!photoImg) return;
+		photoImg.hidden = true;
+		photoImg.removeAttribute('src');
+		photoImg.alt = '';
+	};
+
+	const preloadImage = (src: string) =>
+		new Promise<void>((resolve, reject) => {
+			const loader = new Image();
+			loader.onload = () => {
+				const decoded = loader.decode?.() ?? Promise.resolve();
+				decoded.then(() => resolve(), () => resolve());
+			};
+			loader.onerror = () => reject();
+			loader.src = src;
+		});
 
 	const closeModal = () => {
 		if (!modal) return;
+		openRequest += 1;
 		modal.hidden = true;
+		clearPhoto();
 		document.body.classList.remove('modal-open');
 		lastFocused?.focus();
 	};
 
-	const openModal = (index: number) => {
-		const member = members[index];
-		if (!member || !modal || !panel || !nameEl || !titleEl || !bioEl) return;
+	const revealModal = () => {
+		if (!modal || !panel) return;
+		modal.hidden = false;
+		document.body.classList.add('modal-open');
+		panel.focus();
+	};
 
+	const openModal = async (index: number) => {
+		const member = members[index];
+		if (!member || !modal || !panel || !nameEl || !titleEl || !bioEl || !photoImg || !photoPlaceholder) return;
+
+		const requestId = ++openRequest;
 		lastFocused = document.activeElement as HTMLElement | null;
 		nameEl.textContent = member.name;
 		titleEl.textContent = member.title;
 		bioEl.textContent = member.bio;
 
-		modal.hidden = false;
-		document.body.classList.add('modal-open');
-		panel.focus();
+		clearPhoto();
+		photoPlaceholder.hidden = true;
+
+		if (member.image) {
+			const src = `/team/${member.image}`;
+			try {
+				await preloadImage(src);
+			} catch {
+				/* still open with the assigned src so a broken-image state is visible */
+			}
+			if (requestId !== openRequest) return;
+
+			photoImg.src = src;
+			photoImg.alt = `${member.name} headshot`;
+			photoImg.style.objectFit = member.imageFit ?? 'cover';
+			photoImg.style.objectPosition = member.imagePosition ?? 'center 18%';
+			photoImg.hidden = false;
+			photoPlaceholder.hidden = true;
+		} else {
+			photoPlaceholder.hidden = false;
+			photoPlaceholder.querySelector('.photo-icon')!.textContent = member.name.slice(0, 2).toUpperCase();
+		}
+
+		if (requestId !== openRequest) return;
+		revealModal();
 	};
 
 	triggers.forEach((trigger) => {
@@ -102,10 +170,10 @@ const { members } = Astro.props;
 
 	.member-modal-panel {
 		position: relative;
-		width: min(100%, 42rem);
-		max-height: min(72dvh, 32rem);
+		width: min(100%, 56rem);
+		max-height: min(90dvh, 40rem);
 		overflow: auto;
-		padding: 1rem 1.25rem;
+		padding: 1.5rem;
 		border: 1px solid var(--border);
 		border-radius: 0.875rem;
 		background: var(--surface);
@@ -134,20 +202,47 @@ const { members } = Astro.props;
 		border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
 	}
 
+	.member-modal-layout {
+		display: grid;
+		grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);
+		gap: 2rem;
+		align-items: start;
+	}
+
+	.member-modal-photo {
+		min-width: 0;
+	}
+
+	.member-modal-image {
+		display: block;
+		width: 100%;
+		max-height: min(50dvh, 22rem);
+		aspect-ratio: 1 / 1;
+		object-fit: cover;
+		border: 1px solid var(--border);
+		border-radius: 0.75rem;
+		background: var(--surface);
+	}
+
+	.member-modal-image[hidden],
+	.member-modal-photo :global(.photo-placeholder[hidden]) {
+		display: none;
+	}
+
 	.member-modal-content {
 		min-width: 0;
-		padding: 1.5rem 2rem 1.5rem 0;
+		padding-right: 2rem;
 	}
 
 	.member-modal-content h2 {
-		margin: 0 0 0.375rem;
-		font-size: clamp(1.8rem, 3vw, 2.4rem);
+		margin: 0 0 0.5rem;
+		font-size: clamp(2rem, 5vw, 2.75rem);
 		line-height: 1.1;
 	}
 
 	.member-modal-title {
-		margin: 0 0 0.75rem;
-		font-size: 0.85rem;
+		margin: 0 0 1.25rem;
+		font-size: 1rem;
 		font-weight: 600;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
@@ -156,8 +251,8 @@ const { members } = Astro.props;
 
 	.member-modal-bio {
 		margin: 0;
-		font-size: 1rem;
-		line-height: 1.6;
+		font-size: 1.0625rem;
+		line-height: 1.75;
 		color: var(--muted);
 	}
 
@@ -167,11 +262,27 @@ const { members } = Astro.props;
 		}
 
 		.member-modal-panel {
-			padding: 1.25rem;
+			width: 100%;
+			max-height: min(92dvh, 44rem);
+			padding: 3.5rem 1.25rem 1.25rem;
+		}
+
+		.member-modal-layout {
+			grid-template-columns: 1fr;
+			gap: 1.25rem;
+		}
+
+		.member-modal-photo {
+			max-width: min(100%, 16rem);
+			margin: 0 auto;
+		}
+
+		.member-modal-image {
+			max-height: min(38dvh, 16rem);
 		}
 
 		.member-modal-content {
-			padding: 1rem 0;
+			padding-right: 0;
 		}
 	}
 </style>

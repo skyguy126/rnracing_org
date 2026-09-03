@@ -3,12 +3,7 @@
 .home-scroll {
 	position: relative;
 	--scroll-font: 'Barlow Condensed', 'Barlow', sans-serif;
-	--scroll-glow-solid: color-mix(in srgb, var(--bg) 94%, transparent);
-	--scroll-glow-mid: color-mix(in srgb, var(--bg) 72%, transparent);
-	--scroll-glow-soft: color-mix(in srgb, var(--bg) 38%, transparent);
-	--scroll-glow-size-x: 135%;
-	--scroll-glow-size-y: 155%;
-	--scroll-glow-feather-end: 96%;
+	--scroll-glow-solid: color-mix(in srgb, var(--bg) 88%, transparent);
 	--scroll-text-muted: color-mix(in srgb, var(--text) 50%, transparent);
 }
 
@@ -81,16 +76,26 @@
 }
 
 .home-scroll__glow {
+	position: relative;
+	isolation: isolate;
 	max-width: 52rem;
 	padding: 3.5rem 2.75rem;
 	text-align: center;
-	background: radial-gradient(
-		ellipse var(--scroll-glow-size-x) var(--scroll-glow-size-y) at center,
-		var(--scroll-glow-solid) 0%,
-		var(--scroll-glow-mid) 40%,
-		var(--scroll-glow-soft) 62%,
-		transparent var(--scroll-glow-feather-end)
-	);
+}
+
+.home-scroll__glow::before {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 90%;
+	height: 170%;
+	translate: -50% -50%;
+	z-index: -1;
+	border-radius: 50%;
+	background: var(--scroll-glow-solid);
+	filter: blur(96px);
+	pointer-events: none;
 }
 
 .home-scroll__hero {
@@ -204,8 +209,6 @@
 
 	.home-scroll__glow {
 		padding: 2.5rem 1.5rem;
-		--scroll-glow-size-x: 145%;
-		--scroll-glow-size-y: 165%;
 	}
 
 	.home-scroll__car-number {

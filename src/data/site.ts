@@ -3,6 +3,8 @@ export const SITE = {
 	description: 'RN Racing — motorsport team. More coming soon.',
 	email: 'hello@rnracing.org',
 	instagram: 'https://www.instagram.com/_rnracing_/',
+	twitter: 'https://x.com/24HoursOfLemons',
+	github: 'https://github.com',
 } as const;
 
 /** The four site pages — single source of truth for nav labels, routes, and headings. */
