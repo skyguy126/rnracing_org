@@ -122,7 +122,7 @@ const { members } = Astro.props;
 			photoImg.src = src;
 			photoImg.alt = `${member.name} headshot`;
 			photoImg.style.objectFit = member.imageFit ?? 'cover';
-			photoImg.style.objectPosition = member.imagePosition ?? 'center 18%';
+			photoImg.style.objectPosition = member.imagePosition ?? 'center';
 			photoImg.hidden = false;
 			photoPlaceholder.hidden = true;
 		} else {

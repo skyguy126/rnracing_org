@@ -34,7 +34,7 @@
 	width: 100%;
 	aspect-ratio: 1 / 1;
 	object-fit: cover;
-	object-position: center 18%;
+	object-position: center;
 	border: 1px solid var(--border);
 	border-radius: 0.5rem;
 	background: var(--surface);

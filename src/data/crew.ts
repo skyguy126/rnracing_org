@@ -6,10 +6,11 @@ export const CREW_MEMBERS = [
 	{ name: 'Rohith', title: 'Co-Founder' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
 	{ name: 'Nyle', title: 'CEO & Team Captain' },
-	{ name: 'Danial', title: 'Lead Chirp Systems Engineer' },
+	{ name: 'Danial', title: 'Chirp Systems Engineer' },
 	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
+	{ name: 'Jaime', title: 'General Counsel, Diversity' },
 	{ name: 'Vasu', title: 'Garage Supervisor — Section 8' },
-	{ name: 'Sid', title: 'HR Intern (Reports to Kamran)' },
+	{ name: 'Sid', title: 'Intern, Human Resources' },
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 ] as const;
 
@@ -20,21 +21,23 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Nyle: 'Nyle.jpeg',
 	Danial: 'Danial.jpeg',
 	Varoon: 'Varoon.jpeg',
+	Jaime: 'Jaime.JPG',
 	Vasu: 'Vasu.jpg',
 	Sid: 'Sid.jpeg',
 	Baggy: 'Baggy.jpeg',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
-	Vamsi: { fit: 'cover', position: 'center 50%' },
-	Rohith: { fit: 'cover', position: 'center 18%' },
-	Kamran: { fit: 'cover', position: 'center 18%' },
-	Nyle: { fit: 'cover', position: 'center 10%' },
-	Danial: { fit: 'cover', position: 'center 18%' },
-	Varoon: { fit: 'cover', position: 'center 18%' },
-	Vasu: { fit: 'cover', position: 'center 18%' },
-	Sid: { fit: 'cover', position: 'center 18%' },
-	Baggy: { fit: 'cover', position: 'center 18%' },
+	Vamsi: { fit: 'cover', position: 'center' },
+	Rohith: { fit: 'cover', position: 'center' },
+	Kamran: { fit: 'cover', position: 'center' },
+	Nyle: { fit: 'cover', position: 'center' },
+	Danial: { fit: 'cover', position: 'center' },
+	Varoon: { fit: 'cover', position: 'center' },
+	Jaime: { fit: 'cover', position: 'center' },
+	Vasu: { fit: 'cover', position: 'center' },
+	Sid: { fit: 'cover', position: 'center' },
+	Baggy: { fit: 'cover', position: 'center' },
 };
 
 const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }> = {
@@ -44,6 +47,7 @@ const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }
 	Nyle: { x: 52, y: 35, scale: 0.5 },
 	Danial: { x: 50, y: 40, scale: 1.12 },
 	Varoon: { x: 50, y: 40, scale: 1.1 },
+	Jaime: { x: 50, y: 50, scale: 1 },
 	Vasu: { x: 50, y: 40, scale: 1.1 },
 	Sid: { x: 50, y: 45, scale: 1.1 },
 	Baggy: { x: 50, y: 45, scale: 1.1 },
@@ -78,7 +82,7 @@ export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	bio: BIO_BY_NAME[member.name] ?? PLACEHOLDER_BIO,
 	image: PHOTO_BY_NAME[member.name],
 	imageFit: PHOTO_STYLE_BY_NAME[member.name]?.fit ?? 'cover',
-	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center 18%',
+	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center',
 	modalCrop: MODAL_CROP_BY_NAME[member.name] ?? { x: 50, y: 50, scale: 1 },
 }));
 

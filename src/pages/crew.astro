@@ -30,7 +30,7 @@ const page = getPage('/crew');
 									class="crew-photo"
 									src={`/team/${member.image}`}
 									alt={`${member.name} headshot`}
-									style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center 18%'};`}
+									style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
 								/>
 							) : (
 								<PhotoPlaceholder initials={getInitials(member.name)} />
