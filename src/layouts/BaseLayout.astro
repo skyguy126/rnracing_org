@@ -18,13 +18,13 @@ const {
 ---
 
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 	<head>
 		<meta charset="utf-8" />
 		<script is:inline define:vars={{ cookieName: 'rnracing-theme' }}>
 			(function () {
 				var match = document.cookie.match(new RegExp('(?:^|; )' + cookieName + '=([^;]*)'));
-				var theme = match ? decodeURIComponent(match[1]) : 'light';
+				var theme = match ? decodeURIComponent(match[1]) : 'dark';
 				document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
 			})();
 		</script>

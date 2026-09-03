@@ -25,7 +25,16 @@ const page = getPage('/crew');
 							aria-haspopup="dialog"
 							aria-label={`View profile for ${member.name}`}
 						>
-							<PhotoPlaceholder initials={getInitials(member.name)} />
+							{member.image ? (
+								<img
+									class="crew-photo"
+									src={`/team/${member.image}`}
+									alt={`${member.name} headshot`}
+									style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center 18%'};`}
+								/>
+							) : (
+								<PhotoPlaceholder initials={getInitials(member.name)} />
+							)}
 						</button>
 						<div class="crew-member-info">
 							<h2>{member.name}</h2>

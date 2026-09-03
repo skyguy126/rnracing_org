@@ -346,4 +346,194 @@ const page = getPage('/timeline');
 		</section>
 
 	</main>
+	<!-- Racing cars overlay -->
+	<div class="race-track" aria-hidden="true">
+		<img src="/car-fish.png" alt="" class="race-car car-front" id="carFront" />
+		<img src="/car-71.png" alt="" class="race-car car-back" id="carBack" />
+		<div class="crash-sparks" id="crashSparks"></div>
+	</div>
 </BaseLayout>
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const carFront = document.getElementById('carFront') as HTMLImageElement;
+		const carBack = document.getElementById('carBack') as HTMLImageElement;
+		const crashSparks = document.getElementById('crashSparks') as HTMLElement;
+
+		const CRASH_START = 0.45;
+		const CRASH_END   = 0.47;
+		const CAR_HEIGHT  = 120;
+		const LEAD_GAP    = 160;
+
+		let crashScrollY  = 0;
+		let sparksFired   = false;
+		let bangFired     = false;
+
+		function lerp(a: number, b: number, t: number) {
+			return a + (b - a) * t;
+		}
+		function clamp(v: number, lo: number, hi: number) {
+			return Math.max(lo, Math.min(hi, v));
+		}
+
+		function updateCars() {
+			const scrollTop = window.scrollY;
+			const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+			const progress  = Math.min(scrollTop / docHeight, 1);
+
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+
+			const baseX = vw - 180;
+
+			// ── Front car: races top → bottom, always ahead ──
+			const frontY = lerp(-CAR_HEIGHT, vh + CAR_HEIGHT, progress * 1.2);
+			const frontWobble = Math.sin(progress * 80) * 5;
+
+			carFront.style.left = `${baseX + frontWobble}px`;
+			carFront.style.top  = `${Math.min(frontY, vh + CAR_HEIGHT)}px`;
+			carFront.style.opacity = frontY > vh + CAR_HEIGHT ? '0' : '1';
+
+			// ── Back car ──
+			const backY = lerp(-CAR_HEIGHT - LEAD_GAP, vh + CAR_HEIGHT - LEAD_GAP, progress * 1.2);
+			const backWobble = Math.sin(progress * 80 + 1.5) * 6;
+
+			if (progress < CRASH_START) {
+				// Racing normally
+				sparksFired = false;
+				bangFired   = false;
+				crashSparks.classList.remove('active');
+				carBack.style.left = `${baseX - 30 + backWobble}px`;
+				carBack.style.top  = `${backY}px`;
+				carBack.style.transform = 'rotate(90deg)';
+				carBack.style.opacity = '1';
+			} else {
+				// Record the scroll position when the crash sequence starts
+				if (!sparksFired) {
+					crashScrollY = scrollTop;
+					sparksFired = true;
+				}
+
+				// How far through the crash (0 → 1 over CRASH_START..CRASH_END)
+				const crashT = clamp((progress - CRASH_START) / (CRASH_END - CRASH_START), 0, 1);
+
+				// Ease-in for the drift — starts slow, accelerates into the wall
+				const easedT = crashT * crashT;
+
+				// Gradually steer the front toward the right wall
+				// 90° = nose right (racing), 65° = front angled into wall
+				const crashRot = lerp(90, 65, easedT);
+
+				// Drift toward the right edge
+				const normalX = baseX - 30;
+				const wallX   = vw - CAR_HEIGHT * 0.4;
+				const crashX  = lerp(normalX, wallX, easedT);
+
+				// Lock vertical position to the page so it scrolls away
+				const scrollDelta = scrollTop - crashScrollY;
+				const crashYPos = lerp(-CAR_HEIGHT - LEAD_GAP, vh + CAR_HEIGHT - LEAD_GAP, CRASH_START * 1.2);
+				const lockedY = crashYPos - scrollDelta;
+
+				carBack.style.left = `${crashX}px`;
+				carBack.style.top  = `${lockedY}px`;
+				carBack.style.transform = `rotate(${crashRot}deg)`;
+
+				// Fire the bang when it hits the wall (crashT reaches 1)
+				if (crashT >= 1 && !bangFired) {
+					bangFired = true;
+					crashSparks.style.left = `${vw - 10}px`;
+					crashSparks.style.top  = `${lockedY + CAR_HEIGHT * 0.3}px`;
+					crashSparks.classList.add('active');
+					setTimeout(() => crashSparks.classList.remove('active'), 600);
+				}
+			}
+		}
+
+		window.addEventListener('scroll', () => requestAnimationFrame(updateCars));
+		window.addEventListener('resize', () => requestAnimationFrame(updateCars));
+		updateCars();
+	});
+</script>
+
+<style>
+	/* ── Racing cars ── */
+	.race-track {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 50;
+		overflow: hidden;
+	}
+
+	.race-car {
+		position: absolute;
+		width: 120px;
+		height: auto;
+		transition: opacity 0.3s ease;
+		will-change: left, top, transform;
+		filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+	}
+
+	/* Top-down PNGs have the front bumper at image-top.
+	   rotate(90deg) swings that edge to the right → car nose faces right. */
+	.car-front {
+		transform: rotate(90deg);
+		z-index: 2;
+	}
+
+	.car-back {
+		transform: rotate(90deg);
+		z-index: 1;
+	}
+
+	/* crashed class no longer needed — JS drives the gradual rotation */
+
+	/* Spark burst on crash */
+	.crash-sparks {
+		position: absolute;
+		width: 40px;
+		height: 40px;
+		pointer-events: none;
+		z-index: 3;
+		opacity: 0;
+		border-radius: 50%;
+	}
+
+	.crash-sparks.active {
+		animation: spark-burst 0.6s ease-out forwards;
+	}
+
+	@keyframes spark-burst {
+		0% {
+			opacity: 1;
+			box-shadow:
+				0 0 8px 4px rgba(255, 200, 50, 0.9),
+				0 0 20px 8px rgba(255, 150, 0, 0.6),
+				0 0 40px 16px rgba(255, 100, 0, 0.3);
+			transform: scale(0.5);
+		}
+		50% {
+			opacity: 0.8;
+			box-shadow:
+				0 0 12px 6px rgba(255, 200, 50, 0.7),
+				0 0 30px 12px rgba(255, 150, 0, 0.4),
+				0 0 60px 24px rgba(255, 100, 0, 0.2);
+			transform: scale(1.2);
+		}
+		100% {
+			opacity: 0;
+			box-shadow:
+				0 0 4px 2px rgba(255, 200, 50, 0),
+				0 0 10px 4px rgba(255, 150, 0, 0),
+				0 0 20px 8px rgba(255, 100, 0, 0);
+			transform: scale(2);
+		}
+	}
+
+	/* Hide on very small screens where it'd be distracting */
+	@media (max-width: 480px) {
+		.race-track { display: none; }
+	}
+
+	/* ── Build log styles ── */
+</style>
