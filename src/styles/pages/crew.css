@@ -39,7 +39,6 @@
 	border-radius: 0.5rem;
 	background: var(--surface);
 	transition:
-		border-color 0.15s ease,
 		background 0.15s ease,
 		transform 0.15s ease;
 }
@@ -53,7 +52,6 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 .photo-trigger:hover .crew-photo,
 .photo-trigger:focus-visible .photo-placeholder,
 .photo-trigger:focus-visible .crew-photo {
-	border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
 	background:
 		linear-gradient(
 			145deg,
