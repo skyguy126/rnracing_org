@@ -44,6 +44,11 @@
 		transform 0.15s ease;
 }
 
+html[data-theme='light'] .crew-photo[data-theme-photo='dark'],
+html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
+	display: none;
+}
+
 .photo-trigger:hover .photo-placeholder,
 .photo-trigger:hover .crew-photo,
 .photo-trigger:focus-visible .photo-placeholder,

@@ -26,12 +26,23 @@ const page = getPage('/crew');
 							aria-label={`View profile for ${member.name}`}
 						>
 							{member.image ? (
-								<img
-									class="crew-photo"
-									src={`/team/${member.image}`}
-									alt={`${member.name} headshot`}
-									style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
-								/>
+								<>
+									<img
+										class="crew-photo"
+										data-theme-photo="dark"
+										src={`/team/${member.image}`}
+										alt={`${member.name} headshot`}
+										style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
+									/>
+									<img
+										class="crew-photo"
+										data-theme-photo="light"
+										src={`/team/light/${member.image}`}
+										alt=""
+										aria-hidden="true"
+										style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
+									/>
+								</>
 							) : (
 								<PhotoPlaceholder initials={getInitials(member.name)} />
 							)}

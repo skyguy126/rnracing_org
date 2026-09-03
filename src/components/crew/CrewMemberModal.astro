@@ -24,7 +24,8 @@ const { members } = Astro.props;
 
 		<div class="member-modal-layout">
 			<div class="member-modal-photo" id="member-modal-photo">
-				<img class="member-modal-image" alt="" hidden />
+				<img class="member-modal-image" data-theme-photo="dark" alt="" hidden />
+				<img class="member-modal-image" data-theme-photo="light" alt="" hidden />
 				<PhotoPlaceholder initials="RN" large />
 			</div>
 			<div class="member-modal-content">
@@ -56,18 +57,22 @@ const { members } = Astro.props;
 	const titleEl = document.getElementById('member-modal-title');
 	const bioEl = document.getElementById('member-modal-bio');
 	const photoEl = document.getElementById('member-modal-photo');
-	const photoImg = photoEl?.querySelector<HTMLImageElement>('.member-modal-image');
+	const photoImgs = photoEl?.querySelectorAll<HTMLImageElement>('.member-modal-image');
 	const photoPlaceholder = photoEl?.querySelector<HTMLElement>('.photo-placeholder');
 	const triggers = document.querySelectorAll<HTMLButtonElement>('.photo-trigger');
 
 	let lastFocused: HTMLElement | null = null;
 	let openRequest = 0;
 
+	const photoSrc = (filename: string, theme: string) =>
+		theme === 'light' ? `/team/light/${filename}` : `/team/${filename}`;
+
 	const clearPhoto = () => {
-		if (!photoImg) return;
-		photoImg.hidden = true;
-		photoImg.removeAttribute('src');
-		photoImg.alt = '';
+		photoImgs?.forEach((photoImg) => {
+			photoImg.hidden = true;
+			photoImg.removeAttribute('src');
+			photoImg.alt = '';
+		});
 	};
 
 	const preloadImage = (src: string) =>
@@ -99,7 +104,7 @@ const { members } = Astro.props;
 
 	const openModal = async (index: number) => {
 		const member = members[index];
-		if (!member || !modal || !panel || !nameEl || !titleEl || !bioEl || !photoImg || !photoPlaceholder) return;
+		if (!member || !modal || !panel || !nameEl || !titleEl || !bioEl || !photoImgs?.length || !photoPlaceholder) return;
 
 		const requestId = ++openRequest;
 		lastFocused = document.activeElement as HTMLElement | null;
@@ -111,19 +116,25 @@ const { members } = Astro.props;
 		photoPlaceholder.hidden = true;
 
 		if (member.image) {
-			const src = `/team/${member.image}`;
 			try {
-				await preloadImage(src);
+				await Promise.all(
+					[...photoImgs].map((photoImg) =>
+						preloadImage(photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark')),
+					),
+				);
 			} catch {
 				/* still open with the assigned src so a broken-image state is visible */
 			}
 			if (requestId !== openRequest) return;
 
-			photoImg.src = src;
-			photoImg.alt = `${member.name} headshot`;
-			photoImg.style.objectFit = member.imageFit ?? 'cover';
-			photoImg.style.objectPosition = member.imagePosition ?? 'center';
-			photoImg.hidden = false;
+			photoImgs.forEach((photoImg) => {
+				const isDark = photoImg.dataset.themePhoto !== 'light';
+				photoImg.src = photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark');
+				photoImg.alt = isDark ? `${member.name} headshot` : '';
+				photoImg.style.objectFit = member.imageFit ?? 'cover';
+				photoImg.style.objectPosition = member.imagePosition ?? 'center';
+				photoImg.hidden = false;
+			});
 			photoPlaceholder.hidden = true;
 		} else {
 			photoPlaceholder.hidden = false;
@@ -226,6 +237,11 @@ const { members } = Astro.props;
 
 	.member-modal-image[hidden],
 	.member-modal-photo :global(.photo-placeholder[hidden]) {
+		display: none;
+	}
+
+	:global(html[data-theme='light']) .member-modal-image[data-theme-photo='dark'],
+	:global(html[data-theme='dark']) .member-modal-image[data-theme-photo='light'] {
 		display: none;
 	}
 
