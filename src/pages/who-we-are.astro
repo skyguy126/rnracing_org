@@ -10,19 +10,21 @@ const page = getPage('/who-we-are');
 
 <BaseLayout
 	title={pageTitle(page.heading)}
-	description="Who we are — support RN Racing and get in touch."
+	description="Who we are — contribute to RN Racing and get in touch."
 >
 	<PageHeader
 		title={page.heading}
 		lead="The Camry is hitting the track but this page is still catching up. Stay tuned."
 	/>
 
-	<section class="action-grid" aria-label="Support and contact">
+	<section class="action-grid" aria-label="Contribute and contact">
 		<ActionCard
-			title="Support the team"
-			description="Help fuel the next race weekend. Donations are not live yet — this is a preview."
+			title="Contribute"
+			description="We take PRs more seriously than Venmo — for now. The firmware is open, break something useful."
 		>
-			<button type="button" class="btn-primary">Donate</button>
+			<a class="btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
+				Open GitHub
+			</a>
 		</ActionCard>
 
 		<ActionCard

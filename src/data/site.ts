@@ -4,7 +4,7 @@ export const SITE = {
 	email: 'hello@rnracing.org',
 	instagram: 'https://www.instagram.com/_rnracing_/',
 	twitter: 'https://x.com/24HoursOfLemons',
-	github: 'https://github.com',
+	github: 'https://github.com/skyguy126/rnracing',
 } as const;
 
 /** The four site pages — single source of truth for nav labels, routes, and headings. */
