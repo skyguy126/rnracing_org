@@ -9,7 +9,7 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 <header class="site-header" data-nav-menu>
 	<nav class="nav" aria-label="Main navigation">
 		<a class="brand" href="/">
-			<span class="brand-mark" aria-hidden="true">RN</span>
+			<img class="brand-mark" src="/rn-racing-logo.png" alt="" aria-hidden="true" />
 			<span class="brand-name">RN Racing</span>
 		</a>
 
@@ -120,18 +120,11 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	}
 
 	.brand-mark {
-		display: grid;
-		place-items: center;
+		display: block;
 		flex-shrink: 0;
-		width: var(--control-size);
+		width: auto;
 		height: var(--control-size);
-		border: 1px solid var(--border);
-		border-radius: 0.375rem;
-		color: var(--blue);
-		font-family: var(--font-display);
-		font-size: 0.9375rem;
-		font-weight: 600;
-		line-height: 1;
+		object-fit: contain;
 	}
 
 	.brand-name {
