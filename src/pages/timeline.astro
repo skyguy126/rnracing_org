@@ -9,13 +9,43 @@ const page = getPage('/timeline');
 
 <BaseLayout
 	title={pageTitle(page.heading)}
-	description="Season 1 timeline — a day-by-day record of every modification made to the RN Racing car."
+	description="Season-by-season timeline of every modification made to the RN Racing car."
 >
 	<main>
 		<PageHeader
 			title={page.heading}
-			lead="Season 1 — a complete record of every wrench turn, every bolt torqued, and every part swapped on the build."
+			lead="This was typed by humans. We promise."
 		/>
+
+		<div class="season-switcher" data-season-tabs>
+			<div class="season-tabs" role="tablist" aria-label="Seasons" data-active="1">
+				<span class="season-tabs__indicator" aria-hidden="true"></span>
+				<button
+					type="button"
+					class="season-tab"
+					role="tab"
+					id="tab-season-1"
+					aria-controls="panel-season-1"
+					aria-selected="true"
+					tabindex="0"
+				>
+					Season 1
+				</button>
+				<button
+					type="button"
+					class="season-tab"
+					role="tab"
+					id="tab-season-2"
+					aria-controls="panel-season-2"
+					aria-selected="false"
+					tabindex="-1"
+				>
+					Season 2
+				</button>
+			</div>
+
+			<div id="panel-season-1" class="season-panel" role="tabpanel" aria-labelledby="tab-season-1">
+				<p class="season-intro">A complete record of every wrench turn, every bolt torqued, and every part swapped on the build. And you're Mickey Mouse.</p>
 
 		<!-- ───────────────────────── PHASE 1 — STRIP ───────────────────────── -->
 		<section class="log-phase" aria-labelledby="phase-1">
@@ -387,6 +417,96 @@ const page = getPage('/timeline');
 				</ul>
 			</article>
 		</section>
+			</div>
+
+			<div id="panel-season-2" class="season-panel" role="tabpanel" aria-labelledby="tab-season-2" hidden>
+				<section class="log-phase" aria-labelledby="season-2-phase">
+					<h2 id="season-2-phase">Season 2</h2>
+					<p class="phase-summary">Unfinished. Check back later. Actually please don't.</p>
+
+					<article class="log-entry">
+						<div class="log-date">
+							<span class="day-number">Why are you still reading?</span>
+						</div>
+						<ul>
+							<li>Get back to work.</li>
+						</ul>
+					</article>
+				</section>
+			</div>
+
+			<script is:inline>
+				(function () {
+					var root = document.currentScript.parentElement;
+					var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+					var tablist = root.querySelector('[role="tablist"]');
+
+					function idFromHash() {
+						return location.hash === '#season-2' ? 'season-2' : 'season-1';
+					}
+
+					function select(id, options) {
+						var updateHash = !options || options.updateHash !== false;
+						var fromClick = options && options.fromClick;
+
+						tabs.forEach(function (tab) {
+							var selected = tab.id === 'tab-' + id;
+							tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+							tab.tabIndex = selected ? 0 : -1;
+							var panel = document.getElementById(tab.getAttribute('aria-controls'));
+							if (!panel) return;
+							if (selected) panel.removeAttribute('hidden');
+							else panel.setAttribute('hidden', '');
+						});
+
+						tablist.setAttribute('data-active', id === 'season-2' ? '2' : '1');
+
+						if (updateHash) {
+							var nextHash = id === 'season-2' ? '#season-2' : '';
+							if (location.hash !== nextHash) {
+								history.pushState(null, '', nextHash || location.pathname + location.search);
+							}
+						}
+
+						if (fromClick) {
+							var top = root.getBoundingClientRect().top + window.scrollY - 88;
+							if (window.scrollY > top + 8) {
+								window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+							}
+						}
+
+						window.dispatchEvent(new Event('resize'));
+					}
+
+					tabs.forEach(function (tab, index) {
+						tab.addEventListener('click', function () {
+							select(tab.id.replace('tab-', ''), { fromClick: true });
+							tab.focus();
+						});
+
+						tab.addEventListener('keydown', function (event) {
+							var next = index;
+							if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % tabs.length;
+							else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + tabs.length) % tabs.length;
+							else if (event.key === 'Home') next = 0;
+							else if (event.key === 'End') next = tabs.length - 1;
+							else return;
+
+							event.preventDefault();
+							var target = tabs[next];
+							select(target.id.replace('tab-', ''), { fromClick: true });
+							target.focus();
+						});
+					});
+
+					window.addEventListener('popstate', function () {
+						select(idFromHash(), { updateHash: false });
+					});
+
+					select(idFromHash(), { updateHash: false });
+				})();
+			</script>
+		</div>
 
 	</main>
 	<!-- Racing cars overlay -->
@@ -421,7 +541,7 @@ const page = getPage('/timeline');
 		function updateCars() {
 			const scrollTop = window.scrollY;
 			const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-			const progress  = Math.min(scrollTop / docHeight, 1);
+			const progress  = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
 
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;

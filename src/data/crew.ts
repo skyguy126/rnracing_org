@@ -3,8 +3,8 @@ export const PLACEHOLDER_BIO =
 
 export const CREW_MEMBERS = [
 	{ name: 'Nyle', title: 'Executive Chair' },
-	{ name: 'Vamsi', title: 'Dictator' },
-	{ name: 'Rohith', title: 'The Other Dictator' },
+	{ name: 'Rohith', title: 'Dictator, Day Shift' },
+	{ name: 'Vamsi', title: 'Dictator, Night Shift' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
 	{ name: 'Sid', title: 'Intern, Human Resources' },
 	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
