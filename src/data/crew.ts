@@ -2,15 +2,15 @@ export const PLACEHOLDER_BIO =
 	'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
 export const CREW_MEMBERS = [
-	{ name: 'Vamsi', title: 'Co-Founder' },
-	{ name: 'Rohith', title: 'Co-Founder' },
+	{ name: 'Nyle', title: 'Executive Chair' },
+	{ name: 'Vamsi', title: 'Dictator' },
+	{ name: 'Rohith', title: 'The Other Dictator' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
-	{ name: 'Nyle', title: 'CEO & Team Captain' },
-	{ name: 'Danial', title: 'Chirp Systems Engineer' },
+	{ name: 'Sid', title: 'Intern, Human Resources' },
 	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
 	{ name: 'Jaime', title: 'General Counsel, Diversity' },
-	{ name: 'Vasu', title: 'Garage Supervisor — Section 8' },
-	{ name: 'Sid', title: 'Intern, Human Resources' },
+	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
+	{ name: 'Danial', title: 'Director of Chirping' },
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 ] as const;
 
