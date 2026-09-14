@@ -63,6 +63,7 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Vasu: 'Every car needs a home and every garage needs a guardian. Vasu ensures that the garage runs smoothly and is a place where serious business (absolute chaos) can always be conducted.',
 	Sid: 'Human resources is so important to us, we brought Sid in as a specialist to ensure the team remains well-supported and compliant (we all love each other, we swear).',
 	Baggy: 'Baggy keeps the team fired up, using carefully orchestrated ragebait to push the team to perform at their best, usually out of spite and frustration with him.',
+	Jaime: 'Jaime is a true champion of diversity and inclusion, ensuring that the team remains welcoming and supportive to all, no matter their background or identity.',
 };
 
 export type CrewMember = (typeof CREW_MEMBERS)[number] & {
