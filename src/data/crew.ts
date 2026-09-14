@@ -15,22 +15,16 @@ export const CREW_MEMBERS = [
 ] as const;
 
 const PHOTO_BY_NAME: Partial<Record<string, string>> = {
-	Vamsi: 'Vamsi.png',
+	Vamsi: 'Vamsi.jpeg',
 	Rohith: 'Rohith.png',
 	Kamran: 'Kamran.jpeg',
 	Nyle: 'Nyle.jpeg',
 	Danial: 'Danial.jpeg',
-	Varoon: 'Varoon.png',
-	Jaime: 'Jaime.png',
+	Varoon: 'Varoon.jpeg',
+	Jaime: 'Jaime.jpeg',
 	Vasu: 'Vasu.jpg',
 	Sid: 'Sid.jpeg',
 	Baggy: 'Baggy.jpeg',
-};
-
-const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
-	Vamsi: 'Vamsi_light.png',
-	Varoon: 'Varoon_light.png',
-	Jaime: 'Jaime_light.png',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
@@ -89,7 +83,6 @@ export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	...member,
 	bio: BIO_BY_NAME[member.name] ?? PLACEHOLDER_BIO,
 	image: PHOTO_BY_NAME[member.name],
-	lightImage: LIGHT_PHOTO_BY_NAME[member.name],
 	imageFit: PHOTO_STYLE_BY_NAME[member.name]?.fit ?? 'cover',
 	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center',
 	modalCrop: MODAL_CROP_BY_NAME[member.name] ?? { x: 50, y: 50, scale: 1 },
