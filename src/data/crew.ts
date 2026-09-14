@@ -29,6 +29,8 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 
 const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Vamsi: 'Vamsi_light.png',
+	Varoon: 'Varoon_light.png',
+	Jaime: 'Jaime_light.png',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
