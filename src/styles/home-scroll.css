@@ -4,7 +4,13 @@
 	position: relative;
 	--scroll-font: 'Barlow Condensed', 'Barlow', sans-serif;
 	--scroll-glow-solid: color-mix(in srgb, var(--bg) 88%, transparent);
+	--scroll-glow-blur: 96px;
 	--scroll-text-muted: color-mix(in srgb, var(--text) 50%, transparent);
+}
+
+[data-theme='light'] .home-scroll {
+	--scroll-glow-solid: color-mix(in srgb, var(--bg) 68%, transparent);
+	--scroll-glow-blur: 168px;
 }
 
 .home-scroll__media,
@@ -94,7 +100,7 @@
 	z-index: -1;
 	border-radius: 50%;
 	background: var(--scroll-glow-solid);
-	filter: blur(96px);
+	filter: blur(var(--scroll-glow-blur));
 	pointer-events: none;
 }
 
