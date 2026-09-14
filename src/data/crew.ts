@@ -21,7 +21,7 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Nyle: 'Nyle.jpeg',
 	Danial: 'Danial.jpeg',
 	Varoon: 'Varoon.png',
-	Jaime: 'Jaime.JPG',
+	Jaime: 'Jaime.png',
 	Vasu: 'Vasu.jpg',
 	Sid: 'Sid.jpeg',
 	Baggy: 'Baggy.jpeg',
