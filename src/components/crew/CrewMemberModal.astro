@@ -47,6 +47,7 @@ const { members } = Astro.props;
 		title: string;
 		bio: string;
 		image?: string;
+		lightImage?: string;
 		imageFit?: 'cover' | 'contain';
 		imagePosition?: string;
 	}>;
@@ -64,8 +65,8 @@ const { members } = Astro.props;
 	let lastFocused: HTMLElement | null = null;
 	let openRequest = 0;
 
-	const photoSrc = (filename: string, theme: string) =>
-		theme === 'light' ? `/team/light/${filename}` : `/team/${filename}`;
+	const photoSrc = (filename: string, lightFilename: string | undefined, theme: string) =>
+		theme === 'light' ? `/team/light/${lightFilename ?? filename}` : `/team/${filename}`;
 
 	const clearPhoto = () => {
 		photoImgs?.forEach((photoImg) => {
@@ -119,7 +120,7 @@ const { members } = Astro.props;
 			try {
 				await Promise.all(
 					[...photoImgs].map((photoImg) =>
-						preloadImage(photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark')),
+						preloadImage(photoSrc(member.image!, member.lightImage, photoImg.dataset.themePhoto || 'dark')),
 					),
 				);
 			} catch {
@@ -129,7 +130,7 @@ const { members } = Astro.props;
 
 			photoImgs.forEach((photoImg) => {
 				const isDark = photoImg.dataset.themePhoto !== 'light';
-				photoImg.src = photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark');
+				photoImg.src = photoSrc(member.image!, member.lightImage, photoImg.dataset.themePhoto || 'dark');
 				photoImg.alt = isDark ? `${member.name} headshot` : '';
 				photoImg.style.objectFit = member.imageFit ?? 'cover';
 				photoImg.style.objectPosition = member.imagePosition ?? 'center';

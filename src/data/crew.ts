@@ -27,6 +27,10 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Baggy: 'Baggy.jpeg',
 };
 
+const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
+	Vamsi: 'Vamsi_light.png',
+};
+
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
 	Vamsi: { fit: 'cover', position: 'center' },
 	Rohith: { fit: 'cover', position: 'center' },
@@ -69,6 +73,7 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 export type CrewMember = (typeof CREW_MEMBERS)[number] & {
 	bio: string;
 	image?: string;
+	lightImage?: string;
 	imageFit?: 'cover' | 'contain';
 	imagePosition?: string;
 	modalCrop?: {
@@ -82,6 +87,7 @@ export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	...member,
 	bio: BIO_BY_NAME[member.name] ?? PLACEHOLDER_BIO,
 	image: PHOTO_BY_NAME[member.name],
+	lightImage: LIGHT_PHOTO_BY_NAME[member.name],
 	imageFit: PHOTO_STYLE_BY_NAME[member.name]?.fit ?? 'cover',
 	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center',
 	modalCrop: MODAL_CROP_BY_NAME[member.name] ?? { x: 50, y: 50, scale: 1 },
