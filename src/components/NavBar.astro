@@ -1,5 +1,4 @@
 ---
-import ThemeToggle from './ThemeToggle.astro';
 import { NAV_LINKS } from '../data/site';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -29,8 +28,6 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 					))
 				}
 			</ul>
-
-			<ThemeToggle />
 
 			<button
 				type="button"
