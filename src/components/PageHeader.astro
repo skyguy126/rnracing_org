@@ -5,11 +5,12 @@ interface Props {
 }
 
 const { title, lead } = Astro.props;
+const hasLead = Boolean(lead) || Astro.slots.has('lead');
 ---
 
 <header class="page-header">
 	<h1>{title}</h1>
-	{lead && (
+	{hasLead && (
 		<p class="lead">
 			<slot name="lead">{lead}</slot>
 		</p>
