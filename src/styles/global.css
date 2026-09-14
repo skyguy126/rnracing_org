@@ -20,8 +20,7 @@
 	--display-descender: 0.08em;
 }
 
-:root,
-[data-theme='dark'] {
+:root {
 	color-scheme: dark;
 	--bg: var(--black);
 	--surface: #111114;
@@ -30,17 +29,6 @@
 	--accent: var(--blue);
 	--accent-hover: var(--blue-soft);
 	--border: #27272a;
-}
-
-[data-theme='light'] {
-	color-scheme: light;
-	--bg: #fafafa;
-	--surface: #ffffff;
-	--text: #09090b;
-	--muted: #71717a;
-	--accent: #2563eb;
-	--accent-hover: #3b82f6;
-	--border: #e4e4e7;
 }
 
 html {

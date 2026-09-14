@@ -24,8 +24,7 @@ const { members } = Astro.props;
 
 		<div class="member-modal-layout">
 			<div class="member-modal-photo" id="member-modal-photo">
-				<img class="member-modal-image" data-theme-photo="dark" alt="" hidden />
-				<img class="member-modal-image" data-theme-photo="light" alt="" hidden />
+				<img class="member-modal-image" alt="" hidden />
 				<PhotoPlaceholder initials="RN" large />
 			</div>
 			<div class="member-modal-content">
@@ -63,9 +62,6 @@ const { members } = Astro.props;
 
 	let lastFocused: HTMLElement | null = null;
 	let openRequest = 0;
-
-	const photoSrc = (filename: string, theme: string) =>
-		theme === 'light' ? `/team/light/${filename}` : `/team/${filename}`;
 
 	const clearPhoto = () => {
 		photoImgs?.forEach((photoImg) => {
@@ -117,20 +113,15 @@ const { members } = Astro.props;
 
 		if (member.image) {
 			try {
-				await Promise.all(
-					[...photoImgs].map((photoImg) =>
-						preloadImage(photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark')),
-					),
-				);
+				await preloadImage(`/team/${member.image}`);
 			} catch {
 				/* still open with the assigned src so a broken-image state is visible */
 			}
 			if (requestId !== openRequest) return;
 
 			photoImgs.forEach((photoImg) => {
-				const isDark = photoImg.dataset.themePhoto !== 'light';
-				photoImg.src = photoSrc(member.image!, photoImg.dataset.themePhoto || 'dark');
-				photoImg.alt = isDark ? `${member.name} headshot` : '';
+				photoImg.src = `/team/${member.image}`;
+				photoImg.alt = `${member.name} headshot`;
 				photoImg.style.objectFit = member.imageFit ?? 'cover';
 				photoImg.style.objectPosition = member.imagePosition ?? 'center';
 				photoImg.hidden = false;
