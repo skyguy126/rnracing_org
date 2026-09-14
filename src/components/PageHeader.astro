@@ -9,5 +9,9 @@ const { title, lead } = Astro.props;
 
 <header class="page-header">
 	<h1>{title}</h1>
-	{lead && <p class="lead">{lead}</p>}
+	{lead && (
+		<p class="lead">
+			<slot name="lead">{lead}</slot>
+		</p>
+	)}
 </header>

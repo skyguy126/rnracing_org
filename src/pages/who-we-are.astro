@@ -14,8 +14,16 @@ const page = getPage('/who-we-are');
 >
 	<PageHeader
 		title={page.heading}
-		lead="The Camry is hitting the track but this page is still catching up. Stay tuned, unlike our car."
-	/>
+		lead="We're a home grown endurance racing team based in California, competing in 24 hours of Lemons as #711 with a '96 Toyota Camry. The Camry is hitting the track but this page is still catching up. Stay tuned, unlike our car."
+	>
+		<Fragment slot="lead">
+			We're a home grown endurance racing team based in California, competing in{' '}
+			<a href="https://24hoursoflemons.com/" target="_blank" rel="noopener noreferrer">
+				24 hours of Lemons
+			</a> as #711 with a '96 Toyota Camry
+			. The Camry is hitting the track but this page is still catching up. Stay tuned, unlike our car.
+		</Fragment>
+	</PageHeader>
 
 	<section class="action-grid" aria-label="Contribute and contact">
 		<ActionCard
