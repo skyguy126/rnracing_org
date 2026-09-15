@@ -19,11 +19,6 @@ export type PageHref = (typeof PAGES)[number]['href'];
 
 export const NAV_LINKS = PAGES.map(({ href, label }) => ({ href, label }));
 
-export const STORY = [
-	'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum praesent mauris.',
-	'Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.',
-] as const;
-
 export function getPage(href: PageHref) {
 	const page = PAGES.find((entry) => entry.href === href);
 	if (!page) throw new Error(`Unknown page: ${href}`);
