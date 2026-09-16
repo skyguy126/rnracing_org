@@ -1,0 +1,43 @@
+---
+import '../styles/global.css';
+import { SITE } from '../data/site';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = `${SITE.name} Reveal`,
+	description = SITE.description,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" style="color-scheme: dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="theme-color" content="#09090b" />
+		<meta name="color-scheme" content="dark" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<link rel="icon" type="image/png" href="/rn-racing-logo.png" />
+		<link rel="apple-touch-icon" href="/rn-racing-logo.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body class="reveal-layout-body">
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	.reveal-layout-body {
+		margin: 0;
+		min-height: 100dvh;
+		overflow: hidden;
+		background: #050505;
+		color: #fafafa;
+	}
+</style>

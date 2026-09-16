@@ -1,0 +1,9 @@
+---
+import RevealLayout from '../layouts/RevealLayout.astro';
+import RevealAnimation from '../components/RevealAnimation.astro';
+import { SITE, pageTitle } from '../data/site';
+---
+
+<RevealLayout title={pageTitle('Reveal')} description={`${SITE.name} — teaser reveal.`}>
+	<RevealAnimation />
+</RevealLayout>
