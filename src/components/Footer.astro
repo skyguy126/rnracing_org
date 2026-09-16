@@ -71,6 +71,13 @@ const socialLinks = [
 				))
 			}
 		</ul>
-		<p>&copy; {new Date().getFullYear()} {SITE.name}</p>
+		<p>&copy; <span data-copyright-year>{new Date().getFullYear()}</span> {SITE.name}</p>
 	</div>
 </footer>
+
+<script>
+	const yearEl = document.querySelector('[data-copyright-year]');
+	if (yearEl) {
+		yearEl.textContent = String(new Date().getFullYear());
+	}
+</script>
