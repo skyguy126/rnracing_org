@@ -11,8 +11,8 @@ export const SITE = {
 export const PAGES = [
 	{ href: '/', slug: 'home', label: 'Home', heading: 'RN Racing' },
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
-	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
 	{ href: '/crew', slug: 'crew', label: 'The Crew', heading: 'The Crew' },
+	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
 ] as const;
 
 export type PageHref = (typeof PAGES)[number]['href'];
