@@ -1,0 +1,923 @@
+---
+const ASSETS = {
+	background: '/reveal/background/wood_dojo_background.jpg',
+	logo: '/reveal/brand/rn_logo_original.png',
+	lemonWhole: '/reveal/lemons/lemons_logo_whole.png',
+	lemonHalfA: '/reveal/lemons/lemons_logo_half_a.png',
+	lemonHalfB: '/reveal/lemons/lemons_logo_half_b.png',
+	slash: '/reveal/effects/blade_slash.png',
+	splash: '/reveal/effects/juice_splash.png',
+	droplets: '/reveal/effects/juice_droplets.png',
+	comingSoon: '/reveal/text/coming_soon.png',
+} as const;
+
+const PAINT_STROKES = [
+	{ x: 18, y: 28, rx: 42, ry: 34, delay: 0.0, duration: 0.55, rotate: -18 },
+	{ x: 72, y: 22, rx: 38, ry: 30, delay: 0.06, duration: 0.52, rotate: 22 },
+	{ x: 48, y: 55, rx: 48, ry: 40, delay: 0.12, duration: 0.58, rotate: 8 },
+	{ x: 12, y: 68, rx: 36, ry: 32, delay: 0.18, duration: 0.5, rotate: -28 },
+	{ x: 86, y: 62, rx: 40, ry: 36, delay: 0.2, duration: 0.54, rotate: 16 },
+	{ x: 38, y: 12, rx: 44, ry: 28, delay: 0.1, duration: 0.48, rotate: 4 },
+	{ x: 58, y: 82, rx: 50, ry: 34, delay: 0.26, duration: 0.5, rotate: -10 },
+	{ x: 50, y: 45, rx: 58, ry: 48, delay: 0.32, duration: 0.55, rotate: 0 },
+] as const;
+---
+
+<div class="reveal-stage" id="reveal-stage" aria-label="RN Racing teaser reveal" role="img">
+	<div class="reveal-veil" id="reveal-veil" aria-hidden="true"></div>
+
+	<div class="reveal-bg" aria-hidden="true">
+		{
+			PAINT_STROKES.map((stroke, i) => (
+				<div
+					class="reveal-bg__stroke"
+					data-stroke={i}
+					style={`--sx:${stroke.x}%; --sy:${stroke.y}%; --srx:0%; --sry:0%; --srot:${stroke.rotate}deg; background-image:url(${ASSETS.background})`}
+				/>
+			))
+		}
+		<div class="reveal-bg__full" id="reveal-bg-full" style={`background-image:url(${ASSETS.background})`}></div>
+	</div>
+
+	<div class="reveal-scene" id="reveal-scene">
+		<img
+			class="reveal-logo"
+			id="reveal-logo"
+			src={ASSETS.logo}
+			alt="RN Racing"
+			width="2046"
+			height="1664"
+			draggable="false"
+		/>
+
+		<div class="reveal-lemon-layer" id="reveal-lemon-layer" aria-hidden="true">
+			<img
+				class="reveal-lemon reveal-lemon--whole"
+				id="reveal-lemon-whole"
+				src={ASSETS.lemonWhole}
+				alt=""
+				width="1254"
+				height="1254"
+				draggable="false"
+			/>
+			<img
+				class="reveal-lemon reveal-lemon--half"
+				id="reveal-lemon-half-a"
+				src={ASSETS.lemonHalfA}
+				alt=""
+				width="1254"
+				height="1254"
+				draggable="false"
+			/>
+			<img
+				class="reveal-lemon reveal-lemon--half"
+				id="reveal-lemon-half-b"
+				src={ASSETS.lemonHalfB}
+				alt=""
+				width="1254"
+				height="1254"
+				draggable="false"
+			/>
+		</div>
+
+		<img
+			class="reveal-fx reveal-fx--slash"
+			id="reveal-slash"
+			src={ASSETS.slash}
+			alt=""
+			width="2172"
+			height="724"
+			draggable="false"
+			aria-hidden="true"
+		/>
+		<img
+			class="reveal-fx reveal-fx--splash"
+			id="reveal-splash"
+			src={ASSETS.splash}
+			alt=""
+			width="1448"
+			height="1086"
+			draggable="false"
+			aria-hidden="true"
+		/>
+		<img
+			class="reveal-fx reveal-fx--droplets"
+			id="reveal-droplets"
+			src={ASSETS.droplets}
+			alt=""
+			width="1448"
+			height="1086"
+			draggable="false"
+			aria-hidden="true"
+		/>
+
+		<img
+			class="reveal-coming-soon"
+			id="reveal-coming-soon"
+			src={ASSETS.comingSoon}
+			alt="Coming soon"
+			width="2172"
+			height="724"
+			draggable="false"
+		/>
+	</div>
+</div>
+
+<style>
+	.reveal-stage {
+		position: relative;
+		isolation: isolate;
+		width: 100%;
+		min-height: 100dvh;
+		overflow: hidden;
+		background: #050505;
+		user-select: none;
+		touch-action: none;
+	}
+
+	.reveal-veil {
+		position: absolute;
+		inset: 0;
+		z-index: 5;
+		background: #050505;
+		opacity: 1;
+		pointer-events: none;
+		transition: none;
+	}
+
+	.reveal-bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+	}
+
+	.reveal-bg__stroke,
+	.reveal-bg__full {
+		position: absolute;
+		inset: 0;
+		background-position: center;
+		background-size: cover;
+		background-repeat: no-repeat;
+		will-change: clip-path, opacity;
+	}
+
+	.reveal-bg__stroke {
+		clip-path: ellipse(var(--srx) var(--sry) at var(--sx) var(--sy));
+		transform: rotate(var(--srot));
+		transform-origin: var(--sx) var(--sy);
+		opacity: 0.95;
+	}
+
+	.reveal-bg__full {
+		opacity: 0;
+	}
+
+	.reveal-scene {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		pointer-events: none;
+	}
+
+	.reveal-logo {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 1;
+		width: min(52vw, 420px);
+		height: auto;
+		opacity: 0;
+		transform: translate3d(-50%, -50%, 0) scale(0.18);
+		transform-origin: center center;
+		filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45));
+		will-change: transform, opacity;
+	}
+
+	.reveal-lemon-layer {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		overflow: visible;
+	}
+
+	.reveal-lemon {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: min(22vw, 148px);
+		height: auto;
+		opacity: 0;
+		transform: translate3d(-50%, -50%, 0);
+		transform-origin: center center;
+		filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.4));
+		will-change: transform, opacity;
+		pointer-events: none;
+	}
+
+	.reveal-lemon--half {
+		visibility: hidden;
+	}
+
+	.reveal-fx {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 4;
+		opacity: 0;
+		transform: translate3d(-50%, -50%, 0);
+		transform-origin: center center;
+		pointer-events: none;
+		will-change: transform, opacity;
+	}
+
+	.reveal-fx--slash {
+		width: min(62vw, 380px);
+		height: auto;
+		filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.4));
+	}
+
+	.reveal-fx--splash {
+		width: min(34vw, 200px);
+		height: auto;
+	}
+
+	.reveal-fx--droplets {
+		width: min(30vw, 170px);
+		height: auto;
+	}
+
+	.reveal-coming-soon {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 2;
+		width: min(72vw, 520px);
+		height: auto;
+		opacity: 0;
+		transform: translate3d(-50%, -50%, 0);
+		filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
+		will-change: transform, opacity;
+	}
+
+	@media (max-width: 640px) {
+		.reveal-logo {
+			width: min(68vw, 300px);
+		}
+
+		.reveal-lemon {
+			width: min(30vw, 128px);
+		}
+
+		.reveal-fx--slash {
+			width: min(78vw, 300px);
+		}
+
+		.reveal-fx--splash {
+			width: min(42vw, 170px);
+		}
+
+		.reveal-fx--droplets {
+			width: min(38vw, 150px);
+		}
+
+		.reveal-coming-soon {
+			width: min(86vw, 420px);
+		}
+	}
+
+	@media (min-width: 1100px) {
+		.reveal-logo {
+			width: min(40vw, 460px);
+		}
+
+		.reveal-lemon {
+			width: min(16vw, 160px);
+		}
+	}
+</style>
+
+<script>
+	type Vec = { x: number; y: number };
+
+	type Projectile = {
+		x: number;
+		y: number;
+		vx: number;
+		vy: number;
+		rotation: number;
+		angularVelocity: number;
+		visible: boolean;
+	};
+
+	type Phase = 'reveal' | 'idle';
+
+	const PAINT = [
+		{ rx: 42, ry: 34, delay: 0.0, duration: 0.55 },
+		{ rx: 38, ry: 30, delay: 0.06, duration: 0.52 },
+		{ rx: 48, ry: 40, delay: 0.12, duration: 0.58 },
+		{ rx: 36, ry: 32, delay: 0.18, duration: 0.5 },
+		{ rx: 40, ry: 36, delay: 0.2, duration: 0.54 },
+		{ rx: 44, ry: 28, delay: 0.1, duration: 0.48 },
+		{ rx: 50, ry: 34, delay: 0.26, duration: 0.5 },
+		{ rx: 58, ry: 48, delay: 0.32, duration: 0.55 },
+	] as const;
+
+	/** Initial reveal timeline (seconds from start). */
+	const T = {
+		paintStart: 0.15,
+		paintDone: 0.9,
+		logoStart: 0.9,
+		logoSettle: 1.7,
+		lemonLaunch: 1.9,
+		slice: 2.7,
+		slashEnd: 2.84,
+		splashEnd: 3.2,
+		comingStart: 3.9,
+		comingEnd: 4.5,
+		idleStart: 5.1,
+	} as const;
+
+	const GRAVITY = 2400;
+	const MAX_DT = 1 / 30;
+	const LEMON_ASSET = 1254;
+	/** Alpha-centroid offsets vs canvas center (source px) for slice alignment. */
+	const WHOLE_C = { x: 1.5, y: -16.1 };
+	const HALF_A_C = { x: 53.7, y: 41.3 };
+	const HALF_B_C = { x: -2.0, y: 13.0 };
+
+	const IDLE = {
+		minGap: 2.6,
+		maxGap: 4.8,
+		flightMin: 0.72,
+		flightMax: 0.92,
+		slashMs: 0.12,
+		splashMs: 0.45,
+	} as const;
+
+	function clamp(n: number, min: number, max: number) {
+		return Math.min(max, Math.max(min, n));
+	}
+
+	function lerp(a: number, b: number, t: number) {
+		return a + (b - a) * t;
+	}
+
+	function rand(min: number, max: number) {
+		return min + Math.random() * (max - min);
+	}
+
+	function easeOutCubic(t: number) {
+		const u = 1 - t;
+		return 1 - u * u * u;
+	}
+
+	function easeOutBack(t: number) {
+		const c1 = 1.70158;
+		const c3 = c1 + 1;
+		return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+	}
+
+	function smoothstep(edge0: number, edge1: number, x: number) {
+		const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+		return t * t * (3 - 2 * t);
+	}
+
+	const stage = document.getElementById('reveal-stage');
+	if (!stage) throw new Error('Reveal stage missing');
+
+	const veil = document.getElementById('reveal-veil') as HTMLElement;
+	const bgFull = document.getElementById('reveal-bg-full') as HTMLElement;
+	const strokes = Array.from(stage.querySelectorAll<HTMLElement>('.reveal-bg__stroke'));
+	const logo = document.getElementById('reveal-logo') as HTMLImageElement;
+	const lemonWhole = document.getElementById('reveal-lemon-whole') as HTMLImageElement;
+	const halfA = document.getElementById('reveal-lemon-half-a') as HTMLImageElement;
+	const halfB = document.getElementById('reveal-lemon-half-b') as HTMLImageElement;
+	const slash = document.getElementById('reveal-slash') as HTMLImageElement;
+	const splash = document.getElementById('reveal-splash') as HTMLImageElement;
+	const droplets = document.getElementById('reveal-droplets') as HTMLImageElement;
+	const comingSoon = document.getElementById('reveal-coming-soon') as HTMLImageElement;
+
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	let rafId = 0;
+	let startTime = 0;
+	let lastTime = 0;
+	let phase: Phase = 'reveal';
+
+	let sliced = false;
+	let lemonLaunched = false;
+	let revealTossDone = false;
+	let lemon: Projectile = blankProjectile();
+	let halfAState: Projectile = blankProjectile();
+	let halfBState: Projectile = blankProjectile();
+	let cutPoint: Vec = { x: 0, y: 0 };
+	let fxSliceAt = 0;
+	let fxSlashEnd = 0;
+	let fxSplashEnd = 0;
+
+	let idleActive = false;
+	let idleNextAt = 0;
+	let idleFlight = 0.8;
+	let idleSliceAt = 0;
+
+	function blankProjectile(): Projectile {
+		return { x: 0, y: 0, vx: 0, vy: 0, rotation: 0, angularVelocity: 0, visible: false };
+	}
+
+	function size() {
+		return { w: stage.clientWidth, h: stage.clientHeight };
+	}
+
+	function logoTarget(): Vec {
+		const { w, h } = size();
+		return { x: w * 0.5, y: h * 0.42 };
+	}
+
+	function comingTarget(): Vec {
+		const { w, h } = size();
+		return { x: w * 0.5, y: h * 0.72 };
+	}
+
+	function lemonDisplayWidth() {
+		return lemonWhole.getBoundingClientRect().width || 148;
+	}
+
+	function halfAlign(which: 'a' | 'b'): Vec {
+		const s = lemonDisplayWidth() / LEMON_ASSET;
+		const c = which === 'a' ? HALF_A_C : HALF_B_C;
+		return {
+			x: -(c.x - WHOLE_C.x) * s,
+			y: -(c.y - WHOLE_C.y) * s,
+		};
+	}
+
+	function setTransform(
+		el: HTMLElement,
+		x: number,
+		y: number,
+		rotation = 0,
+		scale = 1,
+		extraY = 0,
+	) {
+		el.style.transform = `translate3d(${x}px, ${y + extraY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
+	}
+
+	function hideLemonActors() {
+		lemonWhole.style.opacity = '0';
+		lemonWhole.style.visibility = 'hidden';
+		halfA.style.opacity = '0';
+		halfB.style.opacity = '0';
+		halfA.style.visibility = 'hidden';
+		halfB.style.visibility = 'hidden';
+		slash.style.opacity = '0';
+		splash.style.opacity = '0';
+		droplets.style.opacity = '0';
+		lemon = blankProjectile();
+		halfAState = blankProjectile();
+		halfBState = blankProjectile();
+		sliced = false;
+		lemonLaunched = false;
+	}
+
+	function offscreenBottom(y: number) {
+		return y > size().h + lemonDisplayWidth() * 0.75;
+	}
+
+	function bothHalvesGone() {
+		return offscreenBottom(halfAState.y) && offscreenBottom(halfBState.y);
+	}
+
+	function applyPaint(elapsed: number) {
+		const local = Math.max(0, elapsed - T.paintStart);
+
+		strokes.forEach((el, i) => {
+			const cfg = PAINT[i];
+			if (!cfg) return;
+			const t = clamp((local - cfg.delay) / cfg.duration, 0, 1);
+			const e = easeOutCubic(t);
+			el.style.setProperty('--srx', `${cfg.rx * e}%`);
+			el.style.setProperty('--sry', `${cfg.ry * e}%`);
+			el.style.opacity = String(0.75 + 0.25 * e);
+		});
+
+		const fill = smoothstep(T.paintStart + 0.45, T.paintDone, elapsed);
+		bgFull.style.opacity = String(fill);
+		veil.style.opacity = String(
+			1 - smoothstep(T.paintStart, T.paintStart + 0.25, elapsed) * 0.85 * (1 - fill * 0.15),
+		);
+		if (elapsed >= T.paintDone) {
+			veil.style.opacity = '0';
+			bgFull.style.opacity = '1';
+		}
+	}
+
+	function applyLogo(elapsed: number) {
+		if (elapsed < T.logoStart) {
+			logo.style.opacity = '0';
+			return;
+		}
+
+		const t = clamp((elapsed - T.logoStart) / (T.logoSettle - T.logoStart), 0, 1);
+		const overshoot = easeOutBack(t);
+		const scale = lerp(0.18, 1, overshoot);
+		const lift = lerp(36, 0, easeOutCubic(t));
+		const opacity = smoothstep(T.logoStart, T.logoStart + 0.12, elapsed);
+		const target = logoTarget();
+
+		logo.style.opacity = String(opacity);
+		setTransform(logo, target.x, target.y, 0, scale, lift);
+	}
+
+	function applyComingSoon(elapsed: number) {
+		if (elapsed < T.comingStart) {
+			comingSoon.style.opacity = '0';
+			return;
+		}
+
+		const t = clamp((elapsed - T.comingStart) / (T.comingEnd - T.comingStart), 0, 1);
+		const e = easeOutCubic(t);
+		const target = comingTarget();
+		comingSoon.style.opacity = String(e);
+		setTransform(comingSoon, target.x, target.y, 0, 1, lerp(14, 0, e));
+	}
+
+	function freezeLogoAndCopy() {
+		const lt = logoTarget();
+		const ct = comingTarget();
+		logo.style.opacity = '1';
+		setTransform(logo, lt.x, lt.y, 0, 1, 0);
+		comingSoon.style.opacity = '1';
+		setTransform(comingSoon, ct.x, ct.y, 0, 1, 0);
+		veil.style.opacity = '0';
+		bgFull.style.opacity = '1';
+		applyPaint(T.paintDone);
+	}
+
+	function integrate(p: Projectile, dt: number) {
+		p.vy += GRAVITY * dt;
+		p.x += p.vx * dt;
+		p.y += p.vy * dt;
+		p.rotation += p.angularVelocity * dt;
+	}
+
+	function renderWhole() {
+		setTransform(lemonWhole, lemon.x, lemon.y, lemon.rotation, 1);
+	}
+
+	function renderHalves() {
+		const a = halfAlign('a');
+		const b = halfAlign('b');
+		setTransform(halfA, halfAState.x + a.x, halfAState.y + a.y, halfAState.rotation, 1);
+		setTransform(halfB, halfBState.x + b.x, halfBState.y + b.y, halfBState.rotation, 1);
+	}
+
+	function launchRevealLemon() {
+		const { w, h } = size();
+		const cutX = w * 0.5 + (w < 640 ? 10 : 20);
+		const cutY = h * 0.36;
+		const startX = w * 0.24;
+		const startY = h + 110;
+		const flight = T.slice - T.lemonLaunch;
+		const vx = (cutX - startX) / flight;
+		const vy = (cutY - startY) / flight - 0.5 * GRAVITY * flight;
+
+		lemon = {
+			x: startX,
+			y: startY,
+			vx,
+			vy,
+			rotation: -20,
+			angularVelocity: 220,
+			visible: true,
+		};
+		lemonLaunched = true;
+		sliced = false;
+		lemonWhole.style.opacity = '1';
+		lemonWhole.style.visibility = 'visible';
+		halfA.style.visibility = 'hidden';
+		halfB.style.visibility = 'hidden';
+		halfA.style.opacity = '0';
+		halfB.style.opacity = '0';
+	}
+
+	function safeTossX() {
+		const { w } = size();
+		const logoW = logo.getBoundingClientRect().width || w * 0.4;
+		const halfLogo = logoW * 0.42;
+		const pad = Math.max(48, w * 0.08);
+		const center = w * 0.5;
+		// Prefer left or right of the logo badge so tosses frame the brand.
+		const side = Math.random() < 0.5 ? -1 : 1;
+		const minOff = halfLogo * 0.55;
+		const maxOff = Math.min(w * 0.28, halfLogo + w * 0.12);
+		const offset = rand(minOff, maxOff) * side;
+		return clamp(center + offset, pad, w - pad);
+	}
+
+	function launchIdleLemon(nowSec: number) {
+		const { w, h } = size();
+		const startX = safeTossX();
+		const startY = h + 100;
+		const cutX = startX + rand(-w * 0.04, w * 0.04);
+		const cutY = h * rand(0.3, 0.4);
+		idleFlight = rand(IDLE.flightMin, IDLE.flightMax);
+		idleSliceAt = nowSec + idleFlight;
+		const vx = (cutX - startX) / idleFlight;
+		const vy = (cutY - startY) / idleFlight - 0.5 * GRAVITY * idleFlight;
+
+		lemon = {
+			x: startX,
+			y: startY,
+			vx,
+			vy,
+			rotation: rand(-35, 15),
+			angularVelocity: rand(160, 280) * (Math.random() < 0.5 ? -1 : 1),
+			visible: true,
+		};
+		idleActive = true;
+		lemonLaunched = true;
+		sliced = false;
+		lemonWhole.style.opacity = '1';
+		lemonWhole.style.visibility = 'visible';
+		halfA.style.visibility = 'hidden';
+		halfB.style.visibility = 'hidden';
+		halfA.style.opacity = '0';
+		halfB.style.opacity = '0';
+		slash.style.opacity = '0';
+		splash.style.opacity = '0';
+		droplets.style.opacity = '0';
+	}
+
+	function sliceAtLemon(nowSec: number) {
+		if (sliced) return;
+		sliced = true;
+		cutPoint = { x: lemon.x, y: lemon.y };
+		fxSliceAt = nowSec;
+		fxSlashEnd = nowSec + IDLE.slashMs;
+		fxSplashEnd = nowSec + IDLE.splashMs;
+
+		const carryX = lemon.vx * 0.2;
+		const carryY = Math.min(lemon.vy * 0.15, 40);
+		const impulseX = Math.min(size().w * 0.18, 200);
+		const impulseY = -160;
+		const baseRot = lemon.rotation;
+
+		halfAState = {
+			x: lemon.x,
+			y: lemon.y,
+			vx: carryX - impulseX,
+			vy: carryY + impulseY * 0.35,
+			rotation: baseRot,
+			angularVelocity: -200,
+			visible: true,
+		};
+		halfBState = {
+			x: lemon.x,
+			y: lemon.y,
+			vx: carryX + impulseX,
+			vy: carryY + impulseY,
+			rotation: baseRot,
+			angularVelocity: 210,
+			visible: true,
+		};
+
+		lemon.visible = false;
+		lemonWhole.style.opacity = '0';
+		lemonWhole.style.visibility = 'hidden';
+		halfA.style.visibility = 'visible';
+		halfB.style.visibility = 'visible';
+		halfA.style.opacity = '1';
+		halfB.style.opacity = '1';
+		renderHalves();
+
+		slash.style.opacity = '1';
+		splash.style.opacity = '1';
+		droplets.style.opacity = '1';
+		setTransform(slash, cutPoint.x, cutPoint.y, -28, 1.05);
+		setTransform(splash, cutPoint.x, cutPoint.y, 6, 0.9);
+		setTransform(droplets, cutPoint.x + 6, cutPoint.y - 8, -10, 0.88);
+	}
+
+	function applyFx(nowSec: number) {
+		if (!sliced) {
+			slash.style.opacity = '0';
+			splash.style.opacity = '0';
+			droplets.style.opacity = '0';
+			return;
+		}
+
+		const slashDur = Math.max(0.001, fxSlashEnd - fxSliceAt);
+		const slashLife = clamp((nowSec - fxSliceAt) / slashDur, 0, 1);
+		slash.style.opacity = String(nowSec < fxSlashEnd ? 1 - slashLife * 0.25 : 0);
+		setTransform(slash, cutPoint.x, cutPoint.y, -28 + slashLife * 12, 1.05 + slashLife * 0.18);
+
+		const splashT = clamp((nowSec - fxSliceAt) / Math.max(0.001, fxSplashEnd - fxSliceAt), 0, 1);
+		const splashOpacity = splashT < 0.18 ? splashT / 0.18 : 1 - (splashT - 0.18) / 0.82;
+		splash.style.opacity = String(clamp(splashOpacity, 0, 1));
+		setTransform(splash, cutPoint.x, cutPoint.y, 6 + splashT * 14, 0.9 + splashT * 0.4);
+
+		const dropT = clamp((nowSec - fxSliceAt - 0.03) / 0.4, 0, 1);
+		const dropOpacity = dropT < 0.22 ? dropT / 0.22 : 1 - (dropT - 0.22) / 0.78;
+		droplets.style.opacity = String(clamp(dropOpacity, 0, 1));
+		setTransform(
+			droplets,
+			cutPoint.x + dropT * 16,
+			cutPoint.y - 8 - dropT * 30,
+			-10 + dropT * 18,
+			0.88 + dropT * 0.28,
+		);
+	}
+
+	function scheduleNextIdle(fromSec: number) {
+		idleNextAt = fromSec + rand(IDLE.minGap, IDLE.maxGap);
+		idleActive = false;
+	}
+
+	function updateRevealLemon(elapsed: number, dt: number) {
+		if (revealTossDone) return;
+
+		if (elapsed < T.lemonLaunch) {
+			lemonWhole.style.opacity = '0';
+			return;
+		}
+
+		if (!lemonLaunched) launchRevealLemon();
+
+		if (!sliced && elapsed >= T.slice) {
+			sliceAtLemon(elapsed);
+			// Reveal slice uses timeline-relative fx windows.
+			fxSlashEnd = T.slashEnd;
+			fxSplashEnd = T.splashEnd;
+			fxSliceAt = T.slice;
+		}
+
+		if (!sliced) {
+			integrate(lemon, dt);
+			renderWhole();
+			return;
+		}
+
+		integrate(halfAState, dt);
+		integrate(halfBState, dt);
+		renderHalves();
+
+		if (bothHalvesGone()) {
+			hideLemonActors();
+			revealTossDone = true;
+		}
+	}
+
+	function updateIdle(nowSec: number, dt: number) {
+		if (!idleActive) {
+			if (nowSec >= idleNextAt) {
+				launchIdleLemon(nowSec);
+			}
+			return;
+		}
+
+		if (!sliced && nowSec >= idleSliceAt) {
+			sliceAtLemon(nowSec);
+		}
+
+		if (!sliced) {
+			integrate(lemon, dt);
+			renderWhole();
+			return;
+		}
+
+		integrate(halfAState, dt);
+		integrate(halfBState, dt);
+		renderHalves();
+
+		if (bothHalvesGone()) {
+			hideLemonActors();
+			scheduleNextIdle(nowSec);
+		}
+	}
+
+	function enterIdle(nowSec: number) {
+		phase = 'idle';
+		revealTossDone = true;
+		freezeLogoAndCopy();
+		hideLemonActors();
+		scheduleNextIdle(nowSec + 0.35);
+	}
+
+	function tick(now: number) {
+		if (!startTime) {
+			startTime = now;
+			lastTime = now;
+		}
+
+		const elapsed = (now - startTime) / 1000;
+		const dt = clamp((now - lastTime) / 1000, 0, MAX_DT);
+		lastTime = now;
+
+		if (phase === 'reveal') {
+			applyPaint(elapsed);
+			applyLogo(elapsed);
+			applyComingSoon(elapsed);
+			updateRevealLemon(elapsed, dt);
+			applyFx(elapsed);
+
+			if (elapsed >= T.idleStart) {
+				enterIdle(elapsed);
+			}
+		} else {
+			freezeLogoAndCopy();
+			updateIdle(elapsed, dt);
+			applyFx(elapsed);
+		}
+
+		rafId = window.requestAnimationFrame(tick);
+	}
+
+	function runReducedMotion() {
+		const assets = [logo, lemonWhole, halfA, halfB, slash, splash, droplets, comingSoon];
+		let start = 0;
+		let id = 0;
+
+		const paintQuick = (t: number) => {
+			strokes.forEach((el, i) => {
+				const cfg = PAINT[i];
+				if (!cfg) return;
+				const local = clamp((t - 0.05 - i * 0.02) / 0.35, 0, 1);
+				const e = easeOutCubic(local);
+				el.style.setProperty('--srx', `${cfg.rx * e}%`);
+				el.style.setProperty('--sry', `${cfg.ry * e}%`);
+			});
+			bgFull.style.opacity = String(smoothstep(0.1, 0.45, t));
+			veil.style.opacity = String(1 - smoothstep(0, 0.35, t));
+		};
+
+		const frame = (now: number) => {
+			if (!start) start = now;
+			const elapsed = (now - start) / 1000;
+
+			paintQuick(elapsed);
+
+			const logoT = clamp((elapsed - 0.2) / 0.45, 0, 1);
+			const lt = logoTarget();
+			logo.style.opacity = String(easeOutCubic(logoT));
+			setTransform(logo, lt.x, lt.y, 0, lerp(0.85, 1, easeOutCubic(logoT)), 0);
+
+			hideLemonActors();
+
+			const soonT = clamp((elapsed - 0.45) / 0.45, 0, 1);
+			const c = comingTarget();
+			comingSoon.style.opacity = String(easeOutCubic(soonT));
+			setTransform(comingSoon, c.x, c.y, 0, 1, lerp(10, 0, easeOutCubic(soonT)));
+
+			if (elapsed >= 1.15) {
+				freezeLogoAndCopy();
+				hideLemonActors();
+				id = 0;
+				return;
+			}
+			id = window.requestAnimationFrame(frame);
+		};
+
+		void Promise.all(
+			assets.map(
+				(img) =>
+					img.complete
+						? Promise.resolve()
+						: new Promise<void>((resolve) => {
+								img.addEventListener('load', () => resolve(), { once: true });
+								img.addEventListener('error', () => resolve(), { once: true });
+							}),
+			),
+		).then(() => {
+			id = window.requestAnimationFrame(frame);
+		});
+
+		window.addEventListener(
+			'pagehide',
+			() => {
+				if (id) cancelAnimationFrame(id);
+			},
+			{ once: true },
+		);
+	}
+
+	function start() {
+		if (reducedMotion) {
+			runReducedMotion();
+			return;
+		}
+
+		rafId = window.requestAnimationFrame(tick);
+		window.addEventListener(
+			'pagehide',
+			() => {
+				if (rafId) cancelAnimationFrame(rafId);
+			},
+			{ once: true },
+		);
+	}
+
+	if (document.readyState === 'complete') start();
+	else window.addEventListener('load', start, { once: true });
+</script>
