@@ -9,7 +9,6 @@ const ASSETS = {
 	splash: '/reveal/effects/juice_splash.png',
 	droplets: '/reveal/effects/juice_droplets.png',
 	comingSoon: '/reveal/text/coming_soon.png',
-	scoreLabel: '/reveal/ui/score_label.png',
 	scoreDigits: [
 		'/reveal/ui/score_digits/0.png',
 		'/reveal/ui/score_digits/1.png',
@@ -138,8 +137,13 @@ const PAINT_STROKES = [
 	<canvas id="reveal-swipe-canvas" class="reveal-swipe-canvas" aria-hidden="true"></canvas>
 
 	<div class="reveal-score" id="reveal-score" aria-live="polite" aria-label="Score 0">
-		<img class="reveal-score__label" src={ASSETS.scoreLabel} alt="" draggable="false" width="1130" height="373" />
-		<div class="reveal-score__digits" id="reveal-score-digits" aria-hidden="true"></div>
+		<div class="reveal-score__frame">
+			<div class="reveal-score__bezel">
+				<div class="reveal-score__screen">
+					<div class="reveal-score__digits" id="reveal-score-digits" aria-hidden="true"></div>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -299,42 +303,82 @@ const PAINT_STROKES = [
 	.reveal-score {
 		position: absolute;
 		z-index: 7;
-		display: flex;
-		align-items: center;
-		gap: 10px;
+		box-sizing: border-box;
+		width: max-content;
+		max-width: min(42vw, 220px);
+		height: auto;
 		opacity: 0;
 		pointer-events: none;
-		filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
-		transition: opacity 0.4s ease-out;
+		transition: opacity 0.35s ease-out;
 	}
 
 	.reveal-score.is-visible {
 		opacity: 1;
 	}
 
-	.reveal-score__label {
-		display: block;
-		width: clamp(90px, 9vw, 130px);
+	.reveal-score__frame {
+		box-sizing: border-box;
+		width: max-content;
 		height: auto;
-		user-select: none;
+		padding: 5px;
+		border-radius: 14px;
+		border: 2px solid rgba(24, 12, 5, 0.9);
+		background: linear-gradient(145deg, #76451f, #4d2913 45%, #2f190d);
+		box-shadow:
+			0 5px 14px rgba(0, 0, 0, 0.45),
+			inset 0 1px 1px rgba(255, 220, 165, 0.25),
+			inset 0 -2px 4px rgba(20, 8, 2, 0.45);
 	}
 
-	.reveal-score__digits {
+	.reveal-score__bezel {
+		box-sizing: border-box;
+		width: max-content;
+		height: auto;
+		padding: 3px;
+		border-radius: 10px;
+		border: 1px solid rgba(0, 0, 0, 0.8);
+		background: #171514;
+	}
+
+	.reveal-score__screen {
+		box-sizing: border-box;
 		display: flex;
 		align-items: center;
-		gap: 2px;
+		justify-content: center;
+		width: max-content;
+		min-width: 2.6em;
+		height: auto;
+		padding: 6px 12px;
+		border-radius: 7px;
+		background:
+			radial-gradient(120% 90% at 50% 18%, rgba(255, 255, 255, 0.22), transparent 55%),
+			linear-gradient(165deg, rgba(242, 235, 213, 0.96), rgba(201, 195, 178, 0.94));
+		box-shadow:
+			inset 0 2px 7px rgba(0, 0, 0, 0.22),
+			inset 0 -1px 2px rgba(255, 255, 255, 0.38);
+	}
+
+	/* :global — digit <img>s are created in JS and lack Astro scoped attrs */
+	.reveal-score :global(.reveal-score__digits) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0;
 		transform-origin: center center;
+		filter: drop-shadow(0 1px 1px rgba(40, 18, 4, 0.35));
 	}
 
-	.reveal-score__digits.is-pop {
-		animation: reveal-score-pop 150ms ease-out;
+	.reveal-score :global(.reveal-score__digits.is-pop) {
+		animation: reveal-score-pop 145ms ease-out;
 	}
 
-	.reveal-score__digit {
+	.reveal-score :global(.reveal-score__digit) {
 		display: block;
-		height: clamp(42px, 4.2vw, 58px);
+		height: clamp(30px, 3.2vw, 42px);
 		width: auto;
 		user-select: none;
+		object-fit: contain;
+		pointer-events: none;
 	}
 
 	@keyframes reveal-score-pop {
@@ -342,44 +386,52 @@ const PAINT_STROKES = [
 			transform: scale(1);
 		}
 		45% {
-			transform: scale(1.12);
+			transform: scale(1.08);
 		}
 		100% {
 			transform: scale(1);
 		}
 	}
 
-	/* Desktop / tablet: top-right score cluster */
+	/* Desktop / tablet: compact top-right framed HUD */
 	@media (min-width: 641px) {
 		.reveal-score {
-			top: max(18px, env(safe-area-inset-top, 0px));
-			right: clamp(22px, 2.4vw, 30px);
+			top: max(16px, env(safe-area-inset-top, 0px));
+			right: clamp(16px, 1.8vw, 24px);
 			left: auto;
 			bottom: auto;
-			width: auto;
-			justify-content: flex-end;
 		}
 	}
 
-	/* Mobile: full-width top HUD */
+	/* Mobile: compact centered framed unit (not a full-width strip) */
 	@media (max-width: 640px) {
 		.reveal-score {
-			top: 0;
-			left: 0;
-			right: 0;
-			width: 100%;
-			box-sizing: border-box;
-			justify-content: space-between;
-			padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
-			background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+			top: calc(8px + env(safe-area-inset-top, 0px));
+			left: 50%;
+			right: auto;
+			bottom: auto;
+			max-width: min(46vw, 180px);
+			transform: translateX(-50%);
 		}
 
-		.reveal-score__label {
-			width: clamp(88px, 28vw, 120px);
+		.reveal-score__frame {
+			padding: 4px;
+			border-radius: 12px;
 		}
 
-		.reveal-score__digit {
-			height: clamp(40px, 11vw, 52px);
+		.reveal-score__bezel {
+			padding: 3px;
+			border-radius: 9px;
+		}
+
+		.reveal-score__screen {
+			padding: 5px 10px;
+			border-radius: 6px;
+			min-width: 2.4em;
+		}
+
+		.reveal-score :global(.reveal-score__digit) {
+			height: clamp(28px, 7.5vw, 36px);
 		}
 
 		.reveal-logo {
@@ -481,8 +533,8 @@ const PAINT_STROKES = [
 	const HALF_B_C = { x: -2.0, y: 13.0 };
 
 	const GAME = {
-		minGap: 2.5,
-		maxGap: 4.8,
+		minGap: 0.85,
+		maxGap: 2.6,
 		flightMin: 0.72,
 		flightMax: 0.92,
 		slashMs: 0.12,
@@ -495,6 +547,9 @@ const PAINT_STROKES = [
 		slashArtOffsetDeg: -8,
 		trailHistoryMs: 140,
 		scoreFadeMs: 400,
+		maxFruits: 3,
+		waveStaggerMin: 0.04,
+		waveStaggerMax: 0.14,
 	} as const;
 
 	const SCORE_DIGIT_SRCS = [
@@ -574,6 +629,8 @@ const PAINT_STROKES = [
 	const scoreDigitsEl = document.getElementById('reveal-score-digits') as HTMLElement;
 	const swipeCanvas = document.getElementById('reveal-swipe-canvas') as HTMLCanvasElement;
 	const swipeCtx = swipeCanvas.getContext('2d');
+	const lemonLayer = document.getElementById('reveal-lemon-layer') as HTMLElement;
+	const revealScene = document.getElementById('reveal-scene') as HTMLElement;
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const finePointerMq = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -604,9 +661,39 @@ const PAINT_STROKES = [
 	let dropScale = 0.88;
 
 	let fruitRoundActive = false;
-	let nextFruitAt = 0;
 	let score = 0;
 	let scoreVisible = false;
+
+	type GameFruit = {
+		whole: HTMLImageElement;
+		halfA: HTMLImageElement;
+		halfB: HTMLImageElement;
+		slash: HTMLImageElement;
+		splash: HTMLImageElement;
+		droplets: HTMLImageElement;
+		lemon: Projectile;
+		halfAState: Projectile;
+		halfBState: Projectile;
+		busy: boolean;
+		sliced: boolean;
+		lemonLaunched: boolean;
+		cutPoint: Vec;
+		slashAngleDeg: number;
+		fxSliceAt: number;
+		fxSlashEnd: number;
+		fxSplashEnd: number;
+		slashScale: number;
+		splashRot: number;
+		splashScale: number;
+		dropRot: number;
+		dropScale: number;
+	};
+
+	type PendingLaunch = { at: number; x: number };
+
+	let gameFruits: GameFruit[] = [];
+	let pendingLaunches: PendingLaunch[] = [];
+	let nextWaveAt = 0;
 
 	let pointerSamples: PointerSample[] = [];
 	let pointerDown = false;
@@ -966,18 +1053,137 @@ const PAINT_STROKES = [
 		return clamp(center + offset, w * minFrac, w * maxFrac);
 	}
 
-	function launchWholeFruit() {
+	function spawnXs(count: number) {
+		const { w } = size();
+		const mobile = isMobileLayout();
+		const minFrac = mobile ? 0.14 : 0.18;
+		const maxFrac = mobile ? 0.86 : 0.82;
+		const minX = w * minFrac;
+		const maxX = w * maxFrac;
+		if (count <= 1) return [spawnX()];
+
+		const xs: number[] = [];
+		const minSep = w * (mobile ? 0.16 : 0.14);
+		for (let i = 0; i < count; i++) {
+			let x = spawnX();
+			let attempts = 0;
+			while (attempts < 8 && xs.some((other) => Math.abs(other - x) < minSep)) {
+				x = lerp(minX, maxX, (i + 0.5) / count + rand(-0.08, 0.08));
+				x = clamp(x, minX, maxX);
+				attempts++;
+			}
+			xs.push(x);
+		}
+		return xs;
+	}
+
+	function pickWaveCount() {
+		const r = Math.random();
+		if (r < 0.52) return 1;
+		if (r < 0.82) return 2;
+		return 3;
+	}
+
+	function cloneFruitImg(source: HTMLImageElement, parent: HTMLElement) {
+		const el = source.cloneNode(true) as HTMLImageElement;
+		el.removeAttribute('id');
+		el.style.opacity = '0';
+		el.style.visibility = 'hidden';
+		parent.appendChild(el);
+		return el;
+	}
+
+	function showFx(el: HTMLImageElement, opacity = '1') {
+		el.style.visibility = 'visible';
+		el.style.opacity = opacity;
+	}
+
+	function hideFx(el: HTMLImageElement) {
+		el.style.opacity = '0';
+		el.style.visibility = 'hidden';
+	}
+
+	function blankGameFruit(els: {
+		whole: HTMLImageElement;
+		halfA: HTMLImageElement;
+		halfB: HTMLImageElement;
+		slash: HTMLImageElement;
+		splash: HTMLImageElement;
+		droplets: HTMLImageElement;
+	}): GameFruit {
+		return {
+			...els,
+			lemon: blankProjectile(),
+			halfAState: blankProjectile(),
+			halfBState: blankProjectile(),
+			busy: false,
+			sliced: false,
+			lemonLaunched: false,
+			cutPoint: { x: 0, y: 0 },
+			slashAngleDeg: -28,
+			fxSliceAt: 0,
+			fxSlashEnd: 0,
+			fxSplashEnd: 0,
+			slashScale: 1.05,
+			splashRot: 6,
+			splashScale: 0.9,
+			dropRot: -10,
+			dropScale: 0.88,
+		};
+	}
+
+	function ensureGameFruitPool() {
+		if (gameFruits.length) return;
+		for (let i = 0; i < GAME.maxFruits; i++) {
+			gameFruits.push(
+				blankGameFruit({
+					whole: cloneFruitImg(lemonWhole, lemonLayer),
+					halfA: cloneFruitImg(halfA, lemonLayer),
+					halfB: cloneFruitImg(halfB, lemonLayer),
+					slash: cloneFruitImg(slash, revealScene),
+					splash: cloneFruitImg(splash, revealScene),
+					droplets: cloneFruitImg(droplets, revealScene),
+				}),
+			);
+		}
+	}
+
+	function resetGameFruit(f: GameFruit) {
+		f.whole.style.opacity = '0';
+		f.whole.style.visibility = 'hidden';
+		f.halfA.style.opacity = '0';
+		f.halfB.style.opacity = '0';
+		f.halfA.style.visibility = 'hidden';
+		f.halfB.style.visibility = 'hidden';
+		hideFx(f.slash);
+		hideFx(f.splash);
+		hideFx(f.droplets);
+		f.lemon = blankProjectile();
+		f.halfAState = blankProjectile();
+		f.halfBState = blankProjectile();
+		f.busy = false;
+		f.sliced = false;
+		f.lemonLaunched = false;
+	}
+
+	function acquireGameFruit() {
+		return gameFruits.find((f) => !f.busy) ?? null;
+	}
+
+	function anyBusyFruit() {
+		return gameFruits.some((f) => f.busy);
+	}
+
+	function launchGameFruit(f: GameFruit, startX: number) {
 		const { w, h } = size();
-		const startX = spawnX();
 		const startY = h + 100;
 		const apexX = startX + rand(-w * 0.05, w * 0.05);
-		// Keep apex in the central playable band, below the score HUD / logo crown.
 		const apexY = h * rand(0.32, 0.42);
 		const flight = rand(GAME.flightMin, GAME.flightMax);
 		const vx = (apexX - startX) / flight + rand(-30, 30);
 		const vy = (apexY - startY) / flight - 0.5 * GRAVITY * flight + rand(-40, 40);
 
-		lemon = {
+		f.lemon = {
 			x: startX,
 			y: startY,
 			vx,
@@ -986,28 +1192,193 @@ const PAINT_STROKES = [
 			angularVelocity: rand(140, 300) * (Math.random() < 0.5 ? -1 : 1),
 			visible: true,
 		};
-		fruitRoundActive = true;
-		lemonLaunched = true;
-		sliced = false;
-		fruit = {
-			active: true,
-			sliced: false,
-			x: lemon.x,
-			y: lemon.y,
-			vx: lemon.vx,
-			vy: lemon.vy,
-			rotation: lemon.rotation,
-			angularVelocity: lemon.angularVelocity,
+		f.busy = true;
+		f.lemonLaunched = true;
+		f.sliced = false;
+		f.halfAState = blankProjectile();
+		f.halfBState = blankProjectile();
+		f.whole.style.opacity = '1';
+		f.whole.style.visibility = 'visible';
+		f.halfA.style.visibility = 'hidden';
+		f.halfB.style.visibility = 'hidden';
+		f.halfA.style.opacity = '0';
+		f.halfB.style.opacity = '0';
+		hideFx(f.slash);
+		hideFx(f.splash);
+		hideFx(f.droplets);
+		setTransform(f.whole, f.lemon.x, f.lemon.y, f.lemon.rotation, 1);
+	}
+
+	function renderGameHalves(f: GameFruit) {
+		const a = halfAlign('a');
+		const b = halfAlign('b');
+		setTransform(f.halfA, f.halfAState.x + a.x, f.halfAState.y + a.y, f.halfAState.rotation, 1);
+		setTransform(f.halfB, f.halfBState.x + b.x, f.halfBState.y + b.y, f.halfBState.rotation, 1);
+	}
+
+	function sliceGameFruit(
+		f: GameFruit,
+		nowSec: number,
+		opts: { swipeDx: number; swipeDy: number },
+	) {
+		if (f.sliced || !f.lemonLaunched) return;
+		f.sliced = true;
+		f.cutPoint = { x: f.lemon.x, y: f.lemon.y };
+		f.fxSliceAt = nowSec;
+		f.fxSlashEnd = nowSec + GAME.slashMs;
+		f.fxSplashEnd = nowSec + GAME.splashMs;
+
+		const dx = opts.swipeDx;
+		const dy = opts.swipeDy;
+		const swipeLen = Math.hypot(dx, dy) || 1;
+		const nx = -dy / swipeLen;
+		const ny = dx / swipeLen;
+		const impulse = GAME.separationImpulse;
+		const extraSpin = GAME.extraSpin;
+		const baseRot = f.lemon.rotation;
+
+		f.slashAngleDeg = (Math.atan2(dy, dx) * 180) / Math.PI + GAME.slashArtOffsetDeg;
+		f.slashScale = 1.05;
+		f.splashRot = rand(-12, 14);
+		f.splashScale = rand(0.86, 0.96);
+		f.dropRot = rand(-16, 8);
+		f.dropScale = rand(0.84, 0.94);
+
+		score += 1;
+		renderScoreDigits(score, true);
+
+		f.halfAState = {
+			x: f.lemon.x,
+			y: f.lemon.y,
+			vx: f.lemon.vx + nx * impulse,
+			vy: f.lemon.vy + ny * impulse,
+			rotation: baseRot,
+			angularVelocity: f.lemon.angularVelocity - extraSpin,
+			visible: true,
 		};
-		lemonWhole.style.opacity = '1';
-		lemonWhole.style.visibility = 'visible';
-		halfA.style.visibility = 'hidden';
-		halfB.style.visibility = 'hidden';
-		halfA.style.opacity = '0';
-		halfB.style.opacity = '0';
-		slash.style.opacity = '0';
-		splash.style.opacity = '0';
-		droplets.style.opacity = '0';
+		f.halfBState = {
+			x: f.lemon.x,
+			y: f.lemon.y,
+			vx: f.lemon.vx - nx * impulse,
+			vy: f.lemon.vy - ny * impulse,
+			rotation: baseRot,
+			angularVelocity: f.lemon.angularVelocity + extraSpin,
+			visible: true,
+		};
+
+		f.lemon.visible = false;
+		f.whole.style.opacity = '0';
+		f.whole.style.visibility = 'hidden';
+		f.halfA.style.visibility = 'visible';
+		f.halfB.style.visibility = 'visible';
+		f.halfA.style.opacity = '1';
+		f.halfB.style.opacity = '1';
+		renderGameHalves(f);
+
+		showFx(f.slash, '1');
+		showFx(f.splash, '1');
+		showFx(f.droplets, '1');
+		setTransform(f.slash, f.cutPoint.x, f.cutPoint.y, f.slashAngleDeg, f.slashScale);
+		setTransform(f.splash, f.cutPoint.x, f.cutPoint.y, f.splashRot, f.splashScale);
+		setTransform(f.droplets, f.cutPoint.x + 6, f.cutPoint.y - 8, f.dropRot, f.dropScale);
+	}
+
+	function applyGameFruitFx(f: GameFruit, nowSec: number) {
+		if (!f.busy || !f.sliced) {
+			if (f.busy && !f.sliced) {
+				hideFx(f.slash);
+				hideFx(f.splash);
+				hideFx(f.droplets);
+			}
+			return;
+		}
+
+		const slashDur = Math.max(0.001, f.fxSlashEnd - f.fxSliceAt);
+		const slashLife = clamp((nowSec - f.fxSliceAt) / slashDur, 0, 1);
+		const slashOpacity = nowSec < f.fxSlashEnd ? 1 - slashLife * 0.25 : 0;
+		if (slashOpacity <= 0) hideFx(f.slash);
+		else showFx(f.slash, String(slashOpacity));
+		setTransform(
+			f.slash,
+			f.cutPoint.x,
+			f.cutPoint.y,
+			f.slashAngleDeg + slashLife * 12,
+			f.slashScale + slashLife * 0.18,
+		);
+
+		const splashT = clamp((nowSec - f.fxSliceAt) / Math.max(0.001, f.fxSplashEnd - f.fxSliceAt), 0, 1);
+		const splashOpacity = splashT < 0.18 ? splashT / 0.18 : 1 - (splashT - 0.18) / 0.82;
+		const splashVal = clamp(splashOpacity, 0, 1);
+		if (splashVal <= 0) hideFx(f.splash);
+		else showFx(f.splash, String(splashVal));
+		setTransform(
+			f.splash,
+			f.cutPoint.x,
+			f.cutPoint.y,
+			f.splashRot + splashT * 14,
+			f.splashScale + splashT * 0.4,
+		);
+
+		const dropT = clamp((nowSec - f.fxSliceAt - 0.03) / 0.4, 0, 1);
+		const dropOpacity = dropT < 0.22 ? dropT / 0.22 : 1 - (dropT - 0.22) / 0.78;
+		const dropVal = clamp(dropOpacity, 0, 1);
+		if (dropVal <= 0) hideFx(f.droplets);
+		else showFx(f.droplets, String(dropVal));
+		setTransform(
+			f.droplets,
+			f.cutPoint.x + dropT * 16,
+			f.cutPoint.y - 8 - dropT * 30,
+			f.dropRot + dropT * 18,
+			f.dropScale + dropT * 0.28,
+		);
+	}
+
+	function finishGameFruit(f: GameFruit, nowSec: number) {
+		resetGameFruit(f);
+		if (!anyBusyFruit() && pendingLaunches.length === 0) {
+			scheduleNextWave(nowSec);
+		}
+	}
+
+	function updateGameFruit(f: GameFruit, nowSec: number, dt: number) {
+		if (!f.busy) return;
+
+		if (!f.sliced) {
+			integrate(f.lemon, dt);
+			setTransform(f.whole, f.lemon.x, f.lemon.y, f.lemon.rotation, 1);
+			if (offscreenBottom(f.lemon.y)) {
+				finishGameFruit(f, nowSec);
+			}
+			return;
+		}
+
+		integrate(f.halfAState, dt);
+		integrate(f.halfBState, dt);
+		renderGameHalves(f);
+
+		if (offscreenBottom(f.halfAState.y) && offscreenBottom(f.halfBState.y)) {
+			finishGameFruit(f, nowSec);
+		}
+	}
+
+	function scheduleNextWave(fromSec: number) {
+		nextWaveAt = fromSec + rand(GAME.minGap, GAME.maxGap);
+		pendingLaunches = [];
+	}
+
+	function startWave(nowSec: number) {
+		ensureGameFruitPool();
+		const free = gameFruits.filter((f) => !f.busy).length;
+		if (free <= 0) {
+			nextWaveAt = nowSec + 0.35;
+			return;
+		}
+		const count = Math.min(pickWaveCount(), free);
+		const xs = spawnXs(count);
+		pendingLaunches = xs.map((x, i) => ({
+			at: nowSec + (i === 0 ? 0 : rand(GAME.waveStaggerMin, GAME.waveStaggerMax) * i),
+			x,
+		}));
 	}
 
 	function sliceFruit(
@@ -1169,19 +1540,8 @@ const PAINT_STROKES = [
 		);
 	}
 
-	function scheduleNextFruit(fromSec: number) {
-		nextFruitAt = fromSec + rand(GAME.minGap, GAME.maxGap);
-		fruitRoundActive = false;
-	}
-
-	function cleanupFruitRound(nowSec: number) {
-		hideLemonActors();
-		scheduleNextFruit(nowSec);
-	}
-
 	function trySliceFromSwipe(p0: PointerSample, p1: PointerSample, nowSec: number) {
 		if (phase !== 'game' || !gameActive) return;
-		if (!fruit.active || fruit.sliced || sliced) return;
 
 		const segLen = dist(p0.x, p0.y, p1.x, p1.y);
 		if (segLen < GAME.minSegmentPx) return;
@@ -1190,14 +1550,17 @@ const PAINT_STROKES = [
 		const speed = segLen / dt;
 		if (speed < GAME.minSwipeSpeed) return;
 
-		const distance = pointSegmentDistance(fruit.x, fruit.y, p0.x, p0.y, p1.x, p1.y);
-		if (distance > hitRadius()) return;
-
-		sliceFruit(nowSec, {
-			swipeDx: p1.x - p0.x,
-			swipeDy: p1.y - p0.y,
-			awardScore: true,
-		});
+		const radius = hitRadius();
+		for (const f of gameFruits) {
+			if (!f.busy || f.sliced || !f.lemonLaunched || !f.lemon.visible) continue;
+			const distance = pointSegmentDistance(f.lemon.x, f.lemon.y, p0.x, p0.y, p1.x, p1.y);
+			if (distance > radius) continue;
+			sliceGameFruit(f, nowSec, {
+				swipeDx: p1.x - p0.x,
+				swipeDy: p1.y - p0.y,
+			});
+			return;
+		}
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -1324,29 +1687,22 @@ const PAINT_STROKES = [
 	}
 
 	function updateGame(nowSec: number, dt: number) {
-		if (!fruitRoundActive) {
-			if (nowSec >= nextFruitAt) {
-				launchWholeFruit();
-			}
-			return;
+		ensureGameFruitPool();
+
+		if (pendingLaunches.length === 0 && !anyBusyFruit() && nowSec >= nextWaveAt) {
+			startWave(nowSec);
 		}
 
-		if (!sliced) {
-			integrate(lemon, dt);
-			syncFruitFromLemon();
-			renderWhole();
-			if (offscreenBottom(lemon.y)) {
-				cleanupFruitRound(nowSec);
-			}
-			return;
+		while (pendingLaunches.length && pendingLaunches[0]!.at <= nowSec) {
+			const launch = pendingLaunches.shift()!;
+			const slot = acquireGameFruit();
+			if (!slot) break;
+			launchGameFruit(slot, launch.x);
 		}
 
-		integrate(halfAState, dt);
-		integrate(halfBState, dt);
-		renderHalves();
-
-		if (bothHalvesGone()) {
-			cleanupFruitRound(nowSec);
+		for (const f of gameFruits) {
+			updateGameFruit(f, nowSec, dt);
+			applyGameFruitFx(f, nowSec);
 		}
 	}
 
@@ -1356,11 +1712,14 @@ const PAINT_STROKES = [
 		revealTossDone = true;
 		freezeLogoAndCopy();
 		hideLemonActors();
+		ensureGameFruitPool();
+		for (const f of gameFruits) resetGameFruit(f);
+		pendingLaunches = [];
 		stage.classList.add('is-game-active');
 		showScoreHud();
 		resizeSwipeCanvas();
 		bindGameplayInput();
-		scheduleNextFruit(nowSec + 0.35);
+		scheduleNextWave(nowSec + 0.35);
 	}
 
 	function tick(now: number) {
@@ -1386,7 +1745,6 @@ const PAINT_STROKES = [
 		} else {
 			freezeLogoAndCopy();
 			updateGame(elapsed, dt);
-			applyFx(elapsed);
 		}
 
 		rafId = window.requestAnimationFrame(tick);
