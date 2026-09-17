@@ -9,6 +9,19 @@ const ASSETS = {
 	splash: '/reveal/effects/juice_splash.png',
 	droplets: '/reveal/effects/juice_droplets.png',
 	comingSoon: '/reveal/text/coming_soon.png',
+	scoreLabel: '/reveal/ui/score_label.png',
+	scoreDigits: [
+		'/reveal/ui/score_digits/0.png',
+		'/reveal/ui/score_digits/1.png',
+		'/reveal/ui/score_digits/2.png',
+		'/reveal/ui/score_digits/3.png',
+		'/reveal/ui/score_digits/4.png',
+		'/reveal/ui/score_digits/5.png',
+		'/reveal/ui/score_digits/6.png',
+		'/reveal/ui/score_digits/7.png',
+		'/reveal/ui/score_digits/8.png',
+		'/reveal/ui/score_digits/9.png',
+	],
 } as const;
 
 const PAINT_STROKES = [
@@ -121,6 +134,13 @@ const PAINT_STROKES = [
 			draggable="false"
 		/>
 	</div>
+
+	<canvas id="reveal-swipe-canvas" class="reveal-swipe-canvas" aria-hidden="true"></canvas>
+
+	<div class="reveal-score" id="reveal-score" aria-live="polite" aria-label="Score 0">
+		<img class="reveal-score__label" src={ASSETS.scoreLabel} alt="" draggable="false" width="1130" height="373" />
+		<div class="reveal-score__digits" id="reveal-score-digits" aria-hidden="true"></div>
+	</div>
 </div>
 
 <style>
@@ -133,6 +153,12 @@ const PAINT_STROKES = [
 		background: #050505;
 		user-select: none;
 		touch-action: none;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.reveal-stage.is-game-active {
+			cursor: none;
+		}
 	}
 
 	.reveal-veil {
@@ -261,7 +287,101 @@ const PAINT_STROKES = [
 		will-change: transform, opacity;
 	}
 
+	.reveal-swipe-canvas {
+		position: absolute;
+		inset: 0;
+		z-index: 6;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.reveal-score {
+		position: absolute;
+		z-index: 7;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		opacity: 0;
+		pointer-events: none;
+		filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+		transition: opacity 0.4s ease-out;
+	}
+
+	.reveal-score.is-visible {
+		opacity: 1;
+	}
+
+	.reveal-score__label {
+		display: block;
+		width: clamp(90px, 9vw, 130px);
+		height: auto;
+		user-select: none;
+	}
+
+	.reveal-score__digits {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		transform-origin: center center;
+	}
+
+	.reveal-score__digits.is-pop {
+		animation: reveal-score-pop 150ms ease-out;
+	}
+
+	.reveal-score__digit {
+		display: block;
+		height: clamp(42px, 4.2vw, 58px);
+		width: auto;
+		user-select: none;
+	}
+
+	@keyframes reveal-score-pop {
+		0% {
+			transform: scale(1);
+		}
+		45% {
+			transform: scale(1.12);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	/* Desktop / tablet: top-right score cluster */
+	@media (min-width: 641px) {
+		.reveal-score {
+			top: max(18px, env(safe-area-inset-top, 0px));
+			right: clamp(22px, 2.4vw, 30px);
+			left: auto;
+			bottom: auto;
+			width: auto;
+			justify-content: flex-end;
+		}
+	}
+
+	/* Mobile: full-width top HUD */
 	@media (max-width: 640px) {
+		.reveal-score {
+			top: 0;
+			left: 0;
+			right: 0;
+			width: 100%;
+			box-sizing: border-box;
+			justify-content: space-between;
+			padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+			background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+		}
+
+		.reveal-score__label {
+			width: clamp(88px, 28vw, 120px);
+		}
+
+		.reveal-score__digit {
+			height: clamp(40px, 11vw, 52px);
+		}
+
 		.reveal-logo {
 			width: min(68vw, 300px);
 		}
@@ -311,7 +431,20 @@ const PAINT_STROKES = [
 		visible: boolean;
 	};
 
-	type Phase = 'reveal' | 'idle';
+	type FruitState = {
+		active: boolean;
+		sliced: boolean;
+		x: number;
+		y: number;
+		vx: number;
+		vy: number;
+		rotation: number;
+		angularVelocity: number;
+	};
+
+	type Phase = 'reveal' | 'game';
+
+	type PointerSample = { x: number; y: number; time: number };
 
 	const PAINT = [
 		{ rx: 42, ry: 34, delay: 0.0, duration: 0.55 },
@@ -336,7 +469,7 @@ const PAINT_STROKES = [
 		splashEnd: 3.2,
 		comingStart: 3.9,
 		comingEnd: 4.5,
-		idleStart: 5.1,
+		gameStart: 5.1,
 	} as const;
 
 	const GRAVITY = 2400;
@@ -347,14 +480,35 @@ const PAINT_STROKES = [
 	const HALF_A_C = { x: 53.7, y: 41.3 };
 	const HALF_B_C = { x: -2.0, y: 13.0 };
 
-	const IDLE = {
-		minGap: 2.6,
+	const GAME = {
+		minGap: 2.5,
 		maxGap: 4.8,
 		flightMin: 0.72,
 		flightMax: 0.92,
 		slashMs: 0.12,
 		splashMs: 0.45,
+		hitRadiusFactor: 0.37,
+		minSwipeSpeed: 300,
+		minSegmentPx: 6,
+		separationImpulse: 280,
+		extraSpin: 280,
+		slashArtOffsetDeg: -8,
+		trailHistoryMs: 140,
+		scoreFadeMs: 400,
 	} as const;
+
+	const SCORE_DIGIT_SRCS = [
+		'/reveal/ui/score_digits/0.png',
+		'/reveal/ui/score_digits/1.png',
+		'/reveal/ui/score_digits/2.png',
+		'/reveal/ui/score_digits/3.png',
+		'/reveal/ui/score_digits/4.png',
+		'/reveal/ui/score_digits/5.png',
+		'/reveal/ui/score_digits/6.png',
+		'/reveal/ui/score_digits/7.png',
+		'/reveal/ui/score_digits/8.png',
+		'/reveal/ui/score_digits/9.png',
+	] as const;
 
 	function clamp(n: number, min: number, max: number) {
 		return Math.min(max, Math.max(min, n));
@@ -384,6 +538,24 @@ const PAINT_STROKES = [
 		return t * t * (3 - 2 * t);
 	}
 
+	function dist(ax: number, ay: number, bx: number, by: number) {
+		const dx = bx - ax;
+		const dy = by - ay;
+		return Math.hypot(dx, dy);
+	}
+
+	function pointSegmentDistance(cx: number, cy: number, x0: number, y0: number, x1: number, y1: number) {
+		const vx = x1 - x0;
+		const vy = y1 - y0;
+		const wx = cx - x0;
+		const wy = cy - y0;
+		const lenSq = vx * vx + vy * vy;
+		const t = lenSq > 0 ? clamp((wx * vx + wy * vy) / lenSq, 0, 1) : 0;
+		const px = x0 + t * vx;
+		const py = y0 + t * vy;
+		return Math.hypot(cx - px, cy - py);
+	}
+
 	const stage = document.getElementById('reveal-stage');
 	if (!stage) throw new Error('Reveal stage missing');
 
@@ -398,13 +570,20 @@ const PAINT_STROKES = [
 	const splash = document.getElementById('reveal-splash') as HTMLImageElement;
 	const droplets = document.getElementById('reveal-droplets') as HTMLImageElement;
 	const comingSoon = document.getElementById('reveal-coming-soon') as HTMLImageElement;
+	const scoreEl = document.getElementById('reveal-score') as HTMLElement;
+	const scoreDigitsEl = document.getElementById('reveal-score-digits') as HTMLElement;
+	const swipeCanvas = document.getElementById('reveal-swipe-canvas') as HTMLCanvasElement;
+	const swipeCtx = swipeCanvas.getContext('2d');
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const finePointerMq = window.matchMedia('(hover: hover) and (pointer: fine)');
 
 	let rafId = 0;
+	let trailRafId = 0;
 	let startTime = 0;
 	let lastTime = 0;
 	let phase: Phase = 'reveal';
+	let gameActive = false;
 
 	let sliced = false;
 	let lemonLaunched = false;
@@ -412,22 +591,52 @@ const PAINT_STROKES = [
 	let lemon: Projectile = blankProjectile();
 	let halfAState: Projectile = blankProjectile();
 	let halfBState: Projectile = blankProjectile();
+	let fruit: FruitState = blankFruit();
 	let cutPoint: Vec = { x: 0, y: 0 };
+	let slashAngleDeg = -28;
 	let fxSliceAt = 0;
 	let fxSlashEnd = 0;
 	let fxSplashEnd = 0;
+	let slashScale = 1.05;
+	let splashRot = 6;
+	let splashScale = 0.9;
+	let dropRot = -10;
+	let dropScale = 0.88;
 
-	let idleActive = false;
-	let idleNextAt = 0;
-	let idleFlight = 0.8;
-	let idleSliceAt = 0;
+	let fruitRoundActive = false;
+	let nextFruitAt = 0;
+	let score = 0;
+	let scoreVisible = false;
+
+	let pointerSamples: PointerSample[] = [];
+	let pointerDown = false;
+	let activePointerId: number | null = null;
+	let lastPointer: PointerSample | null = null;
+	let desktopTracking = false;
 
 	function blankProjectile(): Projectile {
 		return { x: 0, y: 0, vx: 0, vy: 0, rotation: 0, angularVelocity: 0, visible: false };
 	}
 
+	function blankFruit(): FruitState {
+		return {
+			active: false,
+			sliced: false,
+			x: 0,
+			y: 0,
+			vx: 0,
+			vy: 0,
+			rotation: 0,
+			angularVelocity: 0,
+		};
+	}
+
 	function size() {
 		return { w: stage.clientWidth, h: stage.clientHeight };
+	}
+
+	function isMobileLayout() {
+		return size().w <= 640;
 	}
 
 	function logoTarget(): Vec {
@@ -442,6 +651,10 @@ const PAINT_STROKES = [
 
 	function lemonDisplayWidth() {
 		return lemonWhole.getBoundingClientRect().width || 148;
+	}
+
+	function hitRadius() {
+		return lemonDisplayWidth() * GAME.hitRadiusFactor;
 	}
 
 	function halfAlign(which: 'a' | 'b'): Vec {
@@ -464,6 +677,17 @@ const PAINT_STROKES = [
 		el.style.transform = `translate3d(${x}px, ${y + extraY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
 	}
 
+	function syncFruitFromLemon() {
+		fruit.x = lemon.x;
+		fruit.y = lemon.y;
+		fruit.vx = lemon.vx;
+		fruit.vy = lemon.vy;
+		fruit.rotation = lemon.rotation;
+		fruit.angularVelocity = lemon.angularVelocity;
+		fruit.active = lemon.visible && lemonLaunched;
+		fruit.sliced = sliced;
+	}
+
 	function hideLemonActors() {
 		lemonWhole.style.opacity = '0';
 		lemonWhole.style.visibility = 'hidden';
@@ -477,8 +701,10 @@ const PAINT_STROKES = [
 		lemon = blankProjectile();
 		halfAState = blankProjectile();
 		halfBState = blankProjectile();
+		fruit = blankFruit();
 		sliced = false;
 		lemonLaunched = false;
+		fruitRoundActive = false;
 	}
 
 	function offscreenBottom(y: number) {
@@ -573,6 +799,126 @@ const PAINT_STROKES = [
 		setTransform(halfB, halfBState.x + b.x, halfBState.y + b.y, halfBState.rotation, 1);
 	}
 
+	function renderScoreDigits(value: number, pop = false) {
+		const text = String(Math.max(0, Math.floor(value)));
+		scoreDigitsEl.replaceChildren();
+		for (const ch of text) {
+			const idx = ch.charCodeAt(0) - 48;
+			if (idx < 0 || idx > 9) continue;
+			const img = document.createElement('img');
+			img.className = 'reveal-score__digit';
+			img.src = SCORE_DIGIT_SRCS[idx];
+			img.alt = '';
+			img.draggable = false;
+			img.setAttribute('aria-hidden', 'true');
+			scoreDigitsEl.appendChild(img);
+		}
+		scoreEl.setAttribute('aria-label', `Score ${text}`);
+		if (pop) {
+			scoreDigitsEl.classList.remove('is-pop');
+			// Force reflow so the pop animation can replay.
+			void scoreDigitsEl.offsetWidth;
+			scoreDigitsEl.classList.add('is-pop');
+		}
+	}
+
+	function preloadScoreDigits() {
+		for (const src of SCORE_DIGIT_SRCS) {
+			const img = new Image();
+			img.src = src;
+		}
+	}
+
+	function showScoreHud() {
+		scoreVisible = true;
+		renderScoreDigits(score, false);
+		scoreEl.classList.add('is-visible');
+	}
+
+	function resizeSwipeCanvas() {
+		if (!swipeCtx) return;
+		const dpr = Math.max(1, window.devicePixelRatio || 1);
+		const { w, h } = size();
+		swipeCanvas.width = Math.max(1, Math.floor(w * dpr));
+		swipeCanvas.height = Math.max(1, Math.floor(h * dpr));
+		swipeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	}
+
+	function prunePointerSamples(nowMs: number) {
+		const cutoff = nowMs - GAME.trailHistoryMs;
+		while (pointerSamples.length && pointerSamples[0]!.time < cutoff) {
+			pointerSamples.shift();
+		}
+	}
+
+	function drawSwipeTrail(nowMs: number) {
+		if (!swipeCtx) return;
+		const { w, h } = size();
+		swipeCtx.clearRect(0, 0, w, h);
+		prunePointerSamples(nowMs);
+		if (pointerSamples.length < 2) return;
+
+		swipeCtx.save();
+		swipeCtx.lineCap = 'round';
+		swipeCtx.lineJoin = 'round';
+		swipeCtx.globalCompositeOperation = 'lighter';
+
+		for (let i = 1; i < pointerSamples.length; i++) {
+			const a = pointerSamples[i - 1]!;
+			const b = pointerSamples[i]!;
+			const segLen = dist(a.x, a.y, b.x, b.y);
+			const segDt = Math.max(0.001, (b.time - a.time) / 1000);
+			const speed = segLen / segDt;
+			const age = (nowMs - b.time) / GAME.trailHistoryMs;
+			const alpha = clamp(1 - age, 0, 1);
+			const width = clamp(lerp(5, 12, clamp((speed - 200) / 1200, 0, 1)), 4, 14);
+
+			swipeCtx.beginPath();
+			swipeCtx.moveTo(a.x, a.y);
+			swipeCtx.lineTo(b.x, b.y);
+			swipeCtx.strokeStyle = `rgba(120, 190, 255, ${0.22 * alpha})`;
+			swipeCtx.lineWidth = width + 5;
+			swipeCtx.stroke();
+
+			swipeCtx.beginPath();
+			swipeCtx.moveTo(a.x, a.y);
+			swipeCtx.lineTo(b.x, b.y);
+			swipeCtx.strokeStyle = `rgba(255, 255, 255, ${0.92 * alpha})`;
+			swipeCtx.lineWidth = width;
+			swipeCtx.stroke();
+		}
+
+		swipeCtx.restore();
+	}
+
+	function ensureTrailLoop() {
+		if (trailRafId) return;
+		const loop = (now: number) => {
+			drawSwipeTrail(now);
+			if (pointerSamples.length > 0 || pointerDown) {
+				trailRafId = window.requestAnimationFrame(loop);
+			} else {
+				trailRafId = 0;
+				if (swipeCtx) {
+					const { w, h } = size();
+					swipeCtx.clearRect(0, 0, w, h);
+				}
+			}
+		};
+		trailRafId = window.requestAnimationFrame(loop);
+	}
+
+	function stagePointFromEvent(e: PointerEvent): Vec {
+		const rect = stage.getBoundingClientRect();
+		return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+	}
+
+	function pushPointerSample(x: number, y: number, time: number) {
+		pointerSamples.push({ x, y, time });
+		prunePointerSamples(time);
+		ensureTrailLoop();
+	}
+
 	function launchRevealLemon() {
 		const { w, h } = size();
 		const cutX = w * 0.5 + (w < 640 ? 10 : 20);
@@ -594,38 +940,42 @@ const PAINT_STROKES = [
 		};
 		lemonLaunched = true;
 		sliced = false;
+		fruitRoundActive = true;
 		lemonWhole.style.opacity = '1';
 		lemonWhole.style.visibility = 'visible';
 		halfA.style.visibility = 'hidden';
 		halfB.style.visibility = 'hidden';
 		halfA.style.opacity = '0';
 		halfB.style.opacity = '0';
+		syncFruitFromLemon();
 	}
 
-	function safeTossX() {
+	function spawnX() {
 		const { w } = size();
+		const mobile = isMobileLayout();
+		const minFrac = mobile ? 0.14 : 0.18;
+		const maxFrac = mobile ? 0.86 : 0.82;
 		const logoW = logo.getBoundingClientRect().width || w * 0.4;
-		const halfLogo = logoW * 0.42;
-		const pad = Math.max(48, w * 0.08);
 		const center = w * 0.5;
-		// Prefer left or right of the logo badge so tosses frame the brand.
+		const halfLogo = logoW * 0.38;
+		// Bias away from the logo core so arcs stay sliceable.
 		const side = Math.random() < 0.5 ? -1 : 1;
-		const minOff = halfLogo * 0.55;
-		const maxOff = Math.min(w * 0.28, halfLogo + w * 0.12);
+		const minOff = halfLogo * 0.45;
+		const maxOff = Math.min(w * (mobile ? 0.34 : 0.3), halfLogo + w * 0.14);
 		const offset = rand(minOff, maxOff) * side;
-		return clamp(center + offset, pad, w - pad);
+		return clamp(center + offset, w * minFrac, w * maxFrac);
 	}
 
-	function launchIdleLemon(nowSec: number) {
+	function launchWholeFruit() {
 		const { w, h } = size();
-		const startX = safeTossX();
+		const startX = spawnX();
 		const startY = h + 100;
-		const cutX = startX + rand(-w * 0.04, w * 0.04);
-		const cutY = h * rand(0.3, 0.4);
-		idleFlight = rand(IDLE.flightMin, IDLE.flightMax);
-		idleSliceAt = nowSec + idleFlight;
-		const vx = (cutX - startX) / idleFlight;
-		const vy = (cutY - startY) / idleFlight - 0.5 * GRAVITY * idleFlight;
+		const apexX = startX + rand(-w * 0.05, w * 0.05);
+		// Keep apex in the central playable band, below the score HUD / logo crown.
+		const apexY = h * rand(0.32, 0.42);
+		const flight = rand(GAME.flightMin, GAME.flightMax);
+		const vx = (apexX - startX) / flight + rand(-30, 30);
+		const vy = (apexY - startY) / flight - 0.5 * GRAVITY * flight + rand(-40, 40);
 
 		lemon = {
 			x: startX,
@@ -633,12 +983,22 @@ const PAINT_STROKES = [
 			vx,
 			vy,
 			rotation: rand(-35, 15),
-			angularVelocity: rand(160, 280) * (Math.random() < 0.5 ? -1 : 1),
+			angularVelocity: rand(140, 300) * (Math.random() < 0.5 ? -1 : 1),
 			visible: true,
 		};
-		idleActive = true;
+		fruitRoundActive = true;
 		lemonLaunched = true;
 		sliced = false;
+		fruit = {
+			active: true,
+			sliced: false,
+			x: lemon.x,
+			y: lemon.y,
+			vx: lemon.vx,
+			vy: lemon.vy,
+			rotation: lemon.rotation,
+			angularVelocity: lemon.angularVelocity,
+		};
 		lemonWhole.style.opacity = '1';
 		lemonWhole.style.visibility = 'visible';
 		halfA.style.visibility = 'hidden';
@@ -650,40 +1010,107 @@ const PAINT_STROKES = [
 		droplets.style.opacity = '0';
 	}
 
-	function sliceAtLemon(nowSec: number) {
-		if (sliced) return;
+	function sliceFruit(
+		nowSec: number,
+		opts?: {
+			swipeDx?: number;
+			swipeDy?: number;
+			awardScore?: boolean;
+			slashAngle?: number;
+			slashEnd?: number;
+			splashEnd?: number;
+			sliceAt?: number;
+		},
+	) {
+		if (sliced || !lemonLaunched) return;
 		sliced = true;
+		fruit.sliced = true;
 		cutPoint = { x: lemon.x, y: lemon.y };
-		fxSliceAt = nowSec;
-		fxSlashEnd = nowSec + IDLE.slashMs;
-		fxSplashEnd = nowSec + IDLE.splashMs;
+		fxSliceAt = opts?.sliceAt ?? nowSec;
+		fxSlashEnd = opts?.slashEnd ?? nowSec + GAME.slashMs;
+		fxSplashEnd = opts?.splashEnd ?? nowSec + GAME.splashMs;
 
-		const carryX = lemon.vx * 0.2;
-		const carryY = Math.min(lemon.vy * 0.15, 40);
-		const impulseX = Math.min(size().w * 0.18, 200);
-		const impulseY = -160;
+		const dx = opts?.swipeDx ?? 1;
+		const dy = opts?.swipeDy ?? 0;
+		const swipeLen = Math.hypot(dx, dy) || 1;
+		const ndx = dx / swipeLen;
+		const ndy = dy / swipeLen;
+		const nx = -ndy;
+		const ny = ndx;
+		const impulse = GAME.separationImpulse;
+		const extraSpin = GAME.extraSpin;
 		const baseRot = lemon.rotation;
+
+		if (opts?.slashAngle != null) {
+			slashAngleDeg = opts.slashAngle;
+		} else {
+			slashAngleDeg = (Math.atan2(dy, dx) * 180) / Math.PI + GAME.slashArtOffsetDeg;
+		}
+
+		slashScale = 1.05;
+		splashRot = rand(-12, 14);
+		splashScale = rand(0.86, 0.96);
+		dropRot = rand(-16, 8);
+		dropScale = rand(0.84, 0.94);
+
+		if (opts?.awardScore) {
+			score += 1;
+			renderScoreDigits(score, true);
+		}
 
 		halfAState = {
 			x: lemon.x,
 			y: lemon.y,
-			vx: carryX - impulseX,
-			vy: carryY + impulseY * 0.35,
+			vx: lemon.vx + nx * impulse,
+			vy: lemon.vy + ny * impulse,
 			rotation: baseRot,
-			angularVelocity: -200,
+			angularVelocity: lemon.angularVelocity - extraSpin,
 			visible: true,
 		};
 		halfBState = {
 			x: lemon.x,
 			y: lemon.y,
-			vx: carryX + impulseX,
-			vy: carryY + impulseY,
+			vx: lemon.vx - nx * impulse,
+			vy: lemon.vy - ny * impulse,
 			rotation: baseRot,
-			angularVelocity: 210,
+			angularVelocity: lemon.angularVelocity + extraSpin,
 			visible: true,
 		};
 
+		// Intro keeps the older choreographed half impulses + FX for the scripted cut.
+		if (phase === 'reveal') {
+			const carryX = lemon.vx * 0.2;
+			const carryY = Math.min(lemon.vy * 0.15, 40);
+			const impulseX = Math.min(size().w * 0.18, 200);
+			const impulseY = -160;
+			halfAState = {
+				x: lemon.x,
+				y: lemon.y,
+				vx: carryX - impulseX,
+				vy: carryY + impulseY * 0.35,
+				rotation: baseRot,
+				angularVelocity: -200,
+				visible: true,
+			};
+			halfBState = {
+				x: lemon.x,
+				y: lemon.y,
+				vx: carryX + impulseX,
+				vy: carryY + impulseY,
+				rotation: baseRot,
+				angularVelocity: 210,
+				visible: true,
+			};
+			slashAngleDeg = -28;
+			slashScale = 1.05;
+			splashRot = 6;
+			splashScale = 0.9;
+			dropRot = -10;
+			dropScale = 0.88;
+		}
+
 		lemon.visible = false;
+		fruit.active = false;
 		lemonWhole.style.opacity = '0';
 		lemonWhole.style.visibility = 'hidden';
 		halfA.style.visibility = 'visible';
@@ -695,9 +1122,9 @@ const PAINT_STROKES = [
 		slash.style.opacity = '1';
 		splash.style.opacity = '1';
 		droplets.style.opacity = '1';
-		setTransform(slash, cutPoint.x, cutPoint.y, -28, 1.05);
-		setTransform(splash, cutPoint.x, cutPoint.y, 6, 0.9);
-		setTransform(droplets, cutPoint.x + 6, cutPoint.y - 8, -10, 0.88);
+		setTransform(slash, cutPoint.x, cutPoint.y, slashAngleDeg, slashScale);
+		setTransform(splash, cutPoint.x, cutPoint.y, splashRot, splashScale);
+		setTransform(droplets, cutPoint.x + 6, cutPoint.y - 8, dropRot, dropScale);
 	}
 
 	function applyFx(nowSec: number) {
@@ -711,12 +1138,24 @@ const PAINT_STROKES = [
 		const slashDur = Math.max(0.001, fxSlashEnd - fxSliceAt);
 		const slashLife = clamp((nowSec - fxSliceAt) / slashDur, 0, 1);
 		slash.style.opacity = String(nowSec < fxSlashEnd ? 1 - slashLife * 0.25 : 0);
-		setTransform(slash, cutPoint.x, cutPoint.y, -28 + slashLife * 12, 1.05 + slashLife * 0.18);
+		setTransform(
+			slash,
+			cutPoint.x,
+			cutPoint.y,
+			slashAngleDeg + slashLife * 12,
+			slashScale + slashLife * 0.18,
+		);
 
 		const splashT = clamp((nowSec - fxSliceAt) / Math.max(0.001, fxSplashEnd - fxSliceAt), 0, 1);
 		const splashOpacity = splashT < 0.18 ? splashT / 0.18 : 1 - (splashT - 0.18) / 0.82;
 		splash.style.opacity = String(clamp(splashOpacity, 0, 1));
-		setTransform(splash, cutPoint.x, cutPoint.y, 6 + splashT * 14, 0.9 + splashT * 0.4);
+		setTransform(
+			splash,
+			cutPoint.x,
+			cutPoint.y,
+			splashRot + splashT * 14,
+			splashScale + splashT * 0.4,
+		);
 
 		const dropT = clamp((nowSec - fxSliceAt - 0.03) / 0.4, 0, 1);
 		const dropOpacity = dropT < 0.22 ? dropT / 0.22 : 1 - (dropT - 0.22) / 0.78;
@@ -725,14 +1164,126 @@ const PAINT_STROKES = [
 			droplets,
 			cutPoint.x + dropT * 16,
 			cutPoint.y - 8 - dropT * 30,
-			-10 + dropT * 18,
-			0.88 + dropT * 0.28,
+			dropRot + dropT * 18,
+			dropScale + dropT * 0.28,
 		);
 	}
 
-	function scheduleNextIdle(fromSec: number) {
-		idleNextAt = fromSec + rand(IDLE.minGap, IDLE.maxGap);
-		idleActive = false;
+	function scheduleNextFruit(fromSec: number) {
+		nextFruitAt = fromSec + rand(GAME.minGap, GAME.maxGap);
+		fruitRoundActive = false;
+	}
+
+	function cleanupFruitRound(nowSec: number) {
+		hideLemonActors();
+		scheduleNextFruit(nowSec);
+	}
+
+	function trySliceFromSwipe(p0: PointerSample, p1: PointerSample, nowSec: number) {
+		if (phase !== 'game' || !gameActive) return;
+		if (!fruit.active || fruit.sliced || sliced) return;
+
+		const segLen = dist(p0.x, p0.y, p1.x, p1.y);
+		if (segLen < GAME.minSegmentPx) return;
+
+		const dt = Math.max(0.001, (p1.time - p0.time) / 1000);
+		const speed = segLen / dt;
+		if (speed < GAME.minSwipeSpeed) return;
+
+		const distance = pointSegmentDistance(fruit.x, fruit.y, p0.x, p0.y, p1.x, p1.y);
+		if (distance > hitRadius()) return;
+
+		sliceFruit(nowSec, {
+			swipeDx: p1.x - p0.x,
+			swipeDy: p1.y - p0.y,
+			awardScore: true,
+		});
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		if (!gameActive || phase !== 'game') return;
+		if (e.pointerType === 'mouse' && finePointerMq.matches) {
+			// Desktop uses continuous hover motion; button not required.
+			return;
+		}
+		pointerDown = true;
+		activePointerId = e.pointerId;
+		try {
+			stage.setPointerCapture(e.pointerId);
+		} catch {
+			/* ignore */
+		}
+		const pt = stagePointFromEvent(e);
+		const sample = { x: pt.x, y: pt.y, time: performance.now() };
+		lastPointer = sample;
+		pointerSamples = [sample];
+		ensureTrailLoop();
+		e.preventDefault();
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		if (!gameActive || phase !== 'game') return;
+
+		const isFineMouse = e.pointerType === 'mouse' && finePointerMq.matches;
+		if (!isFineMouse) {
+			if (!pointerDown || activePointerId !== e.pointerId) return;
+		} else {
+			desktopTracking = true;
+		}
+
+		const pt = stagePointFromEvent(e);
+		const now = performance.now();
+		const sample: PointerSample = { x: pt.x, y: pt.y, time: now };
+		const prev = lastPointer;
+		pushPointerSample(sample.x, sample.y, sample.time);
+		lastPointer = sample;
+
+		if (prev) {
+			const elapsed = startTime ? (now - startTime) / 1000 : 0;
+			trySliceFromSwipe(prev, sample, elapsed);
+		}
+
+		if (!isFineMouse) e.preventDefault();
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		if (activePointerId !== null && e.pointerId !== activePointerId) return;
+		pointerDown = false;
+		activePointerId = null;
+		lastPointer = null;
+		try {
+			if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+		} catch {
+			/* ignore */
+		}
+	}
+
+	function onPointerCancel(e: PointerEvent) {
+		onPointerUp(e);
+	}
+
+	function onPointerLeave(e: PointerEvent) {
+		if (e.pointerType === 'mouse' && finePointerMq.matches) {
+			desktopTracking = false;
+			lastPointer = null;
+			// Let existing trail samples fade naturally.
+		}
+	}
+
+	function bindGameplayInput() {
+		stage.addEventListener('pointerdown', onPointerDown, { passive: false });
+		stage.addEventListener('pointermove', onPointerMove, { passive: false });
+		stage.addEventListener('pointerup', onPointerUp);
+		stage.addEventListener('pointercancel', onPointerCancel);
+		stage.addEventListener('pointerleave', onPointerLeave);
+	}
+
+	function unbindGameplayInput() {
+		stage.removeEventListener('pointerdown', onPointerDown);
+		stage.removeEventListener('pointermove', onPointerMove);
+		stage.removeEventListener('pointerup', onPointerUp);
+		stage.removeEventListener('pointercancel', onPointerCancel);
+		stage.removeEventListener('pointerleave', onPointerLeave);
 	}
 
 	function updateRevealLemon(elapsed: number, dt: number) {
@@ -746,15 +1297,18 @@ const PAINT_STROKES = [
 		if (!lemonLaunched) launchRevealLemon();
 
 		if (!sliced && elapsed >= T.slice) {
-			sliceAtLemon(elapsed);
-			// Reveal slice uses timeline-relative fx windows.
-			fxSlashEnd = T.slashEnd;
-			fxSplashEnd = T.splashEnd;
-			fxSliceAt = T.slice;
+			sliceFruit(elapsed, {
+				slashAngle: -28,
+				slashEnd: T.slashEnd,
+				splashEnd: T.splashEnd,
+				sliceAt: T.slice,
+				awardScore: false,
+			});
 		}
 
 		if (!sliced) {
 			integrate(lemon, dt);
+			syncFruitFromLemon();
 			renderWhole();
 			return;
 		}
@@ -769,21 +1323,21 @@ const PAINT_STROKES = [
 		}
 	}
 
-	function updateIdle(nowSec: number, dt: number) {
-		if (!idleActive) {
-			if (nowSec >= idleNextAt) {
-				launchIdleLemon(nowSec);
+	function updateGame(nowSec: number, dt: number) {
+		if (!fruitRoundActive) {
+			if (nowSec >= nextFruitAt) {
+				launchWholeFruit();
 			}
 			return;
 		}
 
-		if (!sliced && nowSec >= idleSliceAt) {
-			sliceAtLemon(nowSec);
-		}
-
 		if (!sliced) {
 			integrate(lemon, dt);
+			syncFruitFromLemon();
 			renderWhole();
+			if (offscreenBottom(lemon.y)) {
+				cleanupFruitRound(nowSec);
+			}
 			return;
 		}
 
@@ -792,17 +1346,21 @@ const PAINT_STROKES = [
 		renderHalves();
 
 		if (bothHalvesGone()) {
-			hideLemonActors();
-			scheduleNextIdle(nowSec);
+			cleanupFruitRound(nowSec);
 		}
 	}
 
-	function enterIdle(nowSec: number) {
-		phase = 'idle';
+	function activateGame(nowSec: number) {
+		phase = 'game';
+		gameActive = true;
 		revealTossDone = true;
 		freezeLogoAndCopy();
 		hideLemonActors();
-		scheduleNextIdle(nowSec + 0.35);
+		stage.classList.add('is-game-active');
+		showScoreHud();
+		resizeSwipeCanvas();
+		bindGameplayInput();
+		scheduleNextFruit(nowSec + 0.35);
 	}
 
 	function tick(now: number) {
@@ -822,12 +1380,12 @@ const PAINT_STROKES = [
 			updateRevealLemon(elapsed, dt);
 			applyFx(elapsed);
 
-			if (elapsed >= T.idleStart) {
-				enterIdle(elapsed);
+			if (elapsed >= T.gameStart) {
+				activateGame(elapsed);
 			}
 		} else {
 			freezeLogoAndCopy();
-			updateIdle(elapsed, dt);
+			updateGame(elapsed, dt);
 			applyFx(elapsed);
 		}
 
@@ -873,6 +1431,8 @@ const PAINT_STROKES = [
 			if (elapsed >= 1.15) {
 				freezeLogoAndCopy();
 				hideLemonActors();
+				score = 0;
+				showScoreHud();
 				id = 0;
 				return;
 			}
@@ -902,20 +1462,45 @@ const PAINT_STROKES = [
 		);
 	}
 
+	function onResize() {
+		resizeSwipeCanvas();
+		if (phase === 'game' || phase === 'reveal') {
+			freezeLogoAndCopy();
+		}
+	}
+
+	function onVisibilityChange() {
+		if (document.hidden) {
+			lastTime = performance.now();
+		} else {
+			lastTime = performance.now();
+		}
+	}
+
+	function cleanup() {
+		if (rafId) cancelAnimationFrame(rafId);
+		if (trailRafId) cancelAnimationFrame(trailRafId);
+		unbindGameplayInput();
+		gameActive = false;
+		stage.classList.remove('is-game-active');
+	}
+
 	function start() {
+		preloadScoreDigits();
+		renderScoreDigits(0, false);
+		resizeSwipeCanvas();
+		window.addEventListener('resize', onResize);
+		window.addEventListener('orientationchange', onResize);
+		document.addEventListener('visibilitychange', onVisibilityChange);
+
 		if (reducedMotion) {
 			runReducedMotion();
+			window.addEventListener('pagehide', cleanup, { once: true });
 			return;
 		}
 
 		rafId = window.requestAnimationFrame(tick);
-		window.addEventListener(
-			'pagehide',
-			() => {
-				if (rafId) cancelAnimationFrame(rafId);
-			},
-			{ once: true },
-		);
+		window.addEventListener('pagehide', cleanup, { once: true });
 	}
 
 	if (document.readyState === 'complete') start();
