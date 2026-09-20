@@ -16,17 +16,25 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		<div class="nav-actions">
 			<ul class="nav-links nav-links--inline">
 				{
-					NAV_LINKS.map((link) => (
-						<li>
-							<a
-								class:list={['nav-link', { 'is-active': isActive(link.href) }]}
-								href={link.href}
-								aria-current={isActive(link.href) ? 'page' : undefined}
-							>
-								{link.label}
-							</a>
-						</li>
-					))
+					NAV_LINKS.map((link) => {
+						const isDesign = link.href === '/reveal';
+						return (
+							<li class:list={[{ 'nav-item--design': isDesign }]}>
+								<a
+									class:list={[
+										'nav-link',
+										{ 'is-active': isActive(link.href), 'nav-link--design': isDesign },
+									]}
+									href={link.href}
+									aria-current={isActive(link.href) ? 'page' : undefined}
+									data-lemon-rain={isDesign ? '' : undefined}
+								>
+									{link.label}
+									{isDesign && <span class="lemon-rain" aria-hidden="true" />}
+								</a>
+							</li>
+						);
+					})
 				}
 			</ul>
 
@@ -69,9 +77,14 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 
 <script>
 	import { initNavMenu } from '../lib/nav-menu';
+	import { initLemonRain } from '../lib/lemon-rain';
 
 	document.querySelectorAll('[data-nav-menu]').forEach((root) => {
 		initNavMenu(root as HTMLElement);
+	});
+
+	document.querySelectorAll<HTMLElement>('[data-lemon-rain]').forEach((link) => {
+		initLemonRain(link);
 	});
 </script>
 
@@ -173,6 +186,59 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	.nav-link.is-active,
 	.nav-link.is-active:hover {
 		color: var(--blue-soft);
+	}
+
+	.nav-item--design {
+		position: relative;
+	}
+
+	.nav-link--design {
+		position: relative;
+		overflow: visible;
+	}
+
+	.lemon-rain {
+		position: absolute;
+		left: 50%;
+		top: calc(100% - 0.15rem);
+		z-index: 2;
+		width: 4.25rem;
+		height: 4.75rem;
+		overflow: hidden;
+		pointer-events: none;
+		transform: translateX(-50%);
+	}
+
+	.lemon-rain :global(.lemon-drop) {
+		position: absolute;
+		top: -0.85rem;
+		width: var(--fall-size, 12px);
+		height: var(--fall-size, 12px);
+		margin-left: calc(var(--fall-size, 12px) / -2);
+		object-fit: contain;
+		opacity: 0;
+		animation: lemon-fall var(--fall-duration, 0.9s) ease-in forwards;
+		will-change: transform, opacity;
+	}
+
+	@keyframes lemon-fall {
+		0% {
+			opacity: 0.9;
+			transform: translate3d(0, 0, 0) rotate(0deg);
+		}
+		70% {
+			opacity: 0.55;
+		}
+		100% {
+			opacity: 0;
+			transform: translate3d(var(--fall-x, 0), 4.6rem, 0) rotate(var(--fall-rot, 160deg));
+		}
+	}
+
+	@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+		.lemon-rain {
+			display: none;
+		}
 	}
 
 	.nav-menu-toggle {

@@ -7,7 +7,7 @@ export const SITE = {
 	github: 'https://github.com/skyguy126/rnracing',
 } as const;
 
-/** The four site pages — single source of truth for nav labels, routes, and headings. */
+/** Content pages — single source of truth for nav labels, routes, and headings. */
 export const PAGES = [
 	{ href: '/', slug: 'home', label: 'Home', heading: 'RN Racing' },
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
@@ -17,7 +17,10 @@ export const PAGES = [
 
 export type PageHref = (typeof PAGES)[number]['href'];
 
-export const NAV_LINKS = PAGES.map(({ href, label }) => ({ href, label }));
+export const NAV_LINKS = [
+	...PAGES.map(({ href, label }) => ({ href, label })),
+	{ href: '/reveal', label: 'The Design' },
+] as const;
 
 export function getPage(href: PageHref) {
 	const page = PAGES.find((entry) => entry.href === href);
