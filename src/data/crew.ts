@@ -5,11 +5,11 @@ export const CREW_MEMBERS = [
 	{ name: 'Nyle', title: 'Executive Chair' },
 	{ name: 'Rohith', title: 'Dictator, Day Shift' },
 	{ name: 'Vamsi', title: 'Dictator, Night Shift' },
+	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
 	{ name: 'Sid', title: 'Intern, Human Resources' },
 	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
 	{ name: 'Jaime', title: 'General Counsel, Diversity' },
-	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
 	{ name: 'Danial', title: 'Director of Chirping' },
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 ] as const;
@@ -22,9 +22,14 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Danial: 'Danial.jpeg',
 	Varoon: 'Varoon.jpeg',
 	Jaime: 'Jaime.jpeg',
-	Vasu: 'Vasu.jpg',
-	Sid: 'Sid.jpeg',
+	Vasu: 'Vasu.png',
+	Sid: 'Sid.png',
 	Baggy: 'Baggy.jpeg',
+};
+
+const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
+	Vasu: 'Vasu.png',
+	Sid: 'Sid.png',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
@@ -83,6 +88,7 @@ export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	...member,
 	bio: BIO_BY_NAME[member.name] ?? PLACEHOLDER_BIO,
 	image: PHOTO_BY_NAME[member.name],
+	lightImage: LIGHT_PHOTO_BY_NAME[member.name] ?? PHOTO_BY_NAME[member.name],
 	imageFit: PHOTO_STYLE_BY_NAME[member.name]?.fit ?? 'cover',
 	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center',
 	modalCrop: MODAL_CROP_BY_NAME[member.name] ?? { x: 50, y: 50, scale: 1 },
