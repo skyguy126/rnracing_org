@@ -15,10 +15,10 @@ export const CREW_MEMBERS = [
 ] as const;
 
 const PHOTO_BY_NAME: Partial<Record<string, string>> = {
-	Vamsi: 'Vamsi.jpeg',
+	Vamsi: 'Vamsi.png',
 	Rohith: 'Rohith.png',
 	Kamran: 'Kamran.jpeg',
-	Nyle: 'Nyle.jpeg',
+	Nyle: 'Nyle.png',
 	Danial: 'Danial.jpeg',
 	Varoon: 'Varoon.jpeg',
 	Jaime: 'Jaime.jpeg',
@@ -28,6 +28,8 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 };
 
 const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
+	Vamsi: 'Vamsi.png',
+	Nyle: 'Nyle.png',
 	Vasu: 'Vasu.png',
 	Sid: 'Sid.png',
 };
