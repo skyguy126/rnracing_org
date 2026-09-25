@@ -35,7 +35,8 @@ const PAINT_STROKES = [
 ] as const;
 ---
 
-<div class="reveal-root">
+<p class="reveal-loading" id="reveal-loading" role="status">Loading...</p>
+<div class="reveal-root" id="reveal-root">
 <div class="reveal-stage" id="reveal-stage" aria-label="RN Racing teaser reveal" role="img">
 	<div class="reveal-veil" id="reveal-veil" aria-hidden="true"></div>
 
@@ -198,13 +199,49 @@ const PAINT_STROKES = [
 </div>
 
 <style>
+	.reveal-loading {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		display: grid;
+		place-items: center;
+		margin: 0;
+		font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+		font-size: 1.2rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--white) 30%, transparent);
+		pointer-events: none;
+		transition: opacity 1.05s ease;
+	}
+
+	.reveal-loading.is-done {
+		opacity: 0;
+	}
+
 	.reveal-root {
 		position: relative;
 		min-height: 100dvh;
+		background: #050505;
+		opacity: 0;
+		transition: opacity 1.05s ease;
+	}
+
+	.reveal-root.is-visible {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.reveal-root,
+		.reveal-loading {
+			transition: none;
+		}
 	}
 
 	.reveal-stage {
 		position: relative;
+		z-index: 0;
 		isolation: isolate;
 		width: 100%;
 		min-height: 100dvh;
@@ -450,7 +487,7 @@ const PAINT_STROKES = [
 
 	.reveal-sound {
 		position: absolute;
-		z-index: 8;
+		z-index: 30;
 		top: max(16px, env(safe-area-inset-top, 0px));
 		left: max(clamp(16px, 1.8vw, 24px), env(safe-area-inset-left, 0px));
 		right: auto;
@@ -461,7 +498,7 @@ const PAINT_STROKES = [
 		background: transparent;
 		color: #2c1810;
 		cursor: pointer;
-		pointer-events: auto;
+		pointer-events: none;
 		user-select: none;
 		touch-action: manipulation;
 		-webkit-tap-highlight-color: transparent;
@@ -513,15 +550,26 @@ const PAINT_STROKES = [
 			inset 0 -1px 2px rgba(255, 255, 255, 0.38);
 	}
 
+	.reveal-root.is-visible .reveal-sound {
+		pointer-events: auto;
+	}
+
 	.reveal-sound__icon {
 		display: block;
 		width: clamp(30px, 3.2vw, 42px);
 		height: clamp(30px, 3.2vw, 42px);
 	}
 
-	.reveal-sound.is-muted .reveal-sound__icon--on,
-	.reveal-sound:not(.is-muted) .reveal-sound__icon--off {
+	.reveal-sound__icon--off {
 		display: none;
+	}
+
+	.reveal-sound.is-muted .reveal-sound__icon--on {
+		display: none;
+	}
+
+	.reveal-sound.is-muted .reveal-sound__icon--off {
+		display: block;
 	}
 
 	.reveal-sound:active .reveal-sound__frame {
@@ -781,7 +829,10 @@ const PAINT_STROKES = [
 		return Math.hypot(cx - px, cy - py);
 	}
 
+	const revealRoot = document.getElementById('reveal-root');
+	const revealLoading = document.getElementById('reveal-loading');
 	const stage = document.getElementById('reveal-stage');
+	if (!revealRoot) throw new Error('Reveal root missing');
 	if (!stage) throw new Error('Reveal stage missing');
 
 	const veil = document.getElementById('reveal-veil') as HTMLElement;
@@ -808,6 +859,12 @@ const PAINT_STROKES = [
 	music.loop = false;
 	music.preload = 'auto';
 	music.volume = 0;
+	music.muted = false;
+
+	const REVEAL_BOOT = {
+		minDelayMs: 600,
+		maxDelayMs: 2600,
+	} as const;
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const finePointerMq = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -1913,8 +1970,76 @@ const PAINT_STROKES = [
 	}
 
 	function musicGain(elapsed: number) {
-		if (musicMuted) return 0;
 		return smoothstep(0, T.slice, elapsed);
+	}
+
+	function prerollTime() {
+		return Math.max(0, SONG_AT_SLICE - T.slice);
+	}
+
+	function seekPreroll() {
+		if (music.readyState < 1) return;
+		const target = prerollTime();
+		try {
+			if (Math.abs(music.currentTime - target) > 0.2) music.currentTime = target;
+		} catch {
+			/* metadata not seekable yet */
+		}
+	}
+
+	if (music.readyState >= 1) seekPreroll();
+	else music.addEventListener('loadedmetadata', () => seekPreroll(), { once: true });
+
+	function prerollBuffered() {
+		const target = prerollTime();
+		const ranges = music.buffered;
+		for (let i = 0; i < ranges.length; i++) {
+			try {
+				if (ranges.start(i) <= target + 0.25 && ranges.end(i) >= target + 1) return true;
+			} catch {
+				/* buffered ranges changed while reading */
+			}
+		}
+		return false;
+	}
+
+	function waitForPreroll() {
+		if (music.readyState >= 1) seekPreroll();
+		else music.addEventListener('loadedmetadata', () => seekPreroll(), { once: true });
+
+		return new Promise<void>((resolve) => {
+			const started = performance.now();
+			let settled = false;
+			let prerollSeeked = false;
+
+			const finish = () => {
+				if (settled) return;
+				settled = true;
+				music.removeEventListener('canplay', onMedia);
+				music.removeEventListener('progress', onMedia);
+				music.removeEventListener('seeked', onSeeked);
+				resolve();
+			};
+
+			const onSeeked = () => {
+				if (Math.abs(music.currentTime - prerollTime()) < 0.45) prerollSeeked = true;
+				onMedia();
+			};
+
+			const onMedia = () => {
+				const waited = performance.now() - started;
+				if (waited < REVEAL_BOOT.minDelayMs) return;
+				const atPreroll = Math.abs(music.currentTime - prerollTime()) < 0.45;
+				const canPlayPreroll = music.readyState >= 3 && (atPreroll || prerollSeeked);
+				if (prerollBuffered() || canPlayPreroll) finish();
+			};
+
+			music.addEventListener('canplay', onMedia);
+			music.addEventListener('progress', onMedia);
+			music.addEventListener('seeked', onSeeked);
+			window.setTimeout(onMedia, REVEAL_BOOT.minDelayMs);
+			window.setTimeout(finish, REVEAL_BOOT.maxDelayMs);
+		});
 	}
 
 	function musicTime(elapsed: number) {
@@ -1922,6 +2047,7 @@ const PAINT_STROKES = [
 	}
 
 	function renderSoundToggle() {
+		music.muted = musicMuted;
 		soundToggle.classList.toggle('is-muted', musicMuted);
 		soundToggle.setAttribute('aria-pressed', musicMuted ? 'true' : 'false');
 		soundToggle.setAttribute('aria-label', musicMuted ? 'Unmute music' : 'Mute music');
@@ -1949,20 +2075,21 @@ const PAINT_STROKES = [
 	}
 
 	function syncMusic(elapsed: number) {
-		if (!musicStarted || music.ended || music.paused) return;
+		if (!musicStarted || music.ended || music.paused || musicDisposed) return;
 		const desired = Math.max(0, musicTime(elapsed));
 		if (Number.isFinite(music.duration) && desired >= music.duration - 0.05) return;
-		const drift = music.readyState >= 1 ? Math.abs(music.currentTime - desired) : Number.POSITIVE_INFINITY;
-		if (!musicSeeking && music.readyState >= 1 && drift > 0.45) {
+		if (!musicSeeking && music.readyState >= 1 && Math.abs(music.currentTime - desired) > 0.6) {
 			try {
 				music.currentTime = desired;
 			} catch {
 				/* ignore */
 			}
 		}
-		const aligned = music.readyState >= 1 && !music.seeking && Math.abs(music.currentTime - desired) <= 0.45;
-		const gain = aligned ? musicGain(elapsed) : 0;
-		if (music.volume !== gain) music.volume = gain;
+		if (!musicMuted) {
+			const gain = musicGain(elapsed);
+			if (Math.abs(music.volume - gain) > 0.012) music.volume = gain;
+		}
+		if (music.muted !== musicMuted) music.muted = musicMuted;
 	}
 
 	function musicLoop() {
@@ -1974,8 +2101,9 @@ const PAINT_STROKES = [
 
 	function startMusic() {
 		if (musicDisposed || music.ended || !audioOrigin) return;
+		music.muted = musicMuted;
 		if (musicStarted && !music.paused) return;
-		if (!musicStarted) music.volume = 0;
+		if (!musicMuted) music.volume = musicGain(musicElapsed());
 		ensureMusicMetaAlign();
 		music
 			.play()
@@ -1985,16 +2113,9 @@ const PAINT_STROKES = [
 					return;
 				}
 				musicStarted = true;
-				const before = music.currentTime;
 				alignMusic();
-				const applyGain = () => {
-					if (!musicDisposed) music.volume = musicGain(musicElapsed());
-				};
-				if (music.seeking || Math.abs(music.currentTime - before) > 0.02) {
-					music.addEventListener('seeked', applyGain, { once: true });
-				} else {
-					applyGain();
-				}
+				music.muted = musicMuted;
+				if (!musicMuted) music.volume = musicGain(musicElapsed());
 			})
 			.catch(() => {
 				if (music.paused) musicStarted = false;
@@ -2008,11 +2129,15 @@ const PAINT_STROKES = [
 		if (!musicRaf) musicRaf = window.requestAnimationFrame(musicLoop);
 	}
 
-	function onMusicGesture(event: Event) {
-		if (!audioOrigin || musicDisposed) return;
-		if (musicStarted && !music.paused) return;
+	function hitsSoundToggle(event: Event) {
 		const target = event.target;
-		if (target instanceof Node && soundToggle.contains(target)) return;
+		if (target instanceof Node && soundToggle.contains(target)) return true;
+		return event.composedPath().includes(soundToggle);
+	}
+
+	function onMusicGesture(event: Event) {
+		if (!audioOrigin || musicDisposed || hitsSoundToggle(event)) return;
+		if (musicStarted && !music.paused) return;
 		startMusic();
 	}
 
@@ -2023,14 +2148,25 @@ const PAINT_STROKES = [
 		music.pause();
 	}
 
-	soundToggle.addEventListener('click', (event) => {
+	let muteToggleAt = 0;
+
+	function toggleMusicMute(event: Event) {
+		event.preventDefault();
 		event.stopPropagation();
+		const now = performance.now();
+		if (now - muteToggleAt < 280) return;
+		muteToggleAt = now;
 		musicMuted = !musicMuted;
 		renderSoundToggle();
-		if (!audioOrigin || musicDisposed) return;
-		if (musicStarted) music.volume = musicGain(musicElapsed());
-		startMusic();
+		if (!musicMuted && audioOrigin) music.volume = musicGain(musicElapsed());
+		if (!audioOrigin || musicDisposed || music.ended) return;
+		if (!musicStarted || music.paused) startMusic();
+	}
+
+	soundToggle.addEventListener('pointerdown', (event) => {
+		event.stopPropagation();
 	});
+	soundToggle.addEventListener('click', toggleMusicMute);
 
 	music.addEventListener('seeking', () => {
 		musicSeeking = true;
@@ -2165,7 +2301,7 @@ const PAINT_STROKES = [
 		stage.classList.remove('is-game-active');
 	}
 
-	function start() {
+	async function boot() {
 		preloadScoreDigits();
 		renderScoreDigits(0, false);
 		resizeSwipeCanvas();
@@ -2174,17 +2310,23 @@ const PAINT_STROKES = [
 		window.addEventListener('resize', onResize);
 		window.addEventListener('orientationchange', onResize);
 		document.addEventListener('visibilitychange', onVisibilityChange);
+		window.addEventListener('pagehide', cleanup, { once: true });
+
+		await waitForPreroll();
+		if (musicDisposed) return;
+
+		revealRoot.classList.add('is-visible');
+		revealLoading?.classList.add('is-done');
+		revealLoading?.setAttribute('aria-hidden', 'true');
 
 		if (reducedMotion) {
 			runReducedMotion();
-			window.addEventListener('pagehide', cleanup, { once: true });
 			return;
 		}
 
 		rafId = window.requestAnimationFrame(tick);
-		window.addEventListener('pagehide', cleanup, { once: true });
 	}
 
-	if (document.readyState === 'complete') start();
-	else window.addEventListener('load', start, { once: true });
+	if (document.readyState === 'complete') void boot();
+	else window.addEventListener('load', () => void boot(), { once: true });
 </script>
