@@ -35,6 +35,7 @@ const PAINT_STROKES = [
 ] as const;
 ---
 
+<div class="reveal-root">
 <div class="reveal-stage" id="reveal-stage" aria-label="RN Racing teaser reveal" role="img">
 	<div class="reveal-veil" id="reveal-veil" aria-hidden="true"></div>
 
@@ -147,7 +148,61 @@ const PAINT_STROKES = [
 	</div>
 </div>
 
+<button
+	type="button"
+	class="reveal-sound"
+	id="reveal-sound-toggle"
+	aria-pressed="false"
+	aria-label="Mute music"
+>
+	<span class="reveal-sound__frame">
+		<span class="reveal-sound__bezel">
+			<span class="reveal-sound__screen">
+				<svg class="reveal-sound__icon reveal-sound__icon--on" viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M3.5 9.25h3.1L11 5.4c.5-.36 1.2 0 1.2.6v12c0 .6-.7.96-1.2.6L6.6 14.75H3.5A1.25 1.25 0 0 1 2.25 13.5v-2.75A1.25 1.25 0 0 1 3.5 9.25Z"
+					></path>
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						d="M15.2 9.1a3.6 3.6 0 0 1 0 5.8"
+					></path>
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						d="M17.6 6.7a6.4 6.4 0 0 1 0 10.6"
+					></path>
+				</svg>
+				<svg class="reveal-sound__icon reveal-sound__icon--off" viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M3.5 9.25h3.1L11 5.4c.5-.36 1.2 0 1.2.6v12c0 .6-.7.96-1.2.6L6.6 14.75H3.5A1.25 1.25 0 0 1 2.25 13.5v-2.75A1.25 1.25 0 0 1 3.5 9.25Z"
+					></path>
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						d="M16.2 9.4 20.4 14.6M20.4 9.4 16.2 14.6"
+					></path>
+				</svg>
+			</span>
+		</span>
+	</span>
+</button>
+</div>
+
 <style>
+	.reveal-root {
+		position: relative;
+		min-height: 100dvh;
+	}
+
 	.reveal-stage {
 		position: relative;
 		isolation: isolate;
@@ -393,6 +448,92 @@ const PAINT_STROKES = [
 		}
 	}
 
+	.reveal-sound {
+		position: absolute;
+		z-index: 8;
+		top: max(16px, env(safe-area-inset-top, 0px));
+		left: max(clamp(16px, 1.8vw, 24px), env(safe-area-inset-left, 0px));
+		right: auto;
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: #2c1810;
+		cursor: pointer;
+		pointer-events: auto;
+		user-select: none;
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.reveal-sound:focus {
+		outline: none;
+	}
+
+	.reveal-sound:focus-visible {
+		outline: 2px solid rgba(255, 220, 165, 0.9);
+		outline-offset: 3px;
+	}
+
+	.reveal-sound__frame {
+		box-sizing: border-box;
+		display: block;
+		padding: 5px;
+		border-radius: 14px;
+		border: 2px solid rgba(24, 12, 5, 0.9);
+		background: linear-gradient(145deg, #76451f, #4d2913 45%, #2f190d);
+		box-shadow:
+			0 5px 14px rgba(0, 0, 0, 0.45),
+			inset 0 1px 1px rgba(255, 220, 165, 0.25),
+			inset 0 -2px 4px rgba(20, 8, 2, 0.45);
+	}
+
+	.reveal-sound__bezel {
+		box-sizing: border-box;
+		display: block;
+		padding: 3px;
+		border-radius: 10px;
+		border: 1px solid rgba(0, 0, 0, 0.8);
+		background: #171514;
+	}
+
+	.reveal-sound__screen {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 6px;
+		border-radius: 7px;
+		background:
+			radial-gradient(120% 90% at 50% 18%, rgba(255, 255, 255, 0.22), transparent 55%),
+			linear-gradient(165deg, rgba(242, 235, 213, 0.96), rgba(201, 195, 178, 0.94));
+		box-shadow:
+			inset 0 2px 7px rgba(0, 0, 0, 0.22),
+			inset 0 -1px 2px rgba(255, 255, 255, 0.38);
+	}
+
+	.reveal-sound__icon {
+		display: block;
+		width: clamp(30px, 3.2vw, 42px);
+		height: clamp(30px, 3.2vw, 42px);
+	}
+
+	.reveal-sound.is-muted .reveal-sound__icon--on,
+	.reveal-sound:not(.is-muted) .reveal-sound__icon--off {
+		display: none;
+	}
+
+	.reveal-sound:active .reveal-sound__frame {
+		transform: translateY(1px);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.reveal-sound:hover .reveal-sound__screen {
+			filter: brightness(1.05);
+		}
+	}
+
 	/* Desktop / tablet: compact top-right framed HUD */
 	@media (min-width: 641px) {
 		.reveal-score {
@@ -431,6 +572,31 @@ const PAINT_STROKES = [
 		}
 
 		.reveal-score :global(.reveal-score__digit) {
+			height: clamp(28px, 7.5vw, 36px);
+		}
+
+		.reveal-sound {
+			top: calc(8px + env(safe-area-inset-top, 0px));
+			left: max(10px, env(safe-area-inset-left, 0px));
+		}
+
+		.reveal-sound__frame {
+			padding: 4px;
+			border-radius: 12px;
+		}
+
+		.reveal-sound__bezel {
+			padding: 3px;
+			border-radius: 9px;
+		}
+
+		.reveal-sound__screen {
+			padding: 5px;
+			border-radius: 6px;
+		}
+
+		.reveal-sound__icon {
+			width: clamp(28px, 7.5vw, 36px);
 			height: clamp(28px, 7.5vw, 36px);
 		}
 
@@ -523,6 +689,10 @@ const PAINT_STROKES = [
 		comingEnd: 4.5,
 		gameStart: 5.1,
 	} as const;
+
+	const SONG_URL = 'https://media.munixnet.org/rnracing/vision.mp3';
+	/** Playback position when the intro lemon reaches the blade. */
+	const SONG_AT_SLICE = 52;
 
 	const GRAVITY = 2400;
 	const MAX_DT = 1 / 30;
@@ -631,6 +801,13 @@ const PAINT_STROKES = [
 	const swipeCtx = swipeCanvas.getContext('2d');
 	const lemonLayer = document.getElementById('reveal-lemon-layer') as HTMLElement;
 	const revealScene = document.getElementById('reveal-scene') as HTMLElement;
+	const soundToggle = document.getElementById('reveal-sound-toggle') as HTMLButtonElement;
+	if (!soundToggle) throw new Error('Reveal sound toggle missing');
+
+	const music = new Audio(SONG_URL);
+	music.loop = false;
+	music.preload = 'auto';
+	music.volume = 0;
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const finePointerMq = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -1722,10 +1899,151 @@ const PAINT_STROKES = [
 		scheduleNextWave(nowSec + 0.35);
 	}
 
+	let musicMuted = false;
+	let musicStarted = false;
+	let musicSeeking = false;
+	let musicDisposed = false;
+	let musicMetaBound = false;
+	let audioOrigin = 0;
+	let musicRaf = 0;
+
+	function musicElapsed() {
+		if (!audioOrigin) return 0;
+		return (performance.now() - audioOrigin) / 1000;
+	}
+
+	function musicGain(elapsed: number) {
+		if (musicMuted) return 0;
+		return smoothstep(0, T.slice, elapsed);
+	}
+
+	function musicTime(elapsed: number) {
+		return SONG_AT_SLICE - (T.slice - elapsed);
+	}
+
+	function renderSoundToggle() {
+		soundToggle.classList.toggle('is-muted', musicMuted);
+		soundToggle.setAttribute('aria-pressed', musicMuted ? 'true' : 'false');
+		soundToggle.setAttribute('aria-label', musicMuted ? 'Unmute music' : 'Mute music');
+	}
+
+	function alignMusic() {
+		if (!audioOrigin || music.readyState < 1 || music.ended) return;
+		const desired = Math.max(0, musicTime(musicElapsed()));
+		if (Number.isFinite(music.duration) && desired >= music.duration - 0.05) return;
+		try {
+			if (Math.abs(music.currentTime - desired) > 0.08) music.currentTime = desired;
+		} catch {
+			/* not seekable yet */
+		}
+	}
+
+	function ensureMusicMetaAlign() {
+		if (music.readyState >= 1) {
+			alignMusic();
+			return;
+		}
+		if (musicMetaBound) return;
+		musicMetaBound = true;
+		music.addEventListener('loadedmetadata', () => alignMusic(), { once: true });
+	}
+
+	function syncMusic(elapsed: number) {
+		if (!musicStarted || music.ended || music.paused) return;
+		const desired = Math.max(0, musicTime(elapsed));
+		if (Number.isFinite(music.duration) && desired >= music.duration - 0.05) return;
+		const drift = music.readyState >= 1 ? Math.abs(music.currentTime - desired) : Number.POSITIVE_INFINITY;
+		if (!musicSeeking && music.readyState >= 1 && drift > 0.45) {
+			try {
+				music.currentTime = desired;
+			} catch {
+				/* ignore */
+			}
+		}
+		const aligned = music.readyState >= 1 && !music.seeking && Math.abs(music.currentTime - desired) <= 0.45;
+		const gain = aligned ? musicGain(elapsed) : 0;
+		if (music.volume !== gain) music.volume = gain;
+	}
+
+	function musicLoop() {
+		if (musicDisposed) return;
+		syncMusic(musicElapsed());
+		if (!music.ended) musicRaf = window.requestAnimationFrame(musicLoop);
+		else musicRaf = 0;
+	}
+
+	function startMusic() {
+		if (musicDisposed || music.ended || !audioOrigin) return;
+		if (musicStarted && !music.paused) return;
+		if (!musicStarted) music.volume = 0;
+		ensureMusicMetaAlign();
+		music
+			.play()
+			.then(() => {
+				if (musicDisposed) {
+					music.pause();
+					return;
+				}
+				musicStarted = true;
+				const before = music.currentTime;
+				alignMusic();
+				const applyGain = () => {
+					if (!musicDisposed) music.volume = musicGain(musicElapsed());
+				};
+				if (music.seeking || Math.abs(music.currentTime - before) > 0.02) {
+					music.addEventListener('seeked', applyGain, { once: true });
+				} else {
+					applyGain();
+				}
+			})
+			.catch(() => {
+				if (music.paused) musicStarted = false;
+			});
+	}
+
+	function beginMusicClock(now: number) {
+		if (audioOrigin || musicDisposed) return;
+		audioOrigin = now;
+		startMusic();
+		if (!musicRaf) musicRaf = window.requestAnimationFrame(musicLoop);
+	}
+
+	function onMusicGesture(event: Event) {
+		if (!audioOrigin || musicDisposed) return;
+		if (musicStarted && !music.paused) return;
+		const target = event.target;
+		if (target instanceof Node && soundToggle.contains(target)) return;
+		startMusic();
+	}
+
+	function stopMusic() {
+		musicDisposed = true;
+		if (musicRaf) cancelAnimationFrame(musicRaf);
+		musicRaf = 0;
+		music.pause();
+	}
+
+	soundToggle.addEventListener('click', (event) => {
+		event.stopPropagation();
+		musicMuted = !musicMuted;
+		renderSoundToggle();
+		if (!audioOrigin || musicDisposed) return;
+		if (musicStarted) music.volume = musicGain(musicElapsed());
+		startMusic();
+	});
+
+	music.addEventListener('seeking', () => {
+		musicSeeking = true;
+	});
+	music.addEventListener('seeked', () => {
+		musicSeeking = false;
+	});
+
 	function tick(now: number) {
 		if (!startTime) {
 			startTime = now;
 			lastTime = now;
+			beginMusicClock(now);
 		}
 
 		const elapsed = (now - startTime) / 1000;
@@ -1769,7 +2087,10 @@ const PAINT_STROKES = [
 		};
 
 		const frame = (now: number) => {
-			if (!start) start = now;
+			if (!start) {
+				start = now;
+				beginMusicClock(now);
+			}
 			const elapsed = (now - start) / 1000;
 
 			paintQuick(elapsed);
@@ -1828,16 +2149,17 @@ const PAINT_STROKES = [
 	}
 
 	function onVisibilityChange() {
-		if (document.hidden) {
-			lastTime = performance.now();
-		} else {
-			lastTime = performance.now();
-		}
+		lastTime = performance.now();
+		if (document.hidden || musicDisposed || music.ended || !audioOrigin) return;
+		if (!musicStarted || music.paused) startMusic();
 	}
 
 	function cleanup() {
 		if (rafId) cancelAnimationFrame(rafId);
 		if (trailRafId) cancelAnimationFrame(trailRafId);
+		stopMusic();
+		window.removeEventListener('pointerdown', onMusicGesture, { capture: true });
+		window.removeEventListener('keydown', onMusicGesture, { capture: true });
 		unbindGameplayInput();
 		gameActive = false;
 		stage.classList.remove('is-game-active');
@@ -1847,6 +2169,8 @@ const PAINT_STROKES = [
 		preloadScoreDigits();
 		renderScoreDigits(0, false);
 		resizeSwipeCanvas();
+		window.addEventListener('pointerdown', onMusicGesture, { capture: true });
+		window.addEventListener('keydown', onMusicGesture, { capture: true });
 		window.addEventListener('resize', onResize);
 		window.addEventListener('orientationchange', onResize);
 		document.addEventListener('visibilitychange', onVisibilityChange);
