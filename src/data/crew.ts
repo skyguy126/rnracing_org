@@ -12,6 +12,8 @@ export const CREW_MEMBERS = [
 	{ name: 'Jaime', title: 'General Counsel, Diversity' },
 	{ name: 'Danial', title: 'Director of Chirping' },
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
+	{ name: 'Jatin', title: 'Director of Intelligence' },
+	{ name: 'Tobias', title: 'Faith-based Outreach' },
 ] as const;
 
 const PHOTO_BY_NAME: Partial<Record<string, string>> = {
@@ -25,6 +27,8 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Vasu: 'Vasu.png',
 	Sid: 'Sid.png',
 	Baggy: 'Baggy.jpeg',
+	Jatin: 'Jatin.png',
+	Tobias: 'Toby.png',
 };
 
 const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
@@ -32,6 +36,8 @@ const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Nyle: 'Nyle.png',
 	Vasu: 'Vasu.png',
 	Sid: 'Sid.png',
+	Jatin: 'Jatin.png',
+	Tobias: 'Toby.png',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
@@ -71,6 +77,8 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Sid: 'Human resources is so important to us, we brought Sid in as a specialist to ensure the team remains well-supported and compliant (we all love each other, we swear).',
 	Baggy: 'Baggy keeps the team fired up, using carefully orchestrated ragebait to push the team to perform at their best, usually out of spite and frustration with him.',
 	Jaime: 'Jaime is a true champion of diversity and inclusion, ensuring that the team remains welcoming and supportive to all, no matter their background or identity.',
+	Jatin: 'In a complex geopolitical environment filled with many race cars, Jatin employs his signature smoke and mirrors to infiltrate the competitive landscape and gather crucial intelligence to ensure a RN victory',
+	Tobias: "No matter how fast our car is, the one thing you can't outrace is God. Tobias is our in-house pastor, leading us in prayer and assuring us that no matter what happens on the track, we can always rely on Jesus to take the wheel.",
 };
 
 export type CrewMember = (typeof CREW_MEMBERS)[number] & {
