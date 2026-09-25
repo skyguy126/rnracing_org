@@ -741,6 +741,46 @@ const PAINT_STROKES = [
 	const SONG_URL = 'https://media.munixnet.org/rnracing/vision.mp3';
 	/** Playback position when the intro lemon reaches the blade. */
 	const SONG_AT_SLICE = 52;
+	/** Bass-onset times in the track, seconds. */
+	const BASS_HITS = [
+		0.16, 0.62, 1.08, 1.56, 2.02, 2.52, 3.02, 3.5, 3.96, 4.4, 4.84, 5.34,
+		5.86, 6.36, 6.84, 7.3, 7.74, 8.22, 8.68, 9.18, 9.68, 10.16, 10.64, 11.08,
+		11.56, 12.02, 12.46, 12.92, 13.36, 14.12, 14.68, 15.16, 15.62, 16.1, 16.56, 17.04,
+		17.46, 18.02, 18.48, 18.96, 19.4, 19.9, 20.38, 20.8, 21.34, 21.82, 22.3, 22.76,
+		23.24, 23.7, 24.12, 24.68, 25.1, 25.54, 26.14, 26.72, 27.4, 27.84, 28.48, 28.94,
+		29.42, 29.86, 30.4, 30.88, 31.34, 31.84, 32.48, 32.9, 33.36, 33.78, 34.36, 34.8,
+		35.24, 35.78, 36.24, 36.76, 37.26, 37.76, 38.18, 38.92, 39.36, 40.02, 40.78, 41.3,
+		41.72, 42.56, 43, 43.46, 43.9, 44.36, 44.78, 45.22, 45.64, 46.08, 46.5, 47.04,
+		47.46, 47.92, 48.34, 48.84, 49.3, 49.78, 50.2, 50.84, 51.4, 52.06, 52.9, 53.36,
+		53.88, 54.32, 54.76, 55.22, 55.72, 56.28, 56.7, 57.18, 57.62, 58.08, 58.5, 58.98,
+		59.4, 59.84, 60.28, 60.72, 61.2, 61.64, 62.08, 62.5, 62.96, 63.38, 63.86, 64.44,
+		64.88, 65.34, 65.88, 66.3, 66.72, 67.24, 67.66, 68.3, 68.8, 69.32, 69.8, 70.32,
+		70.78, 71.2, 71.64, 72.12, 72.56, 73.06, 73.52, 73.98, 74.44, 74.98, 75.44, 75.86,
+		76.3, 76.72, 77.18, 77.62, 78.08, 78.56, 79, 79.48, 79.92, 80.34, 80.78, 81.2,
+		81.64, 82.14, 82.66, 83.14, 83.62, 84.08, 84.54, 85.04, 85.62, 86.04, 86.56, 87.02,
+		87.44, 87.88, 88.3, 88.8, 89.32, 89.82, 90.28, 90.72, 91.2, 91.64, 92.12, 92.66,
+		93.28, 93.72, 94.32, 94.76, 95.22, 95.72, 96.28, 96.72, 97.18, 97.62, 98.08, 98.56,
+		98.98, 99.56, 100.04, 100.54, 100.98, 101.42, 101.88, 102.3, 102.76, 103.2, 103.62, 104.04,
+		104.54, 105.04, 105.66, 106.18, 106.7, 107.18, 107.66, 108.08, 108.5, 108.94, 109.36, 109.8,
+		110.28, 110.72, 111.22, 111.64, 112.12, 112.56, 113.06, 113.52, 113.98, 114.4, 114.84, 115.34,
+		115.86, 116.3, 116.72, 117.18, 117.62, 118.08, 118.56, 119, 119.58, 120.04, 120.48, 121,
+		121.64, 122.06, 122.52, 122.96, 123.38, 123.82, 124.44, 124.98, 125.46, 125.9, 126.38, 126.84,
+		127.38, 127.88, 128.3, 128.74, 129.2, 129.62, 130.32, 130.78, 131.34, 131.84, 132.34, 132.84,
+		133.28, 133.76, 134.22, 134.76, 135.18, 135.86, 136.34, 136.82, 137.38, 137.86, 138.38, 138.82,
+		139.3, 139.74, 140.22, 140.7, 141.34, 141.78, 142.22, 142.68, 143.18, 143.76, 144.18, 144.7,
+		145.12, 145.56, 146, 146.54, 146.96, 147.46, 148, 148.48, 148.96, 149.4, 149.9, 150.38,
+		150.8, 151.34, 151.78, 152.24, 152.76, 153.2, 153.62, 154.12, 154.66, 155.1, 155.54, 156,
+		156.46, 156.94, 157.36, 157.88, 158.3, 158.86, 159.42, 160.02, 160.48, 161, 161.5, 162.02,
+		162.52, 162.96, 163.64, 164.08, 164.54, 164.96, 165.44, 165.86, 166.3, 166.84, 167.34, 167.78,
+		168.22, 168.68, 169.18, 169.62, 170.28, 170.72, 171.2, 171.64, 172.12, 172.78, 173.32, 173.74,
+		174.32, 174.76, 175.22, 175.72, 176.28, 176.82, 177.28, 177.78, 178.22, 178.68, 179.2, 179.62,
+		180.18, 180.64, 181.08, 181.56, 182.02, 182.52, 182.96, 183.62, 184.08, 184.54, 184.98, 185.4,
+		185.94, 186.52, 187.02, 187.54, 187.96, 188.5, 189.2, 189.8, 190.4, 190.88, 191.34, 191.84,
+		192.54, 193.02, 193.46, 193.92, 194.34, 194.8, 195.24, 195.78, 196.26, 196.76, 197.26, 197.8,
+		198.34, 198.94, 199.58, 200.02, 200.52, 201, 201.5, 202.06, 202.52, 202.96, 203.62, 204.08,
+		204.54, 204.96, 205.44, 205.86, 206.3, 206.84, 207.28, 207.74, 208.22, 208.68, 209.16, 209.62,
+		210.28, 210.72, 211.2, 211.64, 212.12, 212.66, 213.2,
+	] as const;
 
 	const GRAVITY = 2400;
 	const MAX_DT = 1 / 30;
@@ -855,11 +895,19 @@ const PAINT_STROKES = [
 	const soundToggle = document.getElementById('reveal-sound-toggle') as HTMLButtonElement;
 	if (!soundToggle) throw new Error('Reveal sound toggle missing');
 
-	const music = new Audio(SONG_URL);
+	const MUSIC_FLOOR = 0.08;
+
+	const music = document.createElement('audio');
+	music.src = SONG_URL;
 	music.loop = false;
 	music.preload = 'auto';
-	music.volume = 0;
+	music.autoplay = false;
+	music.volume = MUSIC_FLOOR;
 	music.muted = false;
+	music.setAttribute('playsinline', '');
+	music.setAttribute('webkit-playsinline', '');
+	music.style.cssText = 'position:fixed;width:0;height:0;opacity:0;pointer-events:none';
+	document.body.appendChild(music);
 
 	const REVEAL_BOOT = {
 		minDelayMs: 600,
@@ -1060,9 +1108,80 @@ const PAINT_STROKES = [
 		}
 	}
 
+	let bassEnergy = 0;
+	let bassHitIndex = 0;
+	let bassFrameAt = 0;
+	let bassGlowOn = false;
+
+	function updateBassVisual() {
+		const now = performance.now();
+		const dt = bassFrameAt ? Math.min(0.05, (now - bassFrameAt) / 1000) : 0.016;
+		bassFrameAt = now;
+		bassEnergy *= Math.exp(-dt / 0.11);
+		if (bassEnergy < 0.01) bassEnergy = 0;
+
+		if (musicMuted) {
+			bassEnergy = 0;
+			if (musicStarted && !music.paused && !music.ended) {
+				const t = music.currentTime;
+				while (bassHitIndex < BASS_HITS.length && BASS_HITS[bassHitIndex]! <= t) bassHitIndex++;
+			}
+			return;
+		}
+
+		if (reducedMotion || !musicStarted || music.paused || music.ended || musicDisposed) return;
+
+		const t = music.currentTime;
+		const previous = bassHitIndex > 0 ? BASS_HITS[bassHitIndex - 1]! : -1;
+		if (previous > t + 0.08) bassHitIndex = 0;
+		while (bassHitIndex < BASS_HITS.length && BASS_HITS[bassHitIndex]! < t - 0.12) {
+			bassHitIndex++;
+		}
+		while (bassHitIndex < BASS_HITS.length && BASS_HITS[bassHitIndex]! <= t + 0.02) {
+			const hit = BASS_HITS[bassHitIndex]!;
+			bassHitIndex++;
+			if (t - hit < 0.09) bassEnergy = 1;
+		}
+	}
+
+	function applyLogoGlow(amount: number) {
+		if (amount < 0.02) {
+			if (bassGlowOn) {
+				logo.style.filter = '';
+				bassGlowOn = false;
+			}
+			return;
+		}
+		bassGlowOn = true;
+		const alpha = (0.32 * amount).toFixed(3);
+		const radius = (7 + 10 * amount).toFixed(1);
+		logo.style.filter =
+			`drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 ${radius}px rgba(255, 206, 96, ${alpha}))`;
+	}
+
+	function placeLogo(x: number, y: number, scale: number, extraY = 0) {
+		const punch = bassEnergy;
+		if (punch <= 0) {
+			setTransform(logo, x, y, 0, scale, extraY);
+			applyLogoGlow(0);
+			return;
+		}
+		const wobble = Math.sin(performance.now() * 0.05);
+		setTransform(
+			logo,
+			x + wobble * 3.2 * punch,
+			y + Math.cos(performance.now() * 0.041) * 1.8 * punch,
+			0,
+			scale * (1 + punch * 0.022),
+			extraY,
+		);
+		applyLogoGlow(punch);
+	}
+
 	function applyLogo(elapsed: number) {
 		if (elapsed < T.logoStart) {
 			logo.style.opacity = '0';
+			applyLogoGlow(0);
 			return;
 		}
 
@@ -1074,7 +1193,7 @@ const PAINT_STROKES = [
 		const target = logoTarget();
 
 		logo.style.opacity = String(opacity);
-		setTransform(logo, target.x, target.y, 0, scale, lift);
+		placeLogo(target.x, target.y, scale, lift);
 	}
 
 	function applyComingSoon(elapsed: number) {
@@ -1094,7 +1213,7 @@ const PAINT_STROKES = [
 		const lt = logoTarget();
 		const ct = comingTarget();
 		logo.style.opacity = '1';
-		setTransform(logo, lt.x, lt.y, 0, 1, 0);
+		placeLogo(lt.x, lt.y, 1, 0);
 		comingSoon.style.opacity = '1';
 		setTransform(comingSoon, ct.x, ct.y, 0, 1, 0);
 		veil.style.opacity = '0';
@@ -1960,9 +2079,12 @@ const PAINT_STROKES = [
 	let musicStarted = false;
 	let musicSeeking = false;
 	let musicDisposed = false;
-	let musicMetaBound = false;
 	let audioOrigin = 0;
 	let musicRaf = 0;
+	let musicRetryTimer = 0;
+	let resumeAttempts = 0;
+	let suppressMuteClick = false;
+	let revealArmed = false;
 
 	function musicElapsed() {
 		if (!audioOrigin) return 0;
@@ -1970,7 +2092,7 @@ const PAINT_STROKES = [
 	}
 
 	function musicGain(elapsed: number) {
-		return smoothstep(0, T.slice, elapsed);
+		return MUSIC_FLOOR + (1 - MUSIC_FLOOR) * smoothstep(0, T.slice, elapsed);
 	}
 
 	function prerollTime() {
@@ -2053,27 +2175,6 @@ const PAINT_STROKES = [
 		soundToggle.setAttribute('aria-label', musicMuted ? 'Unmute music' : 'Mute music');
 	}
 
-	function alignMusic() {
-		if (!audioOrigin || music.readyState < 1 || music.ended) return;
-		const desired = Math.max(0, musicTime(musicElapsed()));
-		if (Number.isFinite(music.duration) && desired >= music.duration - 0.05) return;
-		try {
-			if (Math.abs(music.currentTime - desired) > 0.08) music.currentTime = desired;
-		} catch {
-			/* not seekable yet */
-		}
-	}
-
-	function ensureMusicMetaAlign() {
-		if (music.readyState >= 1) {
-			alignMusic();
-			return;
-		}
-		if (musicMetaBound) return;
-		musicMetaBound = true;
-		music.addEventListener('loadedmetadata', () => alignMusic(), { once: true });
-	}
-
 	function syncMusic(elapsed: number) {
 		if (!musicStarted || music.ended || music.paused || musicDisposed) return;
 		const desired = Math.max(0, musicTime(elapsed));
@@ -2099,12 +2200,35 @@ const PAINT_STROKES = [
 		else musicRaf = 0;
 	}
 
+	function audibleGain() {
+		return Math.max(MUSIC_FLOOR, audioOrigin ? musicGain(musicElapsed()) : MUSIC_FLOOR);
+	}
+
+	function snapPlayhead() {
+		if (!audioOrigin || music.readyState < 1 || music.ended) return;
+		const desired = Math.max(0, musicTime(musicElapsed()));
+		if (Number.isFinite(music.duration) && desired >= music.duration - 0.05) return;
+		if (Math.abs(music.currentTime - desired) <= 0.45) return;
+		try {
+			music.currentTime = desired;
+		} catch {
+			/* not seekable yet */
+		}
+	}
+
 	function startMusic() {
-		if (musicDisposed || music.ended || !audioOrigin) return;
+		if (musicDisposed || music.ended) return;
+		// Already running. Keep the user's mute choice without touching play().
+		if (musicStarted && !music.paused) {
+			music.muted = musicMuted;
+			return;
+		}
+
+		// Seek-before-play aborts the play() promise on phones and some desktops.
+		// Call play() first, at a non-zero volume, so the browser treats it as real audio.
 		music.muted = musicMuted;
-		if (musicStarted && !music.paused) return;
-		if (!musicMuted) music.volume = musicGain(musicElapsed());
-		ensureMusicMetaAlign();
+		if (!musicMuted) music.volume = audibleGain();
+
 		music
 			.play()
 			.then(() => {
@@ -2113,20 +2237,52 @@ const PAINT_STROKES = [
 					return;
 				}
 				musicStarted = true;
-				alignMusic();
-				music.muted = musicMuted;
-				if (!musicMuted) music.volume = musicGain(musicElapsed());
+				resumeAttempts = 0;
+				const before = music.currentTime;
+				snapPlayhead();
+				const applyLevel = () => {
+					if (musicDisposed) return;
+					music.muted = musicMuted;
+					if (!musicMuted) music.volume = audibleGain();
+					if (music.paused && !music.ended) void music.play();
+				};
+				if (music.seeking || Math.abs(music.currentTime - before) > 0.02) {
+					music.addEventListener('seeked', applyLevel, { once: true });
+				} else {
+					applyLevel();
+				}
 			})
-			.catch(() => {
+			.catch((err: unknown) => {
 				if (music.paused) musicStarted = false;
+				const name = err instanceof DOMException ? err.name : '';
+				if (name === 'AbortError') {
+					music.addEventListener('seeked', () => startMusic(), { once: true });
+				}
 			});
 	}
 
 	function beginMusicClock(now: number) {
-		if (audioOrigin || musicDisposed) return;
-		audioOrigin = now;
-		startMusic();
+		if (musicDisposed) return;
+		const starting = !audioOrigin;
+		if (!audioOrigin) audioOrigin = now;
+		if (!(musicStarted && !music.paused)) startMusic();
+		else {
+			snapPlayhead();
+			if (!musicMuted) music.volume = audibleGain();
+		}
 		if (!musicRaf) musicRaf = window.requestAnimationFrame(musicLoop);
+		if (!starting) return;
+		if (musicRetryTimer) window.clearInterval(musicRetryTimer);
+		let tries = 0;
+		musicRetryTimer = window.setInterval(() => {
+			tries += 1;
+			if (musicDisposed || music.ended || (musicStarted && !music.paused) || tries > 24) {
+				window.clearInterval(musicRetryTimer);
+				musicRetryTimer = 0;
+				return;
+			}
+			startMusic();
+		}, 250);
 	}
 
 	function hitsSoundToggle(event: Event) {
@@ -2136,7 +2292,7 @@ const PAINT_STROKES = [
 	}
 
 	function onMusicGesture(event: Event) {
-		if (!audioOrigin || musicDisposed || hitsSoundToggle(event)) return;
+		if (musicDisposed || music.ended || hitsSoundToggle(event)) return;
 		if (musicStarted && !music.paused) return;
 		startMusic();
 	}
@@ -2145,6 +2301,8 @@ const PAINT_STROKES = [
 		musicDisposed = true;
 		if (musicRaf) cancelAnimationFrame(musicRaf);
 		musicRaf = 0;
+		if (musicRetryTimer) window.clearInterval(musicRetryTimer);
+		musicRetryTimer = 0;
 		music.pause();
 	}
 
@@ -2156,17 +2314,57 @@ const PAINT_STROKES = [
 		const now = performance.now();
 		if (now - muteToggleAt < 280) return;
 		muteToggleAt = now;
+		// This click belongs to a pointerdown that just started playback. Don't mute it.
+		if (suppressMuteClick) {
+			suppressMuteClick = false;
+			return;
+		}
+		const playing = musicStarted && !music.paused;
+		if (!playing) {
+			musicMuted = false;
+			renderSoundToggle();
+			music.volume = audibleGain();
+			startMusic();
+			return;
+		}
 		musicMuted = !musicMuted;
 		renderSoundToggle();
-		if (!musicMuted && audioOrigin) music.volume = musicGain(musicElapsed());
-		if (!audioOrigin || musicDisposed || music.ended) return;
-		if (!musicStarted || music.paused) startMusic();
+		if (!musicMuted) music.volume = audibleGain();
 	}
 
 	soundToggle.addEventListener('pointerdown', (event) => {
 		event.stopPropagation();
+		if (musicDisposed || music.ended) return;
+		if (musicStarted && !music.paused) return;
+		suppressMuteClick = true;
+		musicMuted = false;
+		music.muted = false;
+		music.volume = audibleGain();
+		renderSoundToggle();
+		void music.play().then(() => {
+			if (musicDisposed) return;
+			musicStarted = true;
+			snapPlayhead();
+		}).catch(() => {
+			if (music.paused) musicStarted = false;
+		});
 	});
 	soundToggle.addEventListener('click', toggleMusicMute);
+
+	music.addEventListener('canplay', () => {
+		if (!revealArmed || (musicStarted && !music.paused)) return;
+		startMusic();
+	});
+	music.addEventListener('playing', () => {
+		resumeAttempts = 0;
+	});
+	music.addEventListener('pause', () => {
+		if (musicDisposed || music.ended || musicMuted || !audioOrigin) return;
+		if (Number.isFinite(music.duration) && music.currentTime >= music.duration - 0.3) return;
+		if (resumeAttempts > 8) return;
+		resumeAttempts += 1;
+		startMusic();
+	});
 
 	music.addEventListener('seeking', () => {
 		musicSeeking = true;
@@ -2174,6 +2372,10 @@ const PAINT_STROKES = [
 	music.addEventListener('seeked', () => {
 		musicSeeking = false;
 	});
+
+	window.addEventListener('pointerdown', onMusicGesture, { capture: true });
+	window.addEventListener('keydown', onMusicGesture, { capture: true });
+	window.addEventListener('touchstart', onMusicGesture, { capture: true, passive: true });
 
 	function tick(now: number) {
 		if (!startTime) {
@@ -2185,6 +2387,7 @@ const PAINT_STROKES = [
 		const elapsed = (now - startTime) / 1000;
 		const dt = clamp((now - lastTime) / 1000, 0, MAX_DT);
 		lastTime = now;
+		updateBassVisual();
 
 		if (phase === 'reveal') {
 			applyPaint(elapsed);
@@ -2296,6 +2499,7 @@ const PAINT_STROKES = [
 		stopMusic();
 		window.removeEventListener('pointerdown', onMusicGesture, { capture: true });
 		window.removeEventListener('keydown', onMusicGesture, { capture: true });
+		window.removeEventListener('touchstart', onMusicGesture, { capture: true });
 		unbindGameplayInput();
 		gameActive = false;
 		stage.classList.remove('is-game-active');
@@ -2305,8 +2509,6 @@ const PAINT_STROKES = [
 		preloadScoreDigits();
 		renderScoreDigits(0, false);
 		resizeSwipeCanvas();
-		window.addEventListener('pointerdown', onMusicGesture, { capture: true });
-		window.addEventListener('keydown', onMusicGesture, { capture: true });
 		window.addEventListener('resize', onResize);
 		window.addEventListener('orientationchange', onResize);
 		document.addEventListener('visibilitychange', onVisibilityChange);
@@ -2315,6 +2517,8 @@ const PAINT_STROKES = [
 		await waitForPreroll();
 		if (musicDisposed) return;
 
+		revealArmed = true;
+		startMusic();
 		revealRoot.classList.add('is-visible');
 		revealLoading?.classList.add('is-done');
 		revealLoading?.setAttribute('aria-hidden', 'true');
