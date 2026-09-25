@@ -35,6 +35,14 @@ const PAINT_STROKES = [
 ] as const;
 ---
 
+<audio
+	id="reveal-music"
+	class="reveal-music"
+	src="https://media.munixnet.org/rnracing/vision.mp3"
+	autoplay
+	playsinline
+	preload="auto"
+></audio>
 <p class="reveal-loading" id="reveal-loading" role="status">Loading...</p>
 <div class="reveal-root" id="reveal-root">
 <div class="reveal-stage" id="reveal-stage" aria-label="RN Racing teaser reveal" role="img">
@@ -199,6 +207,14 @@ const PAINT_STROKES = [
 </div>
 
 <style>
+	.reveal-music {
+		position: fixed;
+		width: 0;
+		height: 0;
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	.reveal-loading {
 		position: fixed;
 		inset: 0;
@@ -897,17 +913,16 @@ const PAINT_STROKES = [
 
 	const MUSIC_FLOOR = 0.08;
 
-	const music = document.createElement('audio');
-	music.src = SONG_URL;
+	const music = document.getElementById('reveal-music') as HTMLAudioElement;
+	if (!music) throw new Error('Reveal music missing');
 	music.loop = false;
 	music.preload = 'auto';
-	music.autoplay = false;
+	music.autoplay = true;
 	music.volume = MUSIC_FLOOR;
 	music.muted = false;
 	music.setAttribute('playsinline', '');
 	music.setAttribute('webkit-playsinline', '');
-	music.style.cssText = 'position:fixed;width:0;height:0;opacity:0;pointer-events:none';
-	document.body.appendChild(music);
+	void music.play();
 
 	const REVEAL_BOOT = {
 		minDelayMs: 600,
@@ -2109,8 +2124,14 @@ const PAINT_STROKES = [
 		}
 	}
 
-	if (music.readyState >= 1) seekPreroll();
-	else music.addEventListener('loadedmetadata', () => seekPreroll(), { once: true });
+	music.addEventListener(
+		'loadedmetadata',
+		() => {
+			void music.play();
+		},
+		{ once: true },
+	);
+	if (music.readyState >= 1) void music.play();
 
 	function prerollBuffered() {
 		const target = prerollTime();
@@ -2352,11 +2373,16 @@ const PAINT_STROKES = [
 	soundToggle.addEventListener('click', toggleMusicMute);
 
 	music.addEventListener('canplay', () => {
-		if (!revealArmed || (musicStarted && !music.paused)) return;
+		if (musicStarted && !music.paused) return;
 		startMusic();
 	});
+	let didInitialSeek = false;
 	music.addEventListener('playing', () => {
 		resumeAttempts = 0;
+		if (!audioOrigin && !didInitialSeek) {
+			didInitialSeek = true;
+			seekPreroll();
+		}
 	});
 	music.addEventListener('pause', () => {
 		if (musicDisposed || music.ended || musicMuted || !audioOrigin) return;
@@ -2376,6 +2402,22 @@ const PAINT_STROKES = [
 	window.addEventListener('pointerdown', onMusicGesture, { capture: true });
 	window.addEventListener('keydown', onMusicGesture, { capture: true });
 	window.addEventListener('touchstart', onMusicGesture, { capture: true, passive: true });
+	window.addEventListener('focus', () => startMusic());
+	window.addEventListener('pageshow', () => startMusic());
+	document.addEventListener('visibilitychange', () => {
+		if (!document.hidden) startMusic();
+	});
+
+	let autoplayTries = 0;
+	const autoplayRetry = window.setInterval(() => {
+		autoplayTries += 1;
+		if (musicDisposed || music.ended || (musicStarted && !music.paused) || autoplayTries > 40) {
+			window.clearInterval(autoplayRetry);
+			return;
+		}
+		if (document.visibilityState === 'hidden') return;
+		startMusic();
+	}, 200);
 
 	function tick(now: number) {
 		if (!startTime) {
