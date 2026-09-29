@@ -11,6 +11,7 @@ export const SITE = {
 /** Content pages — single source of truth for nav labels, routes, and headings. */
 export const PAGES = [
 	{ href: '/', slug: 'home', label: 'Home', heading: 'RN Racing' },
+	{ href: '/the-car', slug: 'the-car', label: 'The Car', heading: 'The Car' },
 	{ href: '/crew', slug: 'crew', label: 'The Crew', heading: 'The Crew' },
 	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
 	{ href: '/values', slug: 'values', label: 'Our Values', heading: 'Our Values' },
@@ -27,6 +28,7 @@ export type PageHref = (typeof PAGES)[number]['href'];
 
 export const NAV_LINKS = [
 	{ href: '/', label: 'Home' },
+	{ href: '/the-car', label: 'The Car' },
 	{ href: '/crew', label: 'The Crew' },
 	{ href: '/timeline', label: 'The Timeline' },
 	{ href: '/reveal', label: 'The Design' },
