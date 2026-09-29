@@ -3,7 +3,7 @@ export const PLACEHOLDER_BIO =
 
 export const CREW_MEMBERS = [
 	{ name: 'Jesus', title: 'Lord & Savior' },
-	{ name: 'Nyle', title: 'Executive Chair' },
+	{ name: 'Nyle', title: 'Captain' },
 	{ name: 'Rohith', title: 'Dictator, Day Shift' },
 	{ name: 'Vamsi', title: 'Dictator, Night Shift' },
 	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
@@ -14,7 +14,7 @@ export const CREW_MEMBERS = [
 	{ name: 'Danial', title: 'Director of Chirping' },
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 	{ name: 'Jatin', title: 'Intern, Director of Intelligence' },
-	{ name: 'Tobias', title: 'Faith-based Outreach' },
+	{ name: 'Tobias', title: 'Executive Sponsor, Faith' },
 	{ name: 'Anmol', title: 'Intern, Group Leader' },
 	{ name: 'Bavina', title: 'Intern, Pit Crew Manager' },
 	{ name: 'Saharsh', title: 'Intern, Student Driver Program' },
@@ -51,6 +51,8 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Jesus: 'Jesus.jpg',
 	Bavina: 'Bavina.jpeg',
 	Anmol: 'Anmol.png',
+	Saharsh: 'saharsh.png',
+	Ashish: 'ashish.jpg',
 };
 
 const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
@@ -60,6 +62,8 @@ const LIGHT_PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Sid: 'Sid.png',
 	Jatin: 'Jatin.png',
 	Tobias: 'Toby.png',
+	Saharsh: 'saharsh.png',
+	Ashish: 'ashish.png',
 };
 
 const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; position?: string }>> = {
@@ -110,7 +114,7 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Ashish: "As a former collegiate dance captain, Ashish puts the “art” in “car parts”. He’s using his entire creative skillset in the most artistically expressive project an intern can have - coordinating transportation logistics to get the rest of the interns onsite.",
 	Saharsh: "Saharsh brings years of extensive driving experience to RN Racing - specifically, years of sitting in the driver's seat while Tesla Autopilot takes him anywhere he wants to go. Having mastered the art of keeping his hands somewhere near the wheel, he is ready to become the track beast we always knew he could be.",
 	Bavina: 'She may not be as fast as Guido, but you take what you can get. Luckily for Bavina, the bar is low - the rest of the pit crew is still looking for the lug nuts. Her personal best pit stop currently stands at 14 minutes to remove a single wheel, and she is determined to get it under 10 by the end of the season.',
-	Jesus: 'Jesus sits atop the RN Racing org chart, where He has final say on all matters. He is always available to take the wheel.',
+	Jesus: 'Jesus sits atop the RN Racing org chart, where He has final say on all matters. We drive in His name.',
 	Tobias: "No matter how fast our car is, the one thing you can't outrace is God. Tobias is our in-house pastor, leading us in prayer and assuring us that no matter what happens on the track, we can always rely on Jesus to take the wheel.",
 };
 
