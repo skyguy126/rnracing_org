@@ -11,6 +11,14 @@ const storyImages = [
 	'/story/07.jpg',
 	'/story/08.jpg',
 ];
+
+/**
+ * Optional per-photo framing (CSS object-position, by zero-based index).
+ * A smaller vertical % keeps more of the top of the photo in view, which moves the subject lower.
+ */
+const storyPositions: Record<number, string> = {
+	7: 'center 35%',
+};
 ---
 
 <div class="home-scroll" data-home-scroll>
@@ -22,6 +30,7 @@ const storyImages = [
 					src={index === 0 ? src : undefined}
 					data-src={index === 0 ? undefined : src}
 					alt=""
+					style={storyPositions[index] ? `object-position: ${storyPositions[index]}` : undefined}
 					decoding="async"
 					fetchpriority={index === 0 ? 'high' : 'low'}
 				/>

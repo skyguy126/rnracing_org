@@ -30,11 +30,11 @@ src/
 ├── data/             # Site constants (site.ts) and crew roster (crew.ts)
 ├── layouts/          # BaseLayout
 ├── lib/              # Theme toggle and home scroll helpers
-├── pages/            # index, timeline, crew, who-we-are
+├── pages/            # index, timeline, crew, who-we-are, investors-faq
 └── styles/
     ├── global.css
     ├── home-scroll.css
-    └── pages/        # Per-page styles (timeline, crew)
+    └── pages/        # Per-page styles (timeline, crew, investors)
 public/               # Static assets (story photos, CNAME)
 docs/                 # Built site (committed for GitHub Pages)
 ```

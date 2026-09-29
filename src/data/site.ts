@@ -14,6 +14,7 @@ export const PAGES = [
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
 	{ href: '/crew', slug: 'crew', label: 'The Crew', heading: 'The Crew' },
 	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
+	{ href: '/investors-faq', slug: 'investors-faq', label: 'Investors FAQ', heading: 'Investors FAQ' },
 ] as const;
 
 export type PageHref = (typeof PAGES)[number]['href'];

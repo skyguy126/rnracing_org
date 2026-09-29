@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getPage, pageTitle } from '../data/site';
+import {
+	CHART_YEARS,
+	DEFAULT_INVESTMENT,
+	INVESTMENT_STEP,
+	MAX_INVESTMENT,
+	MIN_INVESTMENT,
+	RETURN_SCENARIOS,
+	valueAt,
+} from '../data/investor-scenarios';
+import '../styles/pages/investors.css';
+
+const page = getPage('/investors-faq');
+
+const usd = new Intl.NumberFormat('en-US', {
+	style: 'currency',
+	currency: 'USD',
+	maximumFractionDigits: 0,
+});
+const percent = (rate: number) => `${rate > 0 ? '+' : '−'}${Math.abs(Math.round(rate * 100))}%`;
+
+const description = `Investors FAQ — an animated look at how quickly ${usd.format(DEFAULT_INVESTMENT)} disappears into a race car over ${CHART_YEARS} years, compared with Beanie Babies and Tijuana property.`;
+
+const faqs = [
+	{
+		q: 'Is this a real investment opportunity?',
+		a: 'Yes, put the money in the bag.',
+	},
+	{
+		q: 'So what are the returns?',
+		a: "Don't worry about it, lil bro.",
+	},
+	{
+		q: 'Why are Beanie Babies and Tijuana property on the chart?',
+		a: "They're good investments.",
+	},
+	{
+		q: 'Where does the money actually go?',
+		a: "Nyle's fruit stand.",
+	},
+	{
+		q: 'Can I lose everything?',
+		a: 'No, never.',
+	},
+	{
+		q: 'Do investors get any perks?',
+		a: 'Yeah, 3 licks.',
+	},
+	{
+		q: 'How do you prevent corruption, and how is it managed if it happens?',
+		a: 'This is',
+		link: {
+			text: 'our corruption policy',
+			href: 'https://www.youtube.com/watch?v=WWCLI7lXEdI',
+		},
+		after: '.',
+	},
+	{
+		q: 'How do I get in touch?',
+		a: 'Please talk to our youth pastor, Tobias.',
+	},
+];
+
+---
+
+<BaseLayout title={pageTitle(page.heading)} description={description}>
+	<PageHeader title={page.heading}>
+		<Fragment slot="lead">
+			Watch your money disappear into a race car over {CHART_YEARS} years, from optimal to horrible. Then see how Beanie Babies and Tijuana property would have done.
+		</Fragment>
+	</PageHeader>
+
+	<section class="returns" aria-labelledby="returns-heading" data-returns>
+		<h2 id="returns-heading">Ways to lose money in a Camry (and ways not to)</h2>
+
+		<div class="returns-card">
+			<div class="returns-controls">
+				<label class="returns-amount" for="returns-amount-input">
+					<span class="returns-amount__label">If you hand us</span>
+					<output class="returns-amount__value" data-amount-out for="returns-amount-input">
+						{usd.format(DEFAULT_INVESTMENT)}
+					</output>
+				</label>
+				<input
+					id="returns-amount-input"
+					class="returns-slider"
+					type="range"
+					min={MIN_INVESTMENT}
+					max={MAX_INVESTMENT}
+					step={INVESTMENT_STEP}
+					value={DEFAULT_INVESTMENT}
+					data-amount
+				/>
+				<div class="returns-status">
+					<span class="returns-year" data-year aria-hidden="true">Start</span>
+					<button type="button" class="returns-replay" data-replay>
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M3 12a9 9 0 1 0 3-6.7" />
+							<path d="M3 4v5h5" />
+						</svg>
+						Replay
+					</button>
+				</div>
+			</div>
+
+			<p class="returns-caption" data-caption aria-hidden="true">Everyone is optimistic. The car is shiny.</p>
+
+			<svg
+				class="returns-chart"
+				viewBox="0 0 640 340"
+				role="img"
+				aria-label={`Line chart of your investment over ${CHART_YEARS} years in ${RETURN_SCENARIOS.length} scenarios. The four car scenarios shrink from optimal to horrible, and the Beanie Babies and Tijuana property comparisons hold steady or grow: ${RETURN_SCENARIOS.map((s) => `${s.grade}: ${s.label} (${percent(s.annualRate)} per year)`).join(', ')}.`}
+				data-chart
+			>
+			</svg>
+
+			<ul class="returns-legend">
+				{
+					RETURN_SCENARIOS.map((s) => (
+						<li class={`returns-legend__item returns-legend__item--${s.id}`}>
+							<div class="returns-legend__head">
+								<span class="returns-legend__grade">{s.grade}</span>
+								<span class="returns-legend__rate">{percent(s.annualRate)}/yr</span>
+							</div>
+							<p class="returns-legend__name">{s.emoji} {s.label}</p>
+							<p class="returns-legend__value" data-value={s.id} aria-hidden="true">
+								{usd.format(valueAt(DEFAULT_INVESTMENT, s.annualRate, 0))}
+							</p>
+							<p class="returns-legend__loss" data-loss={s.id} aria-hidden="true">Break-even so far</p>
+							<p class="returns-legend__blurb">{s.blurb}</p>
+							<p class="sr-only">
+								After {CHART_YEARS} years, {usd.format(DEFAULT_INVESTMENT)} would become {usd.format(valueAt(DEFAULT_INVESTMENT, s.annualRate, CHART_YEARS))}.
+							</p>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section class="faq" aria-labelledby="faq-heading">
+		<h2 id="faq-heading">Frequently asked questions</h2>
+		<div class="faq-list">
+			{
+				faqs.map((item) => (
+					<details class="faq-item">
+						<summary>{item.q}</summary>
+						<div class="faq-answer">
+							<p>
+								{item.a}
+								{item.link && (
+									<>
+										{' '}
+										<a href={item.link.href} target="_blank" rel="noopener noreferrer">
+											{item.link.text}
+										</a>
+									</>
+								)}
+								{item.after}
+							</p>
+						</div>
+					</details>
+				))
+			}
+		</div>
+	</section>
+
+	<script>
+		import { initReturnsChart } from '../lib/returns-chart';
+
+		document.querySelectorAll<HTMLElement>('[data-returns]').forEach(initReturnsChart);
+	</script>
+</BaseLayout>
