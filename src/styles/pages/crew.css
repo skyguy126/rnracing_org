@@ -70,6 +70,8 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 	margin: 0;
 	font-size: 0.8125rem;
 	line-height: 1.4;
+	/* Reserve two lines so a one-line title doesn't make its card shorter and pull its reports up */
+	min-height: calc(2 * 1.4em);
 	color: var(--muted);
 }
 
@@ -208,6 +210,8 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 	.crew-member-info p {
 		font-size: 0.625rem;
 		line-height: 1.3;
+		/* Left-to-right layout: cards in a column don't need to line up */
+		min-height: 0;
 	}
 
 	/* Spine: from the sibling above down to this card's stub, then on to the next sibling */
