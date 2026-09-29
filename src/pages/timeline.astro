@@ -570,8 +570,8 @@ const page = getPage('/timeline');
 		</div>
 
 	</main>
-	<!-- Racing cars overlay -->
-	<div class="race-track" aria-hidden="true">
+	<!-- Racing cars overlay (hidden until toggled with "n" on desktop) -->
+	<div class="race-track" aria-hidden="true" style="display: none">
 		<img src="/car-fish.png" alt="" class="race-car car-front" id="carFront" />
 		<img src="/car-71.png" alt="" class="race-car car-back" id="carBack" />
 		<div class="crash-sparks" id="crashSparks"></div>
@@ -607,6 +607,7 @@ const page = getPage('/timeline');
 		let impactScrollY = 0;
 		let bangFired     = false;
 		let season: '1' | '2' = '1';
+		let animEnabled   = false; // hidden by default; toggle with "n" on desktop
 		let s2Raf = 0;
 		let s2Start = 0;
 		let s2FxSpawned = false;
@@ -640,6 +641,11 @@ const page = getPage('/timeline');
 			return location.hash === '#season-2' ? '2' : '1';
 		}
 
+		function setTrackVisible(visible: boolean) {
+			if (!raceTrack) return;
+			raceTrack.style.display = visible ? '' : 'none';
+		}
+
 		function clearFx() {
 			fxLayer.replaceChildren();
 			s2FxSpawned = false;
@@ -651,6 +657,12 @@ const page = getPage('/timeline');
 			crashSparks.classList.remove('active');
 			clearFx();
 			fxLayer.style.opacity = '1';
+		}
+
+		function stopAllAnim() {
+			stopSeason2();
+			hideCars();
+			setTrackVisible(false);
 		}
 
 		function spawnSpinFx(originX: number, originY: number) {
@@ -709,7 +721,7 @@ const page = getPage('/timeline');
 		}
 
 		function updateSeason1() {
-			if (isMobile()) {
+			if (!animEnabled || isMobile()) {
 				hideCars();
 				return;
 			}
@@ -770,7 +782,7 @@ const page = getPage('/timeline');
 		}
 
 		function updateSeason2(now: number) {
-			if (isMobile()) {
+			if (!animEnabled || isMobile()) {
 				hideCars();
 				return;
 			}
@@ -875,7 +887,7 @@ const page = getPage('/timeline');
 		}
 
 		function s2Tick(now: number) {
-			if (season !== '2') return;
+			if (season !== '2' || !animEnabled) return;
 			updateSeason2(now);
 			s2Raf = requestAnimationFrame(s2Tick);
 		}
@@ -888,7 +900,7 @@ const page = getPage('/timeline');
 			s2FailLock = null;
 			fxLayer.style.opacity = '1';
 			hideCars();
-			// Delay first play 4s after load / switching to Season 2
+			// Delay first play 4s after enabling / switching to Season 2
 			s2Start = performance.now() + S2_START_DELAY_MS;
 			s2Raf = requestAnimationFrame(s2Tick);
 		}
@@ -901,22 +913,14 @@ const page = getPage('/timeline');
 			fxLayer.style.opacity = '1';
 		}
 
-		function applySeason(next: '1' | '2') {
-			if (isMobile()) {
-				stopSeason2();
-				hideCars();
-				if (raceTrack) raceTrack.style.display = 'none';
-				season = next;
+		function startActiveSeason() {
+			if (!animEnabled || isMobile()) {
+				stopAllAnim();
 				return;
 			}
-			if (raceTrack) raceTrack.style.display = '';
-
-			if (season === next && (next === '1' || s2Raf)) {
-				if (next === '1') updateSeason1();
-				return;
-			}
-			season = next;
-			if (next === '2') {
+			setTrackVisible(true);
+			season = getSeason();
+			if (season === '2') {
 				bangFired = false;
 				startSeason2();
 			} else {
@@ -925,14 +929,40 @@ const page = getPage('/timeline');
 			}
 		}
 
-		function onScrollOrResize() {
-			if (isMobile()) {
+		function applySeason(next: '1' | '2') {
+			season = next;
+
+			if (isMobile() || !animEnabled) {
+				stopAllAnim();
+				return;
+			}
+
+			setTrackVisible(true);
+
+			if (next === '2') {
+				if (!s2Raf) {
+					bangFired = false;
+					startSeason2();
+				}
+			} else {
 				stopSeason2();
-				hideCars();
+				updateSeason1();
+			}
+		}
+
+		function toggleAnim() {
+			if (isMobile()) return;
+			animEnabled = !animEnabled;
+			if (animEnabled) startActiveSeason();
+			else stopAllAnim();
+		}
+
+		function onScrollOrResize() {
+			if (isMobile() || !animEnabled) {
+				stopAllAnim();
 				return;
 			}
 			if (getSeason() === '2') {
-				// Keep the running loop; don't restart (avoids jumps on scroll/resize)
 				if (!s2Raf) applySeason('2');
 				return;
 			}
@@ -940,18 +970,39 @@ const page = getPage('/timeline');
 			requestAnimationFrame(updateSeason1);
 		}
 
+		function isTypingTarget(el: EventTarget | null) {
+			if (!(el instanceof HTMLElement)) return false;
+			const tag = el.tagName;
+			return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+		}
+
+		window.addEventListener('keydown', (event) => {
+			if (event.key !== 'n' && event.key !== 'N') return;
+			if (event.metaKey || event.ctrlKey || event.altKey) return;
+			if (isTypingTarget(event.target)) return;
+			event.preventDefault();
+			toggleAnim();
+		});
+
 		window.addEventListener('scroll', onScrollOrResize, { passive: true });
 		window.addEventListener('resize', onScrollOrResize);
 		window.addEventListener('popstate', () => applySeason(getSeason()));
 		window.addEventListener('hashchange', () => applySeason(getSeason()));
-		MOBILE_MQ.addEventListener('change', () => applySeason(getSeason()));
+		MOBILE_MQ.addEventListener('change', () => {
+			if (isMobile()) {
+				animEnabled = false;
+				stopAllAnim();
+			}
+		});
 
 		if (tablist) {
 			const mo = new MutationObserver(() => applySeason(getSeason()));
 			mo.observe(tablist, { attributes: true, attributeFilter: ['data-active'] });
 		}
 
-		applySeason(getSeason());
+		// Hidden by default on desktop and mobile
+		season = getSeason();
+		stopAllAnim();
 	});
 </script>
 
