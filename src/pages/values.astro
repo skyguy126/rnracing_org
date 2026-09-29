@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getPage, pageTitle } from '../data/site';
+import '../styles/pages/values.css';
+
+const page = getPage('/values');
+
+const values = [
+	{
+		title: 'AI & Torque Specs',
+		body: 'Every bolt is torqued to a number we asked a chatbot for. We then wrote it down with extreme confidence. Please do not check the service manual.',
+		spec: { label: 'Source', value: 'Trust me bro (GPT)' },
+	},
+	{
+		title: 'Fuck It',
+		body: "Wrong part? Fuck it. Doesn't fit? Fuck it. Check engine light? Electrical tape, then fuck it. This is not a strategy. It is the only strategy.",
+		spec: { label: 'Torque', value: 'Hand tight, fuck it' },
+	},
+	{
+		title: 'Ego',
+		body: "We are never wrong. Not even when we are. Especially when we are. If the car is on fire, we just upgraded the heater.",
+		spec: { label: 'Times admitted wrong', value: '0' },
+	},
+	{
+		title: 'Zip Ties Are Structural',
+		body: 'Zip ties, duct tape, Loctite, and JB Weld: the holy quartet of load-bearing components. If it moves and it should not, tape. If it still moves, JB Weld. If it does not move and it should, hammer.',
+		spec: { label: 'Rated load', value: 'Vibes' },
+	},
+	{
+		title: 'Paint Pen = Inspected',
+		body: 'One stripe of paint pen on a bolt means it has been torqued, verified, and blessed. By us. Once. Probably on a day we were not tired.',
+		spec: { label: 'Bolts marked', value: 'Most of them' },
+	},
+	{
+		title: 'Crashes Are Content',
+		body: "If the camera wasn't rolling, it didn't happen. If the camera was rolling, deflect. Either way we're posting it.",
+		spec: { label: 'Views per crash', value: 'Dozens' },
+	},
+	{
+		title: 'The Camry Is Fine',
+		body: "It's a '96 Camry. It's competing in an endurance race. It is fine. Stop asking. Do not look under it.",
+		spec: { label: 'Status', value: 'Fine' },
+	},
+	{
+		title: 'Measure Once, Cut Twice',
+		body: 'The first cut is a learning experience. The second cut is where we act like we planned it. There is no third cut. We ran out of tube.',
+		spec: { label: 'Tolerance', value: '± a lot' },
+	},
+	{
+		title: 'Receipts Are a Rumor',
+		body: "The budget is a suggestion and we have no memory of what anything cost. If you ask the treasurer, he'll point you to Nyle's fruit stand.",
+		spec: { label: 'Money spent', value: 'Yes' },
+	},
+];
+---
+
+<BaseLayout
+	title={pageTitle(page.heading)}
+	description="The values that drive RN Racing: heavy AI usage, a fuck-it mentality, and an ego that never admits it's wrong."
+>
+	<PageHeader title={page.heading}>
+		<Fragment slot="lead">
+			Nine principles that guide everything we do. Mostly the same nine mistakes, on repeat.
+		</Fragment>
+	</PageHeader>
+
+	<ol class="values-grid" aria-label="Team values">
+		{
+			values.map((value, index) => (
+				<li>
+					<article class="value-card">
+						<p class="value-card__number" aria-hidden="true">
+							{String(index + 1).padStart(2, '0')}
+						</p>
+						<h2>{value.title}</h2>
+						<p class="value-card__body">{value.body}</p>
+						<dl class="value-card__spec">
+							<dt>{value.spec.label}</dt>
+							<dd>{value.spec.value}</dd>
+						</dl>
+					</article>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="values-footnote">
+		These values are non-binding, unverified, and were written with heavy use of AI. If you
+		disagree with any of them, you're wrong. We are never wrong.
+	</p>
+</BaseLayout>

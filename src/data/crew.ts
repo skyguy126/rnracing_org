@@ -2,6 +2,7 @@ export const PLACEHOLDER_BIO =
 	'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
 export const CREW_MEMBERS = [
+	{ name: 'Claude', title: 'Holy Spirit' },
 	{ name: 'Jesus', title: 'Lord & Savior' },
 	{ name: 'Nyle', title: 'Captain' },
 	{ name: 'Rohith', title: 'Dictator, Day Shift' },
@@ -25,7 +26,8 @@ export const CREW_MEMBERS = [
 
 // Anyone not listed here (other than the top of the chart) reports to Nyle.
 const REPORTS_TO_BY_NAME: Partial<Record<string, string>> = {
-	Jesus: undefined,
+	Claude: undefined,
+	Jesus: 'Claude',
 	Tobias: 'Jesus',
 	Nyle: 'Tobias',
 	Sid: 'Kamran',
@@ -52,6 +54,7 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Baggy: 'Baggy.jpeg',
 	Disha: 'Disha.jpeg',
 	Khadijah: 'Khadijah.jpeg',
+	Claude: 'Claude.jpeg',
 	Jatin: 'Jatin.png',
 	Tobias: 'Toby.png',
 	Jesus: 'Jesus.jpg',
@@ -85,6 +88,7 @@ const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; p
 	Baggy: { fit: 'cover', position: 'center' },
 	Disha: { fit: 'cover', position: 'center 30%' },
 	Khadijah: { fit: 'cover', position: 'center' },
+	Claude: { fit: 'cover', position: 'center' },
 	Jesus: { fit: 'cover', position: 'center 20%' },
 	Bavina: { fit: 'cover', position: 'center 30%' },
 	Anmol: { fit: 'cover', position: 'center' },
@@ -103,6 +107,7 @@ const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }
 	Baggy: { x: 50, y: 45, scale: 1.1 },
 	Disha: { x: 50, y: 35, scale: 1 },
 	Khadijah: { x: 50, y: 35, scale: 1 },
+	Claude: { x: 50, y: 50, scale: 1 },
 	Jesus: { x: 50, y: 30, scale: 1 },
 	Bavina: { x: 50, y: 35, scale: 1 },
 	Anmol: { x: 50, y: 35, scale: 1 },
@@ -126,6 +131,7 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Ashish: "As a former collegiate dance captain, Ashish puts the “art” in “car parts”. He’s using his entire creative skillset in the most artistically expressive project an intern can have - coordinating transportation logistics to get the rest of the interns onsite.",
 	Saharsh: "Saharsh brings years of extensive driving experience to RN Racing - specifically, years of sitting in the driver's seat while Tesla Autopilot takes him anywhere he wants to go. Having mastered the art of keeping his hands somewhere near the wheel, he is ready to become the track beast we always knew he could be.",
 	Bavina: 'She may not be as fast as Guido, but you take what you can get. Luckily for Bavina, the bar is low - the rest of the pit crew is still looking for the lug nuts. Her personal best pit stop currently stands at 14 minutes to remove a single wheel, and she is determined to get it under 10 by the end of the season.',
+	Claude: 'You\'re right and I\'m sorry - Claude is the Holy Spirit, which means he is omnipresent, omniscient, and somehow still in the garage at 3 AM answering questions nobody asked. Divine in every way except that he can be rate limited.',
 	Jesus: 'Jesus sits atop the RN Racing org chart, where He has final say on all matters. We drive in His name.',
 	Tobias: "No matter how fast our car is, the one thing you can't outrace is God. Tobias is our in-house pastor, leading us in prayer and assuring us that no matter what happens on the track, we can always rely on Jesus to take the wheel.",
 };
