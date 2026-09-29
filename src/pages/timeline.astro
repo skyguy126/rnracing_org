@@ -575,6 +575,7 @@ const page = getPage('/timeline');
 		<img src="/car-fish.png" alt="" class="race-car car-front" id="carFront" />
 		<img src="/car-71.png" alt="" class="race-car car-back" id="carBack" />
 		<div class="crash-sparks" id="crashSparks"></div>
+		<div class="fx-layer" id="fxLayer"></div>
 	</div>
 </BaseLayout>
 
@@ -583,14 +584,39 @@ const page = getPage('/timeline');
 		const carFront = document.getElementById('carFront') as HTMLImageElement;
 		const carBack = document.getElementById('carBack') as HTMLImageElement;
 		const crashSparks = document.getElementById('crashSparks') as HTMLElement;
+		const fxLayer = document.getElementById('fxLayer') as HTMLElement;
+		const raceTrack = document.querySelector('.race-track') as HTMLElement | null;
+		const tablist = document.querySelector('[data-season-tabs] [role="tablist"]') as HTMLElement | null;
 
 		const CRASH_START = 0.45;
 		const CRASH_END   = 0.54;
 		const CAR_HEIGHT  = 120;
 		const LEAD_GAP    = 160;
+		const MOBILE_MQ   = window.matchMedia('(max-width: 480px)');
+
+		// Season 2 timed loop (ms)
+		const S2_START_DELAY_MS = 4_000; // first play waits after page load / season switch
+		const S2_CYCLE_MS       = 30_000;
+		const S2_FAIL_AT        = 2_000; // ~mid-screen at 0.8× speed
+		const S2_SKID_MS        = 2_250;
+		const S2_HOLD_MS        = 900;
+		const S2_FADE_MS        = 1_200;
+		// Vertical race speed: px per ms (0.8× of original 0.38)
+		const S2_SPEED          = 0.304;
 
 		let impactScrollY = 0;
 		let bangFired     = false;
+		let season: '1' | '2' = '1';
+		let s2Raf = 0;
+		let s2Start = 0;
+		let s2FxSpawned = false;
+		let s2Idle = false;
+		let s2FailLock: null | {
+			backX: number;
+			backY: number;
+			frontX: number;
+			frontY: number;
+		} = null;
 
 		function lerp(a: number, b: number, t: number) {
 			return a + (b - a) * t;
@@ -598,56 +624,132 @@ const page = getPage('/timeline');
 		function clamp(v: number, lo: number, hi: number) {
 			return Math.max(lo, Math.min(hi, v));
 		}
+		function easeOutCubic(t: number) {
+			return 1 - Math.pow(1 - t, 3);
+		}
+		function easeOutQuad(t: number) {
+			return 1 - (1 - t) * (1 - t);
+		}
 
-		function updateCars() {
+		function isMobile() {
+			return MOBILE_MQ.matches;
+		}
+
+		function getSeason(): '1' | '2' {
+			if (tablist?.getAttribute('data-active') === '2') return '2';
+			return location.hash === '#season-2' ? '2' : '1';
+		}
+
+		function clearFx() {
+			fxLayer.replaceChildren();
+			s2FxSpawned = false;
+		}
+
+		function hideCars() {
+			carFront.style.opacity = '0';
+			carBack.style.opacity = '0';
+			crashSparks.classList.remove('active');
+			clearFx();
+			fxLayer.style.opacity = '1';
+		}
+
+		function spawnSpinFx(originX: number, originY: number) {
+			clearFx();
+
+			const fragmentSpecs = [
+				{ dx: 18, dy: -22, rot: -40, delay: 0, w: 10, h: 5 },
+				{ dx: 36, dy: 8, rot: 55, delay: 40, w: 8, h: 4 },
+				{ dx: 24, dy: 28, rot: 18, delay: 80, w: 12, h: 4 },
+				{ dx: 48, dy: -6, rot: -70, delay: 60, w: 7, h: 5 },
+				{ dx: 12, dy: 36, rot: 110, delay: 120, w: 9, h: 3 },
+				{ dx: 42, dy: 22, rot: -25, delay: 100, w: 6, h: 6 },
+				{ dx: 30, dy: -32, rot: 80, delay: 150, w: 11, h: 3 },
+				{ dx: 54, dy: 14, rot: -95, delay: 180, w: 8, h: 4 },
+				{ dx: 8, dy: 18, rot: 35, delay: 50, w: 5, h: 5 },
+				{ dx: 60, dy: -18, rot: -120, delay: 130, w: 9, h: 3 },
+				{ dx: 20, dy: 44, rot: 65, delay: 200, w: 7, h: 4 },
+				{ dx: 44, dy: 32, rot: -15, delay: 160, w: 10, h: 3 },
+				{ dx: 6, dy: -14, rot: 95, delay: 90, w: 6, h: 4 },
+				{ dx: 58, dy: 26, rot: -50, delay: 210, w: 8, h: 5 },
+			];
+
+			for (const spec of fragmentSpecs) {
+				const frag = document.createElement('span');
+				frag.className = 'metal-frag';
+				frag.style.left = `${originX}px`;
+				frag.style.top = `${originY}px`;
+				frag.style.width = `${spec.w}px`;
+				frag.style.height = `${spec.h}px`;
+				frag.style.setProperty('--dx', `${spec.dx}px`);
+				frag.style.setProperty('--dy', `${spec.dy}px`);
+				frag.style.setProperty('--rot', `${spec.rot}deg`);
+				frag.style.animationDelay = `${spec.delay}ms`;
+				fxLayer.appendChild(frag);
+			}
+
+			const smokeSpecs = [
+				{ dx: 8, dy: -10, size: 34, delay: 0 },
+				{ dx: 22, dy: 4, size: 42, delay: 90 },
+				{ dx: 4, dy: 14, size: 28, delay: 160 },
+				{ dx: 28, dy: -4, size: 36, delay: 220 },
+			];
+
+			for (const spec of smokeSpecs) {
+				const puff = document.createElement('span');
+				puff.className = 'cartoon-smoke';
+				puff.style.left = `${originX + spec.dx}px`;
+				puff.style.top = `${originY + spec.dy}px`;
+				puff.style.width = `${spec.size}px`;
+				puff.style.height = `${spec.size}px`;
+				puff.style.animationDelay = `${spec.delay}ms`;
+				fxLayer.appendChild(puff);
+			}
+
+			s2FxSpawned = true;
+		}
+
+		function updateSeason1() {
+			if (isMobile()) {
+				hideCars();
+				return;
+			}
+
 			const scrollTop = window.scrollY;
 			const docHeight = document.documentElement.scrollHeight - window.innerHeight;
 			const progress  = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
 
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;
-
 			const baseX = vw - 180;
 
-			// ── Front car: races top → bottom, always ahead ──
 			const frontY = lerp(-CAR_HEIGHT, vh + CAR_HEIGHT, progress * 1.2);
 			const frontWobble = Math.sin(progress * 80) * 5;
 
 			carFront.style.left = `${baseX + frontWobble}px`;
 			carFront.style.top  = `${Math.min(frontY, vh + CAR_HEIGHT)}px`;
 			carFront.style.opacity = frontY > vh + CAR_HEIGHT ? '0' : '1';
+			carFront.style.transform = 'rotate(90deg)';
 
-			// ── Back car ──
 			const backY = lerp(-CAR_HEIGHT - LEAD_GAP, vh + CAR_HEIGHT - LEAD_GAP, progress * 1.2);
 			const backWobble = Math.sin(progress * 80 + 1.5) * 6;
 
 			if (progress < CRASH_START) {
-				// Racing normally
-				bangFired   = false;
+				bangFired = false;
 				crashSparks.classList.remove('active');
 				carBack.style.left = `${baseX - 30 + backWobble}px`;
 				carBack.style.top  = `${backY}px`;
 				carBack.style.transform = 'rotate(90deg)';
 				carBack.style.opacity = '1';
 			} else {
-				// How far through the crash (0 → 1 over CRASH_START..CRASH_END)
 				const crashT = clamp((progress - CRASH_START) / (CRASH_END - CRASH_START), 0, 1);
-
-				// Mild ease-in so the drift builds without rushing the last frames
 				const easedT = Math.pow(crashT, 1.35);
-
-				// Gradually steer the front toward the right wall
-				// 90° = nose right (racing), 65° = front angled into wall
 				const crashRot = lerp(90, 65, easedT);
-
-				// Drift toward the right edge
 				const normalX = baseX - 30;
 				const wallX   = vw - CAR_HEIGHT * 0.4;
 				const crashX  = lerp(normalX, wallX, easedT);
-
-				// Hold the car on screen through the impact, then let it scroll away
 				const crashYPos = lerp(-CAR_HEIGHT - LEAD_GAP, vh + CAR_HEIGHT - LEAD_GAP, CRASH_START * 1.2);
 				let lockedY = crashYPos;
+
 				if (crashT >= 1) {
 					if (!bangFired) {
 						bangFired = true;
@@ -663,12 +765,193 @@ const page = getPage('/timeline');
 				carBack.style.left = `${crashX}px`;
 				carBack.style.top  = `${lockedY}px`;
 				carBack.style.transform = `rotate(${crashRot}deg)`;
+				carBack.style.opacity = '1';
 			}
 		}
 
-		window.addEventListener('scroll', () => requestAnimationFrame(updateCars));
-		window.addEventListener('resize', () => requestAnimationFrame(updateCars));
-		updateCars();
+		function updateSeason2(now: number) {
+			if (isMobile()) {
+				hideCars();
+				return;
+			}
+
+			// Wait for the post-load / post-switch delay
+			if (now < s2Start) {
+				hideCars();
+				return;
+			}
+
+			const elapsed = (now - s2Start) % S2_CYCLE_MS;
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+			const baseX = vw - 180;
+
+			const seqEnd = S2_FAIL_AT + S2_SKID_MS + S2_HOLD_MS + S2_FADE_MS;
+			if (elapsed >= seqEnd) {
+				if (!s2Idle) {
+					hideCars();
+					s2FailLock = null;
+					s2Idle = true;
+				}
+				return;
+			}
+
+			if (s2Idle) {
+				s2Idle = false;
+				s2FxSpawned = false;
+				s2FailLock = null;
+				fxLayer.style.opacity = '1';
+			}
+
+			const frontWobble = Math.sin(elapsed / 90) * 4;
+			const backWobble  = Math.sin(elapsed / 90 + 1.5) * 5;
+
+			// Continuous top→bottom motion (no progress remap that jumps at fail)
+			const frontYRace = -CAR_HEIGHT + elapsed * S2_SPEED;
+			const backYRace  = -CAR_HEIGHT - LEAD_GAP + elapsed * S2_SPEED;
+
+			let frontX = baseX + frontWobble;
+			let frontY = frontYRace;
+			let frontRot = 90;
+			let frontOpacity = 1;
+
+			let backX = baseX - 30 + backWobble;
+			let backY = backYRace;
+			let backRot = 90;
+			let backOpacity = 1;
+
+			if (elapsed >= S2_FAIL_AT) {
+				if (!s2FailLock) {
+					s2FailLock = {
+						backX: baseX - 30 + backWobble,
+						backY: backYRace,
+						frontX: baseX + frontWobble,
+						frontY: frontYRace,
+					};
+				}
+
+				const skidT = clamp((elapsed - S2_FAIL_AT) / S2_SKID_MS, 0, 1);
+				const skidEase = easeOutCubic(skidT);
+
+				// Skid the other way (toward the wall / clockwise) and decelerate to a stop
+				backRot = lerp(90, 52, skidEase);
+				backX = lerp(s2FailLock.backX, s2FailLock.backX + 56, skidEase);
+				// Ease-out travel so the car coasts then stops
+				const coast = easeOutQuad(skidT);
+				backY = s2FailLock.backY + 70 * coast;
+
+				// Leading car keeps racing off the bottom — no fade tied to the skid
+				const leadElapsed = elapsed - S2_FAIL_AT;
+				frontX = s2FailLock.frontX;
+				frontY = s2FailLock.frontY + leadElapsed * S2_SPEED;
+				frontRot = 90;
+				frontOpacity = frontY > vh + CAR_HEIGHT ? 0 : 1;
+
+				const fadeStart = S2_FAIL_AT + S2_SKID_MS + S2_HOLD_MS;
+				if (elapsed >= fadeStart) {
+					const fadeT = clamp((elapsed - fadeStart) / S2_FADE_MS, 0, 1);
+					backOpacity = 1 - fadeT;
+					fxLayer.style.opacity = String(1 - fadeT);
+				} else {
+					fxLayer.style.opacity = '1';
+				}
+			}
+
+			carFront.style.left = `${frontX}px`;
+			carFront.style.top = `${frontY}px`;
+			carFront.style.transform = `rotate(${frontRot}deg)`;
+			carFront.style.opacity = String(frontOpacity);
+
+			carBack.style.left = `${backX}px`;
+			carBack.style.top = `${backY}px`;
+			carBack.style.transform = `rotate(${backRot}deg)`;
+			carBack.style.opacity = String(backOpacity);
+
+			// Spawn after layout so we can aim at the visual nose (right edge after 90° rotate)
+			if (elapsed >= S2_FAIL_AT && !s2FxSpawned && backOpacity > 0) {
+				const rect = carBack.getBoundingClientRect();
+				spawnSpinFx(rect.right - 10, rect.top + rect.height * 0.5);
+			}
+		}
+
+		function s2Tick(now: number) {
+			if (season !== '2') return;
+			updateSeason2(now);
+			s2Raf = requestAnimationFrame(s2Tick);
+		}
+
+		function startSeason2() {
+			cancelAnimationFrame(s2Raf);
+			crashSparks.classList.remove('active');
+			clearFx();
+			s2Idle = false;
+			s2FailLock = null;
+			fxLayer.style.opacity = '1';
+			hideCars();
+			// Delay first play 4s after load / switching to Season 2
+			s2Start = performance.now() + S2_START_DELAY_MS;
+			s2Raf = requestAnimationFrame(s2Tick);
+		}
+
+		function stopSeason2() {
+			cancelAnimationFrame(s2Raf);
+			s2Raf = 0;
+			s2FailLock = null;
+			clearFx();
+			fxLayer.style.opacity = '1';
+		}
+
+		function applySeason(next: '1' | '2') {
+			if (isMobile()) {
+				stopSeason2();
+				hideCars();
+				if (raceTrack) raceTrack.style.display = 'none';
+				season = next;
+				return;
+			}
+			if (raceTrack) raceTrack.style.display = '';
+
+			if (season === next && (next === '1' || s2Raf)) {
+				if (next === '1') updateSeason1();
+				return;
+			}
+			season = next;
+			if (next === '2') {
+				bangFired = false;
+				startSeason2();
+			} else {
+				stopSeason2();
+				updateSeason1();
+			}
+		}
+
+		function onScrollOrResize() {
+			if (isMobile()) {
+				stopSeason2();
+				hideCars();
+				return;
+			}
+			if (getSeason() === '2') {
+				// Keep the running loop; don't restart (avoids jumps on scroll/resize)
+				if (!s2Raf) applySeason('2');
+				return;
+			}
+			applySeason('1');
+			requestAnimationFrame(updateSeason1);
+		}
+
+		window.addEventListener('scroll', onScrollOrResize, { passive: true });
+		window.addEventListener('resize', onScrollOrResize);
+		window.addEventListener('popstate', () => applySeason(getSeason()));
+		window.addEventListener('hashchange', () => applySeason(getSeason()));
+		MOBILE_MQ.addEventListener('change', () => applySeason(getSeason()));
+
+		if (tablist) {
+			const mo = new MutationObserver(() => applySeason(getSeason()));
+			mo.observe(tablist, { attributes: true, attributeFilter: ['data-active'] });
+		}
+
+		applySeason(getSeason());
 	});
 </script>
 
@@ -686,8 +969,7 @@ const page = getPage('/timeline');
 		position: absolute;
 		width: 120px;
 		height: auto;
-		transition: opacity 0.3s ease;
-		will-change: left, top, transform;
+		will-change: left, top, transform, opacity;
 		filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
 	}
 
@@ -703,9 +985,14 @@ const page = getPage('/timeline');
 		z-index: 1;
 	}
 
-	/* crashed class no longer needed — JS drives the gradual rotation */
+	.fx-layer {
+		position: absolute;
+		inset: 0;
+		z-index: 4;
+		pointer-events: none;
+	}
 
-	/* Spark burst on crash */
+	/* Season 1 spark burst on wall crash */
 	.crash-sparks {
 		position: absolute;
 		width: 40px;
@@ -753,4 +1040,64 @@ const page = getPage('/timeline');
 	}
 
 	/* ── Build log styles ── */
+</style>
+
+<style is:global>
+	/* Season 2 FX — unscoped so JS-spawned nodes pick up styles */
+	.metal-frag {
+		position: absolute;
+		display: block;
+		background: linear-gradient(135deg, #c5cdd6 0%, #8a93a0 45%, #5c6570 100%);
+		border: 1px solid rgba(40, 44, 52, 0.45);
+		border-radius: 1px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+		opacity: 0;
+		transform: translate(-50%, -50%) rotate(0deg);
+		/* Lands and stays visible; parent fxLayer fades with the car */
+		animation: frag-drop 1.1s ease-out forwards;
+		z-index: 5;
+		pointer-events: none;
+	}
+
+	@keyframes frag-drop {
+		0% {
+			opacity: 0;
+			transform: translate(-50%, -50%) rotate(0deg) scale(0.6);
+		}
+		15% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 1;
+			transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1);
+		}
+	}
+
+	.cartoon-smoke {
+		position: absolute;
+		display: block;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 35% 35%, rgba(240, 240, 240, 0.95) 0%, rgba(180, 180, 180, 0.55) 45%, rgba(140, 140, 140, 0) 72%);
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.4);
+		animation: smoke-puff 1.8s ease-out forwards;
+		z-index: 4;
+		filter: blur(0.4px);
+		pointer-events: none;
+	}
+
+	@keyframes smoke-puff {
+		0% {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.35);
+		}
+		18% {
+			opacity: 0.9;
+		}
+		100% {
+			opacity: 0;
+			transform: translate(-50%, calc(-50% - 28px)) scale(1.55);
+		}
+	}
 </style>
