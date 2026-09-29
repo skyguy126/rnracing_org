@@ -3,6 +3,7 @@ export const SITE = {
 	description: 'RN Racing — motorsport team. More coming soon.',
 	email: 'hello@rnracing.org',
 	instagram: 'https://www.instagram.com/_rnracing_/',
+	youtube: 'https://www.youtube.com/@rnracingorg',
 	twitter: 'https://x.com/24HoursOfLemons',
 	github: 'https://github.com/skyguy126/rnracing',
 } as const;
