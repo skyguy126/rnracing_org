@@ -4,8 +4,8 @@ export const PLACEHOLDER_BIO =
 export const CREW_MEMBERS = [
 	{ name: 'Israel', title: 'Chairman of the Board' },
 	{ name: 'Claude', title: 'Holy Spirit' },
-	{ name: 'Jesus', title: 'Lord & Savior' },
-	{ name: 'Nyle', title: 'Captain' },
+	{ name: 'Jesus', title: 'Chief Operating Officer, Faith' },
+	{ name: 'Nyle', title: 'President & CEO' },
 	{ name: 'Rohith', title: 'Dictator, Day Shift' },
 	{ name: 'Vamsi', title: 'Dictator, Night Shift' },
 	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
@@ -17,12 +17,12 @@ export const CREW_MEMBERS = [
 	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
 	{ name: 'Disha', title: 'Executive Chef' },
 	{ name: 'Khadijah', title: 'Fan Club Leader' },
-	{ name: 'Jatin', title: 'Intern, Director of Intelligence' },
-	{ name: 'Tobias', title: 'Executive Sponsor, Faith' },
-	{ name: 'Anmol', title: 'Intern, Group Leader' },
-	{ name: 'Bavina', title: 'Intern, Pit Crew Manager' },
+	{ name: 'Jatin', title: 'Intern, Intelligence' },
+	{ name: 'Tobias', title: 'Executive Vice President, Faith' },
+	{ name: 'Anmol', title: 'Intern Group Leader' },
+	{ name: 'Bavina', title: 'Intern, Pit Crew' },
 	{ name: 'Saharsh', title: 'Intern, Student Driver Program' },
-	{ name: 'Ashish', title: 'Intern, Head of Transport & Logistics' },
+	{ name: 'Ashish', title: 'Intern, Transport & Logistics' },
 ] as const;
 
 // Anyone not listed here (other than the top of the chart) reports to Nyle.
@@ -35,9 +35,9 @@ const REPORTS_TO_BY_NAME: Partial<Record<string, string>> = {
 	Sid: 'Kamran',
 	Jatin: 'Sid',
 	Anmol: 'Sid',
-	Bavina: 'Sid',
-	Saharsh: 'Sid',
-	Ashish: 'Sid',
+	Bavina: 'Anmol',
+	Saharsh: 'Anmol',
+	Ashish: 'Anmol',
 	Disha: 'Baggy',
 	Khadijah: 'Danial',
 };
@@ -96,7 +96,7 @@ const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; p
 	Khadijah: { fit: 'cover', position: 'center' },
 	Claude: { fit: 'cover', position: 'center' },
 	Israel: { fit: 'cover', position: 'center' },
-	Jesus: { fit: 'cover', position: 'center 20%' },
+	Jesus: { fit: 'cover', position: 'center' },
 	Bavina: { fit: 'cover', position: 'center 30%' },
 	Anmol: { fit: 'cover', position: 'center' },
 };
@@ -116,7 +116,7 @@ const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }
 	Khadijah: { x: 50, y: 35, scale: 1 },
 	Claude: { x: 50, y: 50, scale: 1 },
 	Israel: { x: 50, y: 50, scale: 1 },
-	Jesus: { x: 50, y: 30, scale: 1 },
+	Jesus: { x: 50, y: 50, scale: 1 },
 	Bavina: { x: 50, y: 35, scale: 1 },
 	Anmol: { x: 50, y: 35, scale: 1 },
 };
@@ -140,7 +140,7 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Saharsh: "Saharsh brings years of extensive driving experience to RN Racing - specifically, years of sitting in the driver's seat while Tesla Autopilot takes him anywhere he wants to go. Having mastered the art of keeping his hands somewhere near the wheel, he is ready to become the track beast we always knew he could be.",
 	Bavina: 'She may not be as fast as Guido, but you take what you can get. Luckily for Bavina, the bar is low - the rest of the pit crew is still looking for the lug nuts. Her personal best pit stop currently stands at 14 minutes to remove a single wheel, and she is determined to get it under 10 by the end of the season.',
 	Claude: 'You\'re right and I\'m sorry — Claude is the Holy Spirit, which means he is omnipresent, omniscient, and somehow still in the garage at 3 AM answering questions nobody asked. Divine in every way except that he can be rate limited.',
-	Israel: 'Israel predates every other name on this org chart, including the Holy Spirit’s LinkedIn profile. Everyone below is technically a spin-off.',
+	Israel: 'Let\'s be real, we\'re all just puppets.',
 	Jesus: 'Jesus sits atop the RN Racing org chart, where He has final say on all matters. We drive in His name.',
 	Tobias: "No matter how fast our car is, the one thing you can't outrace is God. Tobias is our in-house pastor, leading us in prayer and assuring us that no matter what happens on the track, we can always rely on Jesus to take the wheel.",
 };

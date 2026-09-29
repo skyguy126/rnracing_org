@@ -13,7 +13,7 @@ export const PAGES = [
 	{ href: '/', slug: 'home', label: 'Home', heading: 'RN Racing' },
 	{ href: '/crew', slug: 'crew', label: 'The Crew', heading: 'The Crew' },
 	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
-	{ href: '/values', slug: 'values', label: 'Values', heading: 'Our Values' },
+	{ href: '/values', slug: 'values', label: 'Our Values', heading: 'Our Values' },
 	{
 		href: '/investors-faq',
 		slug: 'investors-faq',
@@ -30,7 +30,7 @@ export const NAV_LINKS = [
 	{ href: '/crew', label: 'The Crew' },
 	{ href: '/timeline', label: 'The Timeline' },
 	{ href: '/reveal', label: 'The Design' },
-	{ href: '/values', label: 'Values' },
+	{ href: '/values', label: 'Our Values' },
 	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/investors-faq', label: 'Investors' },
 ] as const;
