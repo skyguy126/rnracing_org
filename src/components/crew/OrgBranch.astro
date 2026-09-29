@@ -1,0 +1,23 @@
+---
+import CrewCard from './CrewCard.astro';
+import type { CrewNode } from '../../data/crew';
+
+interface Props {
+	nodes: CrewNode[];
+}
+
+const { nodes } = Astro.props;
+---
+
+<ul style={`--siblings: ${nodes.length};`}>
+	{
+		nodes.map((node) => (
+			<li>
+				<div class="crew-card">
+					<CrewCard member={node.member} index={node.index} />
+				</div>
+				{node.reports.length > 0 && <Astro.self nodes={node.reports} />}
+			</li>
+		))
+	}
+</ul>
