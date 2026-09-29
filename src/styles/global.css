@@ -231,6 +231,75 @@ a:where(:not(.nav-link):not(.brand)):hover {
 	color: var(--muted);
 }
 
+.footer-emblem {
+	position: absolute;
+	right: 1.25rem;
+	bottom: 0.75rem;
+	width: 4.5rem;
+	line-height: 0;
+	cursor: help;
+	user-select: none;
+	outline: none;
+}
+
+.footer-emblem img {
+	display: block;
+	width: 100%;
+	height: auto;
+	opacity: 0.22;
+	transition: opacity 0.2s ease;
+}
+
+.footer-emblem:hover img,
+.footer-emblem:focus-visible img {
+	opacity: 0.85;
+}
+
+.footer-emblem:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
+	border-radius: 0.25rem;
+}
+
+.footer-emblem::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 0.6rem);
+	z-index: 10;
+	width: max-content;
+	max-width: min(16rem, calc(100vw - 2.5rem));
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: 0.5rem;
+	background: var(--surface);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	line-height: 1.45;
+	text-align: left;
+	color: var(--text);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(4px);
+	transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+	pointer-events: none;
+}
+
+.footer-emblem:hover::after,
+.footer-emblem:focus-visible::after {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.footer-emblem img,
+	.footer-emblem::after {
+		transition: none;
+	}
+}
+
 .footer-social {
 	display: flex;
 	align-items: center;
@@ -284,6 +353,14 @@ a:where(:not(.nav-link):not(.brand)):hover {
 	font-weight: 600;
 	letter-spacing: 0.04em;
 	color: var(--muted);
+}
+
+.footer-compliance__negative {
+	border-color: color-mix(in srgb, #ef4444 50%, transparent);
+}
+
+.footer-compliance li.footer-compliance__negative svg {
+	color: #ef4444;
 }
 
 .footer-compliance li svg {

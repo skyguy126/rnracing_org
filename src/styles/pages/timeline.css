@@ -255,3 +255,11 @@
 		max-width: 20rem;
 	}
 }
+
+.season-emblem {
+	display: block;
+	width: min(100%, 22rem);
+	height: auto;
+	margin-top: 2rem;
+	border-radius: 0.75rem;
+}
