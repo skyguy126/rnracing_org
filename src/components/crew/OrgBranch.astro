@@ -12,7 +12,7 @@ const { nodes } = Astro.props;
 <ul style={`--siblings: ${nodes.length};`}>
 	{
 		nodes.map((node) => (
-			<li>
+			<li data-secret={node.member.secret ? '' : undefined}>
 				<div class="crew-card">
 					<CrewCard member={node.member} index={node.index} />
 				</div>

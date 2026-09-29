@@ -15,10 +15,32 @@ const crewTree = getCrewTree(crewMembers);
 	<main>
 		<PageHeader title={page.heading} />
 
-		<div class="org-chart" style={`--org-depth: ${getTreeDepth(crewTree)}; --org-cols: ${getWidestGroup(crewTree)};`}>
+		<div
+			class="org-chart"
+			style={`--depth-base: ${getTreeDepth(crewTree, false)}; --depth-full: ${getTreeDepth(crewTree)}; --org-cols: ${getWidestGroup(crewTree)};`}
+		>
 			<OrgBranch nodes={crewTree} />
 		</div>
 	</main>
 
 	<CrewMemberModal members={crewMembers} />
 </BaseLayout>
+
+<script>
+	// Secret members are hidden until "n" is pressed (same key as the timeline's racing cars).
+	const chart = document.querySelector<HTMLElement>('.org-chart');
+
+	function isTypingTarget(el: EventTarget | null) {
+		if (!(el instanceof HTMLElement)) return false;
+		const tag = el.tagName;
+		return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+	}
+
+	window.addEventListener('keydown', (event) => {
+		if (!chart || (event.key !== 'n' && event.key !== 'N')) return;
+		if (event.metaKey || event.ctrlKey || event.altKey) return;
+		if (isTypingTarget(event.target)) return;
+		event.preventDefault();
+		chart.toggleAttribute('data-show-secret');
+	});
+</script>

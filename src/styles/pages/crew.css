@@ -82,9 +82,15 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 	/* Every person gets one column; the widest group of siblings fills the chart (0.75rem = li side padding) */
 	--card-w: min(calc(100cqi / var(--org-cols) - 0.75rem), 10rem);
 	--col-w: calc(var(--card-w) + 0.75rem);
+	/* Secret members add a level, but only while they're shown */
+	--org-depth: var(--depth-base);
 
 	container-type: inline-size;
 	overflow-x: auto;
+}
+
+.org-chart[data-show-secret] {
+	--org-depth: var(--depth-full);
 }
 
 .org-chart ul {
@@ -253,5 +259,35 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 		height: 0;
 		border-left: 0;
 		border-top: var(--org-line);
+	}
+}
+
+/* Secret members (toggled with "n"): while hidden, close the gap they leave at the top of the chart */
+.org-chart:not([data-show-secret]) li[data-secret] > .crew-card {
+	display: none;
+}
+
+.org-chart:not([data-show-secret]) li[data-secret] > ul {
+	padding-top: 0;
+}
+
+.org-chart:not([data-show-secret]) li[data-secret] > ul::before,
+.org-chart:not([data-show-secret]) li[data-secret] > ul > li::before,
+.org-chart:not([data-show-secret]) li[data-secret] > ul > li::after {
+	display: none;
+}
+
+.org-chart:not([data-show-secret]) li[data-secret] > ul > li {
+	padding-top: 0;
+}
+
+@media (max-width: 959px) {
+	.org-chart:not([data-show-secret]) li[data-secret] > ul {
+		margin-top: 0;
+		padding-left: 0;
+	}
+
+	.org-chart:not([data-show-secret]) li[data-secret] > ul > li {
+		padding: 0;
 	}
 }
