@@ -1,0 +1,74 @@
+---
+import '../styles/home-scroll.css';
+---
+
+<div class="home-scroll car-scroll" data-car-scroll>
+	<div class="car-scroll__media" aria-hidden="true">
+		<canvas class="car-scroll__canvas"></canvas>
+		<p class="home-scroll__loader">Loading…</p>
+		<div class="car-scroll__vignette"></div>
+	</div>
+
+	<div class="car-scroll__track">
+		<section class="scroll-panel scroll-panel--hero">
+			<div class="home-scroll__glow home-scroll__hero car-scroll__hero">
+				<h1 class="home-scroll__text-hero">The Car</h1>
+				<p class="home-scroll__hero-tag">1996 Toyota Camry&ensp;·&ensp;#711</p>
+				<div class="home-scroll__scroll-cue" aria-hidden="true">
+					<span class="home-scroll__scroll-mouse">
+						<span class="home-scroll__scroll-wheel"></span>
+					</span>
+					<span class="home-scroll__scroll-chevron"></span>
+				</div>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">
+					Five hundred dollars.<br />
+					One&nbsp;very&nbsp;tired&nbsp;sedan.
+				</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-hero">Take it apart.</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">185&nbsp;lbs of interior. Gone.</p>
+				<p class="home-scroll__text-sub">
+					A roll cage where the back seat used to be. A new clutch. Brake pads that can
+					take the heat. Zip ties where it counts.
+				</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-hero">Put it back.</p>
+			</div>
+		</section>
+
+		<section class="scroll-panel scroll-panel--story">
+			<div class="home-scroll__glow home-scroll__fade-in">
+				<p class="home-scroll__text-xl">
+					Mostly the same way.<br />
+					A&nbsp;few&nbsp;bolts&nbsp;left&nbsp;over.
+				</p>
+			</div>
+		</section>
+	</div>
+</div>
+
+<script>
+	import { initCarScroll } from '../lib/car-scroll';
+
+	document.querySelectorAll('[data-car-scroll]').forEach((root) => {
+		initCarScroll(root as HTMLElement);
+	});
+</script>

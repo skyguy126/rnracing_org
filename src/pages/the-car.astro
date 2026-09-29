@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CarScroll from '../components/CarScroll.astro';
+import { getPage, pageTitle } from '../data/site';
+import '../styles/pages/car.css';
+
+const page = getPage('/the-car');
+
+const specGroups = [
+	{
+		title: 'Engine',
+		specs: [
+			{ label: 'Motor', value: '5S-FE inline-4, DOHC 16v' },
+			{ label: 'Displacement', value: '2.2 L (2,164 cc)' },
+			{ label: 'Power (factory)', value: '125 hp @ 5,400 rpm' },
+			{ label: 'Torque (factory)', value: '145 lb-ft @ 4,400 rpm' },
+			{ label: 'Power (now)', value: 'Less, probably' },
+			{ label: 'Compression', value: '9.5:1' },
+		],
+	},
+	{
+		title: 'Drivetrain',
+		specs: [
+			{ label: 'Layout', value: 'Front engine, FWD' },
+			{ label: 'Transmission', value: '5-speed manual' },
+			{ label: 'Clutch', value: 'Was a new disc, plate & bearings; not shot.' },
+			{ label: 'Gear oil', value: '75W-90 GL-4, 2.6 qt' },
+			{ label: 'Money shifts', value: '15' },
+		],
+	},
+	{
+		title: 'Chassis',
+		specs: [
+			{ label: 'Generation', value: 'XV10 (1992–1996)' },
+			{ label: 'Body', value: '4-door sedan' },
+			{ label: 'Suspension', value: 'MacPherson struts, all four' },
+			{ label: 'Wheelbase', value: '103.1 in' },
+			{ label: 'Weight (factory)', value: '~2,900 lb' },
+			{ label: 'Weight (now)', value: '−185 lb interior, + cage' },
+		],
+	},
+	{
+		title: 'Safety',
+		specs: [
+			{ label: 'Roll cage', value: 'Mild steel, TIG-welded' },
+			{ label: 'Seats', value: 'FIA-rated buckets' },
+			{ label: 'Harnesses', value: 'Five-point' },
+			{ label: 'Steering', value: 'Quick-release, flat-bottom' },
+			{ label: 'Brakes', value: 'High-temp track pads' },
+		],
+	},
+	{
+		title: 'The Numbers',
+		specs: [
+			{ label: 'Purchase price', value: '$500' },
+			{ label: 'Car number', value: '#711,#71' },
+			{ label: 'Series', value: '24 Hours of Lemons' },
+			{ label: '0–60', value: 'Eventually' },
+			{ label: 'Top speed', value: 'Enough to be scared' },
+			{ label: 'Zip ties', value: 'Structural' },
+		],
+	},
+];
+---
+
+<BaseLayout
+	fullWidth
+	title={pageTitle(page.heading)}
+	description="The RN Racing car: a $500 1996 Toyota Camry, #711, built for the 24 Hours of Lemons."
+>
+	<CarScroll />
+
+	<section class="layout-inner car-specs" aria-labelledby="car-specs-heading">
+		<header class="car-specs__header">
+			<h2 id="car-specs-heading">Spec Sheet</h2>
+			<p class="lead">
+				Everything we know about the Camry, and a few things we&rsquo;re pretending to know.
+			</p>
+		</header>
+
+		<div class="car-specs__grid">
+			{
+				specGroups.map((group) => (
+					<article class="car-specs__card">
+						<h3>{group.title}</h3>
+						<dl>
+							{group.specs.map((spec) => (
+								<div class="car-specs__row">
+									<dt>{spec.label}</dt>
+									<dd>{spec.value}</dd>
+								</div>
+							))}
+						</dl>
+					</article>
+				))
+			}
+		</div>
+
+		<p class="car-specs__footnote">
+			Factory numbers are Toyota&rsquo;s. Everything else is ours, which means it was measured once,
+			written down with confidence, and never checked again. The car in the animation is a
+			rendering. The real one has more dents.
+		</p>
+	</section>
+</BaseLayout>
