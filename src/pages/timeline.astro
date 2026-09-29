@@ -580,6 +580,8 @@ const page = getPage('/timeline');
 </BaseLayout>
 
 <script>
+	import { isRnModeEnabled, RN_MODE_EVENT, type RnModeChangeDetail } from '../lib/rn-mode';
+
 	document.addEventListener('DOMContentLoaded', () => {
 		const carFront = document.getElementById('carFront') as HTMLImageElement;
 		const carBack = document.getElementById('carBack') as HTMLImageElement;
@@ -607,7 +609,7 @@ const page = getPage('/timeline');
 		let impactScrollY = 0;
 		let bangFired     = false;
 		let season: '1' | '2' = '1';
-		let animEnabled   = false; // hidden by default; toggle with "n" on desktop
+		let animEnabled   = false; // driven by RN Mode on desktop
 		let s2Raf = 0;
 		let s2Start = 0;
 		let s2FxSpawned = false;
@@ -950,9 +952,13 @@ const page = getPage('/timeline');
 			}
 		}
 
-		function toggleAnim() {
-			if (isMobile()) return;
-			animEnabled = !animEnabled;
+		function setAnimEnabled(enabled: boolean) {
+			if (isMobile()) {
+				animEnabled = false;
+				stopAllAnim();
+				return;
+			}
+			animEnabled = enabled;
 			if (animEnabled) startActiveSeason();
 			else stopAllAnim();
 		}
@@ -970,20 +976,6 @@ const page = getPage('/timeline');
 			requestAnimationFrame(updateSeason1);
 		}
 
-		function isTypingTarget(el: EventTarget | null) {
-			if (!(el instanceof HTMLElement)) return false;
-			const tag = el.tagName;
-			return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
-		}
-
-		window.addEventListener('keydown', (event) => {
-			if (event.key !== 'n' && event.key !== 'N') return;
-			if (event.metaKey || event.ctrlKey || event.altKey) return;
-			if (isTypingTarget(event.target)) return;
-			event.preventDefault();
-			toggleAnim();
-		});
-
 		window.addEventListener('scroll', onScrollOrResize, { passive: true });
 		window.addEventListener('resize', onScrollOrResize);
 		window.addEventListener('popstate', () => applySeason(getSeason()));
@@ -992,17 +984,24 @@ const page = getPage('/timeline');
 			if (isMobile()) {
 				animEnabled = false;
 				stopAllAnim();
+			} else {
+				setAnimEnabled(isRnModeEnabled());
 			}
 		});
+
+		document.addEventListener(RN_MODE_EVENT, ((event: CustomEvent<RnModeChangeDetail>) => {
+			setAnimEnabled(event.detail.enabled);
+		}) as EventListener);
 
 		if (tablist) {
 			const mo = new MutationObserver(() => applySeason(getSeason()));
 			mo.observe(tablist, { attributes: true, attributeFilter: ['data-active'] });
 		}
 
-		// Hidden by default on desktop and mobile
+		// Hidden by default; restored from RN Mode session cookie on desktop
 		season = getSeason();
 		stopAllAnim();
+		setAnimEnabled(isRnModeEnabled());
 	});
 </script>
 

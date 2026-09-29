@@ -8,14 +8,14 @@ const page = getPage('/values');
 
 const values = [
 	{
-		title: 'AI & Torque Specs',
+		title: 'Torque Specs',
 		body: 'Every bolt is torqued to a number we asked a chatbot for. We then wrote it down with extreme confidence. Please do not check the service manual.',
 		spec: { label: 'Source', value: 'Trust me bro (GPT)' },
 	},
 	{
-		title: 'Fuck It',
-		body: "Wrong part? Fuck it. Doesn't fit? Fuck it. Check engine light? Electrical tape, then fuck it. This is not a strategy. It is the only strategy.",
-		spec: { label: 'Torque', value: 'Hand tight, fuck it' },
+		title: "It don't matter",
+		body: "Wrong part? It don't matter. Doesn't fit? It don't matter. Check engine light? Electrical tape. It don't matter. This is not a strategy. It is the only strategy.",
+		spec: { label: 'Torque', value: 'Hand tight, whatever' },
 	},
 	{
 		title: 'Ego',
@@ -57,22 +57,19 @@ const values = [
 
 <BaseLayout
 	title={pageTitle(page.heading)}
-	description="The values that drive RN Racing: heavy AI usage, a fuck-it mentality, and an ego that never admits it's wrong."
+	description="The values that drive RN Racing: heavy AI usage, a whatever mentality, and an ego that never admits it's wrong."
 >
 	<PageHeader title={page.heading}>
 		<Fragment slot="lead">
-			Nine principles that guide everything we do. Mostly the same nine mistakes, on repeat.
+			Leadership principles. We wrote them down so the chaos looks intentional.
 		</Fragment>
 	</PageHeader>
 
-	<ol class="values-grid" aria-label="Team values">
+	<ul class="values-grid" aria-label="Leadership principles">
 		{
-			values.map((value, index) => (
+			values.map((value) => (
 				<li>
 					<article class="value-card">
-						<p class="value-card__number" aria-hidden="true">
-							{String(index + 1).padStart(2, '0')}
-						</p>
 						<h2>{value.title}</h2>
 						<p class="value-card__body">{value.body}</p>
 						<dl class="value-card__spec">
@@ -83,10 +80,10 @@ const values = [
 				</li>
 			))
 		}
-	</ol>
+	</ul>
 
 	<p class="values-footnote">
 		These values are non-binding, unverified, and were written with heavy use of AI. If you
-		disagree with any of them, you're wrong. We are never wrong.
+		disagree with any of them, you're wrong. AI is never wrong. If you disagree, you're coping.
 	</p>
 </BaseLayout>

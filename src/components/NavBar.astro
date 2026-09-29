@@ -56,6 +56,11 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		</div>
 	</nav>
 
+	<p class="rn-mode-window" aria-live="polite">
+		<span class="rn-mode-window-icon" aria-hidden="true">🥷</span>
+		RN Mode Enabled
+	</p>
+
 	<div id="nav-menu-panel" class="nav-menu-panel" hidden>
 		<ul class="nav-links nav-links--menu">
 			{
@@ -78,6 +83,9 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 <script>
 	import { initNavMenu } from '../lib/nav-menu';
 	import { initLemonRain } from '../lib/lemon-rain';
+	import { initRnMode } from '../lib/rn-mode';
+
+	initRnMode();
 
 	document.querySelectorAll('[data-nav-menu]').forEach((root) => {
 		initNavMenu(root as HTMLElement);
@@ -119,6 +127,7 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
+		flex: 1 1 auto;
 		gap: 0.75rem;
 		min-width: 0;
 	}
@@ -130,6 +139,39 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		color: var(--text);
 		text-decoration: none;
 		flex-shrink: 0;
+	}
+
+	.rn-mode-window {
+		display: none;
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		left: 0.75rem;
+		z-index: 2;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0.4rem 0.65rem;
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--bg) 88%, transparent);
+		box-shadow: 0 8px 20px color-mix(in srgb, #000 18%, transparent);
+		backdrop-filter: blur(12px);
+		color: var(--text);
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.2;
+		letter-spacing: 0.02em;
+		pointer-events: none;
+	}
+
+	:global(:root[data-rn-mode]) .rn-mode-window {
+		display: flex;
+	}
+
+	.rn-mode-window-icon {
+		font-size: 0.95rem;
+		line-height: 1;
 	}
 
 	.brand-mark {
@@ -159,9 +201,11 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 
 	.nav-links--inline {
 		align-items: center;
+		flex: 1 1 auto;
 		flex-wrap: wrap;
 		justify-content: flex-end;
 		gap: 0.125rem;
+		min-width: 0;
 	}
 
 	.nav-link {
@@ -326,6 +370,14 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		padding: 0.75rem 0;
 		font-size: 1.25rem;
 		text-align: left;
+	}
+
+	.site-header.is-nav-collapsed .nav-links--inline {
+		display: none;
+	}
+
+	.site-header.is-nav-collapsed .nav-menu-toggle {
+		display: inline-flex;
 	}
 
 	@media (max-width: 767px) {

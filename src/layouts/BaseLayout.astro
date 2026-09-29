@@ -24,7 +24,7 @@ const {
 		<meta name="theme-color" content="#09090b" />
 		<meta name="color-scheme" content="dark light" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-		<script is:inline define:vars={{ cookieName: 'rnracing-theme' }}>
+		<script is:inline define:vars={{ cookieName: 'rnracing-theme', rnModeCookie: 'rnracing-rn-mode' }}>
 			(function () {
 				var match = document.cookie.match(new RegExp('(?:^|; )' + cookieName + '=([^;]*)'));
 				var theme = match ? decodeURIComponent(match[1]) : 'dark';
@@ -39,6 +39,11 @@ const {
 				var statusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
 				if (statusBar) {
 					statusBar.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
+				}
+
+				var rnMatch = document.cookie.match(new RegExp('(?:^|; )' + rnModeCookie + '=([^;]*)'));
+				if (rnMatch && decodeURIComponent(rnMatch[1]) === '1') {
+					document.documentElement.dataset.rnMode = '';
 				}
 			})();
 		</script>

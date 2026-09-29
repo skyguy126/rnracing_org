@@ -48,6 +48,7 @@ html {
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	background: var(--bg);
+	scrollbar-gutter: stable;
 }
 
 body {

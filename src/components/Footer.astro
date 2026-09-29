@@ -17,6 +17,17 @@ const socialLinks = [
 	{ label: 'Twitter', href: SITE.twitter, external: true, icon: 'twitter' },
 	{ label: 'GitHub', href: SITE.github, external: true, icon: 'github' },
 ] as const;
+
+/** YC-style batch: F/W/S/S (Fall/Winter/Spring/Summer) + two-digit year. */
+function fundingBatch(date = new Date()) {
+	const month = date.getMonth(); // 0–11
+	// W: Dec–Feb · S: Mar–May (Spring) · S: Jun–Aug (Summer) · F: Sep–Nov
+	const season = month === 11 || month <= 1 ? 'W' : month <= 7 ? 'S' : 'F';
+	const year = String(date.getFullYear()).slice(-2);
+	return `${season}${year}`;
+}
+
+const batch = fundingBatch();
 ---
 
 <footer class="site-footer">
@@ -125,7 +136,7 @@ const socialLinks = [
 					<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75" />
 					<path d="m8.8 8.8 6.4 6.4M15.2 8.8l-6.4 6.4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
 				</svg>
-				Not OSHA certified or compliant
+				Proudly OSHA Non-Compliant
 			</li>
 		</ul>
 		<ul class="footer-compliance footer-funding" aria-label="Funding">
@@ -133,13 +144,13 @@ const socialLinks = [
 				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<path d="M12 20.5V4M5.5 10.5 12 4l6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
-				Y Combinator funded
+				Y Combinator <span data-funding-batch>{batch}</span>
 			</li>
 			<li>
 				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<path d="M3.5 17.5 9 12l4 4 7.5-8.5M15 7.5h5.5V13" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
-				A16Z funded
+				A16Z <span data-funding-batch>{batch}</span>
 			</li>
 		</ul>
 		<p>&copy; <span data-copyright-year>{new Date().getFullYear()}</span> {SITE.name}</p>
@@ -151,4 +162,15 @@ const socialLinks = [
 	if (yearEl) {
 		yearEl.textContent = String(new Date().getFullYear());
 	}
+
+	function fundingBatch(date = new Date()) {
+		const month = date.getMonth();
+		const season = month === 11 || month <= 1 ? 'W' : month <= 7 ? 'S' : 'F';
+		return `${season}${String(date.getFullYear()).slice(-2)}`;
+	}
+
+	const batch = fundingBatch();
+	document.querySelectorAll('[data-funding-batch]').forEach((el) => {
+		el.textContent = batch;
+	});
 </script>

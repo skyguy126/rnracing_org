@@ -89,7 +89,7 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 	overflow-x: auto;
 }
 
-.org-chart[data-show-secret] {
+:root[data-rn-mode] .org-chart {
 	--org-depth: var(--depth-full);
 }
 
@@ -262,32 +262,32 @@ html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
 	}
 }
 
-/* Secret members (toggled with "n"): while hidden, close the gap they leave at the top of the chart */
-.org-chart:not([data-show-secret]) li[data-secret] > .crew-card {
+/* Secret members (RN Mode / "n"): while hidden, close the gap they leave at the top of the chart */
+:root:not([data-rn-mode]) .org-chart li[data-secret] > .crew-card {
 	display: none;
 }
 
-.org-chart:not([data-show-secret]) li[data-secret] > ul {
+:root:not([data-rn-mode]) .org-chart li[data-secret] > ul {
 	padding-top: 0;
 }
 
-.org-chart:not([data-show-secret]) li[data-secret] > ul::before,
-.org-chart:not([data-show-secret]) li[data-secret] > ul > li::before,
-.org-chart:not([data-show-secret]) li[data-secret] > ul > li::after {
+:root:not([data-rn-mode]) .org-chart li[data-secret] > ul::before,
+:root:not([data-rn-mode]) .org-chart li[data-secret] > ul > li::before,
+:root:not([data-rn-mode]) .org-chart li[data-secret] > ul > li::after {
 	display: none;
 }
 
-.org-chart:not([data-show-secret]) li[data-secret] > ul > li {
+:root:not([data-rn-mode]) .org-chart li[data-secret] > ul > li {
 	padding-top: 0;
 }
 
 @media (max-width: 959px) {
-	.org-chart:not([data-show-secret]) li[data-secret] > ul {
+	:root:not([data-rn-mode]) .org-chart li[data-secret] > ul {
 		margin-top: 0;
 		padding-left: 0;
 	}
 
-	.org-chart:not([data-show-secret]) li[data-secret] > ul > li {
+	:root:not([data-rn-mode]) .org-chart li[data-secret] > ul > li {
 		padding: 0;
 	}
 }
