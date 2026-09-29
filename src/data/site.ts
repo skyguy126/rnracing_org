@@ -11,17 +11,26 @@ export const SITE = {
 /** Content pages — single source of truth for nav labels, routes, and headings. */
 export const PAGES = [
 	{ href: '/', slug: 'home', label: 'Home', heading: 'RN Racing' },
-	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
 	{ href: '/crew', slug: 'crew', label: 'The Crew', heading: 'The Crew' },
 	{ href: '/timeline', slug: 'timeline', label: 'The Timeline', heading: 'The Timeline' },
-	{ href: '/investors-faq', slug: 'investors-faq', label: 'Investors FAQ', heading: 'Investors FAQ' },
+	{
+		href: '/investors-faq',
+		slug: 'investors-faq',
+		label: 'Investors',
+		heading: 'Investors',
+	},
+	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
 ] as const;
 
 export type PageHref = (typeof PAGES)[number]['href'];
 
 export const NAV_LINKS = [
-	...PAGES.map(({ href, label }) => ({ href, label })),
+	{ href: '/', label: 'Home' },
+	{ href: '/crew', label: 'The Crew' },
+	{ href: '/timeline', label: 'The Timeline' },
 	{ href: '/reveal', label: 'The Design' },
+	{ href: '/who-we-are', label: 'Who We Are' },
+	{ href: '/investors-faq', label: 'Investors' },
 ] as const;
 
 export function getPage(href: PageHref) {

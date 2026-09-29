@@ -10,7 +10,7 @@ const page = getPage('/who-we-are');
 
 <BaseLayout
 	title={pageTitle(page.heading)}
-	description="Who we are — contribute to RN Racing and get in touch."
+	description="Who we are — get in touch with RN Racing."
 >
 	<PageHeader title={page.heading}>
 		<Fragment slot="lead">
@@ -23,16 +23,7 @@ const page = getPage('/who-we-are');
 		</Fragment>
 	</PageHeader>
 
-	<section class="action-grid" aria-label="Contribute and contact">
-		<ActionCard
-			title="Contribute"
-			description="We take PRs more seriously than Venmo — for now. The firmware is open, break something useful."
-		>
-			<a class="btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-				Open GitHub
-			</a>
-		</ActionCard>
-
+	<section class="action-grid" aria-label="Contact and social">
 		<ActionCard
 			title="Contact"
 			description="For partnerships, media, or general inquiries, please DO NOT reach out. We're busy, we have a car to build."
@@ -41,20 +32,20 @@ const page = getPage('/who-we-are');
 		</ActionCard>
 
 		<ActionCard
-			title="YouTube"
-			description="Watch footage of our fuckups, our fights, and all the other behind-the-scenes moments you've been craving from the garage and the track."
-		>
-			<a class="btn-primary" href={SITE.youtube} target="_blank" rel="noopener noreferrer">
-				Watch YouTube
-			</a>
-		</ActionCard>
-
-		<ActionCard
 			title="Instagram"
 			description="Follow @_rnracing_ for race updates, behind-the-scenes content, and team news. And Varoon's horrible humor."
 		>
 			<a class="btn-primary" href={SITE.instagram} target="_blank" rel="noopener noreferrer">
 				Visit Instagram
+			</a>
+		</ActionCard>
+
+		<ActionCard
+			title="YouTube"
+			description="Crash footage, garage fight club, and an expanding archive of decisions that seemed fine at the time."
+		>
+			<a class="btn-primary" href={SITE.youtube} target="_blank" rel="noopener noreferrer">
+				Watch YouTube
 			</a>
 		</ActionCard>
 	</section>
