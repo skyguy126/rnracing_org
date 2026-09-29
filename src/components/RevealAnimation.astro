@@ -8,7 +8,6 @@ const ASSETS = {
 	slash: '/reveal/effects/blade_slash.png',
 	splash: '/reveal/effects/juice_splash.png',
 	droplets: '/reveal/effects/juice_droplets.png',
-	comingSoon: '/reveal/text/coming_soon.png',
 	scoreDigits: [
 		'/reveal/ui/score_digits/0.png',
 		'/reveal/ui/score_digits/1.png',
@@ -133,15 +132,6 @@ const PAINT_STROKES = [
 			aria-hidden="true"
 		/>
 
-		<img
-			class="reveal-coming-soon"
-			id="reveal-coming-soon"
-			src={ASSETS.comingSoon}
-			alt="Coming soon"
-			width="2172"
-			height="724"
-			draggable="false"
-		/>
 	</div>
 
 	<canvas id="reveal-swipe-canvas" class="reveal-swipe-canvas" aria-hidden="true"></canvas>
@@ -384,19 +374,6 @@ const PAINT_STROKES = [
 	.reveal-fx--droplets {
 		width: min(30vw, 170px);
 		height: auto;
-	}
-
-	.reveal-coming-soon {
-		position: absolute;
-		left: 0;
-		top: 0;
-		z-index: 2;
-		width: min(72vw, 520px);
-		height: auto;
-		opacity: 0;
-		transform: translate3d(-50%, -50%, 0);
-		filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
-		will-change: transform, opacity;
 	}
 
 	.reveal-swipe-canvas {
@@ -683,10 +660,6 @@ const PAINT_STROKES = [
 		.reveal-fx--droplets {
 			width: min(38vw, 150px);
 		}
-
-		.reveal-coming-soon {
-			width: min(86vw, 420px);
-		}
 	}
 
 	@media (min-width: 1100px) {
@@ -749,8 +722,6 @@ const PAINT_STROKES = [
 		slice: 2.7,
 		slashEnd: 2.84,
 		splashEnd: 3.2,
-		comingStart: 3.9,
-		comingEnd: 4.5,
 		gameStart: 5.1,
 	} as const;
 
@@ -901,7 +872,6 @@ const PAINT_STROKES = [
 	const slash = document.getElementById('reveal-slash') as HTMLImageElement;
 	const splash = document.getElementById('reveal-splash') as HTMLImageElement;
 	const droplets = document.getElementById('reveal-droplets') as HTMLImageElement;
-	const comingSoon = document.getElementById('reveal-coming-soon') as HTMLImageElement;
 	const scoreEl = document.getElementById('reveal-score') as HTMLElement;
 	const scoreDigitsEl = document.getElementById('reveal-score-digits') as HTMLElement;
 	const swipeCanvas = document.getElementById('reveal-swipe-canvas') as HTMLCanvasElement;
@@ -1026,11 +996,6 @@ const PAINT_STROKES = [
 	function logoTarget(): Vec {
 		const { w, h } = size();
 		return { x: w * 0.5, y: h * 0.42 };
-	}
-
-	function comingTarget(): Vec {
-		const { w, h } = size();
-		return { x: w * 0.5, y: h * 0.72 };
 	}
 
 	function lemonDisplayWidth() {
@@ -1211,26 +1176,10 @@ const PAINT_STROKES = [
 		placeLogo(target.x, target.y, scale, lift);
 	}
 
-	function applyComingSoon(elapsed: number) {
-		if (elapsed < T.comingStart) {
-			comingSoon.style.opacity = '0';
-			return;
-		}
-
-		const t = clamp((elapsed - T.comingStart) / (T.comingEnd - T.comingStart), 0, 1);
-		const e = easeOutCubic(t);
-		const target = comingTarget();
-		comingSoon.style.opacity = String(e);
-		setTransform(comingSoon, target.x, target.y, 0, 1, lerp(14, 0, e));
-	}
-
 	function freezeLogoAndCopy() {
 		const lt = logoTarget();
-		const ct = comingTarget();
 		logo.style.opacity = '1';
 		placeLogo(lt.x, lt.y, 1, 0);
-		comingSoon.style.opacity = '1';
-		setTransform(comingSoon, ct.x, ct.y, 0, 1, 0);
 		veil.style.opacity = '0';
 		bgFull.style.opacity = '1';
 		applyPaint(T.paintDone);
@@ -2434,7 +2383,6 @@ const PAINT_STROKES = [
 		if (phase === 'reveal') {
 			applyPaint(elapsed);
 			applyLogo(elapsed);
-			applyComingSoon(elapsed);
 			updateRevealLemon(elapsed, dt);
 			applyFx(elapsed);
 
@@ -2450,7 +2398,7 @@ const PAINT_STROKES = [
 	}
 
 	function runReducedMotion() {
-		const assets = [logo, lemonWhole, halfA, halfB, slash, splash, droplets, comingSoon];
+		const assets = [logo, lemonWhole, halfA, halfB, slash, splash, droplets];
 		let start = 0;
 		let id = 0;
 
@@ -2482,11 +2430,6 @@ const PAINT_STROKES = [
 			setTransform(logo, lt.x, lt.y, 0, lerp(0.85, 1, easeOutCubic(logoT)), 0);
 
 			hideLemonActors();
-
-			const soonT = clamp((elapsed - 0.45) / 0.45, 0, 1);
-			const c = comingTarget();
-			comingSoon.style.opacity = String(easeOutCubic(soonT));
-			setTransform(comingSoon, c.x, c.y, 0, 1, lerp(10, 0, easeOutCubic(soonT)));
 
 			if (elapsed >= 1.15) {
 				freezeLogoAndCopy();
