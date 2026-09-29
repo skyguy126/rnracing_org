@@ -1,16 +1,38 @@
 ---
 import '../styles/home-scroll.css';
+
+const storyImages = [
+	'/story/01.jpg',
+	'/story/02.jpg',
+	'/story/03.jpg',
+	'/story/04.jpg',
+	'/story/05.jpg',
+	'/story/06.jpg',
+	'/story/07.jpg',
+	'/story/08.jpg',
+];
 ---
 
 <div class="home-scroll" data-home-scroll>
 	<div class="home-scroll__media" aria-hidden="true">
-		<canvas class="home-scroll__canvas"></canvas>
+		{
+			storyImages.map((src, index) => (
+				<img
+					class:list={['home-scroll__frame', index === 0 && 'is-active']}
+					src={index === 0 ? src : undefined}
+					data-src={index === 0 ? undefined : src}
+					alt=""
+					decoding="async"
+					fetchpriority={index === 0 ? 'high' : 'low'}
+				/>
+			))
+		}
 		<p class="home-scroll__loader">Loading…</p>
 	</div>
 	<div class="home-scroll__vignette" aria-hidden="true"></div>
 
 	<div class="home-scroll__track">
-		<section class="scroll-panel scroll-panel--hero">
+		<section class="scroll-panel scroll-panel--hero" data-story-image="1">
 			<div class="home-scroll__glow home-scroll__hero">
 				<h1 class="home-scroll__hero-title">
 					<img class="home-scroll__hero-logo" src="/rn-racing-logo.png" alt="RN Racing" />
@@ -30,7 +52,7 @@ import '../styles/home-scroll.css';
 
 		<section class="scroll-panel scroll-panel--spacer" aria-hidden="true"></section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="2">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-xl">
 					What happens when a bunch of friends buy a
@@ -39,13 +61,13 @@ import '../styles/home-scroll.css';
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="3">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-hero">They race it.</p>
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="4">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-xl">One&nbsp;car. Zero&nbsp;experience.</p>
 				<p class="home-scroll__text-sub">
@@ -55,7 +77,7 @@ import '../styles/home-scroll.css';
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="5">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-xl">
 					Born from weekend wrenching and terrible financial&nbsp;decisions.
@@ -63,7 +85,7 @@ import '../styles/home-scroll.css';
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="6">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-xl">
 					Every&nbsp;untorqued&nbsp;bolt.<br />
@@ -73,13 +95,13 @@ import '../styles/home-scroll.css';
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--number">
+		<section class="scroll-panel scroll-panel--number" data-story-image="7">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__car-number">#711</p>
 			</div>
 		</section>
 
-		<section class="scroll-panel scroll-panel--story">
+		<section class="scroll-panel scroll-panel--story" data-story-image="8">
 			<div class="home-scroll__glow home-scroll__fade-in">
 				<p class="home-scroll__text-xl">
 					We&nbsp;don&rsquo;t&nbsp;give&nbsp;speeches,<br />

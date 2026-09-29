@@ -35,6 +35,6 @@ src/
     ├── global.css
     ├── home-scroll.css
     └── pages/        # Per-page styles (timeline, crew)
-public/               # Static assets (frames, CNAME)
+public/               # Static assets (story photos, CNAME)
 docs/                 # Built site (committed for GitHub Pages)
 ```

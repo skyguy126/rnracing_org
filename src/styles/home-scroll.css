@@ -26,11 +26,30 @@
 	background: var(--black);
 }
 
-.home-scroll__canvas {
+.home-scroll__frame {
+	position: absolute;
+	inset: 0;
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	opacity: 0;
+	scale: 1.06;
+	transition:
+		opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+		scale 6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-scroll__frame.is-active {
+	opacity: 1;
+	scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home-scroll__frame {
+		scale: 1;
+		transition: opacity 0.4s linear;
+	}
 }
 
 .home-scroll__loader {
