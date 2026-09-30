@@ -5,16 +5,18 @@ import {
 	crewMembers,
 	crewSlug,
 	getCrewIndex,
+	getCrewMemberBySlug,
 	getDirectReports,
 	getInitials,
 	getManagerChain,
+	getReportTotal,
 	getVisibleRoot,
 } from '../../data/crew';
 
 const showSecret = false;
-const root = getVisibleRoot(showSecret);
-const chain = root ? getManagerChain(root.name, showSecret) : [];
-const reports = root ? getDirectReports(root.name, showSecret) : [];
+const selected = getCrewMemberBySlug('nyle') ?? getVisibleRoot(showSecret);
+const chain = selected ? getManagerChain(selected.name, showSecret) : [];
+const reports = selected ? getDirectReports(selected.name, showSecret) : [];
 const chainSlugs = new Set(chain.map((member) => crewSlug(member.name)));
 const reportSlugs = new Set(reports.map((member) => crewSlug(member.name)));
 const manager = chain[chain.length - 1];
@@ -35,7 +37,6 @@ const manager = chain[chain.length - 1];
 				crewMembers.map((member) => {
 					const slug = crewSlug(member.name);
 					const index = getCrewIndex(member.name);
-					const reportCount = getDirectReports(member.name, showSecret).length;
 					return (
 						<li
 							class="org-chain-item"
@@ -49,15 +50,18 @@ const manager = chain[chain.length - 1];
 									<span class="org-person-name">{member.name}</span>
 									<span class="org-person-title">{member.title}</span>
 								</span>
-								<span class="org-count-label" data-org-chain-a11y hidden={reportCount === 0}>
-									<span data-org-count-value>{reportCount}</span> direct reports
-								</span>
 							</button>
 							<div class="org-chain-link" aria-hidden="true">
-								<span class="org-chain-count" data-org-chain-count hidden={reportCount === 0}>
-									<span data-org-count-value>{reportCount}</span>
-								</span>
-								<span>↓</span>
+								<svg class="org-chain-arrow" viewBox="0 0 16 16">
+									<path
+										d="M8 2.25v8.5M4.25 8.25 8 13.25l3.75-5"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
 							</div>
 						</li>
 					);
@@ -73,58 +77,65 @@ const manager = chain[chain.length - 1];
 				hidden={!manager}
 				aria-label={manager ? `Reports to ${manager.name}` : undefined}
 			>
-				{manager && <span aria-hidden="true">↑ </span>}
-				{manager ? `Reports to ${manager.name}` : ''}
+				<svg class="org-up-arrow" viewBox="0 0 16 16" aria-hidden="true">
+					<path
+						d="M8 13.75V5.25M4.25 7.75 8 2.75l3.75 5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+				<span class="org-up-label">{manager ? `Reports to ${manager.name}` : ''}</span>
 			</button>
 
 			{
-				root && (
+				selected && (
 					<div class="org-selected-portrait">
 						<button
 							type="button"
 							class="photo-trigger"
 							id="org-selected-photo"
-							data-member-index={getCrewIndex(root.name)}
+							data-member-index={getCrewIndex(selected.name)}
 							aria-haspopup="dialog"
-							aria-label={`View profile for ${root.name}`}
+							aria-label={`View profile for ${selected.name}`}
 						>
 							<img
 								class="crew-photo"
 								data-theme-photo="dark"
-								src={root.image ? `/team/${root.image}` : undefined}
-								alt={root.image ? `${root.name} headshot` : ''}
-								hidden={!root.image}
-								style={`object-fit: ${root.imageFit ?? 'cover'}; object-position: ${root.imagePosition ?? 'center'};`}
+								src={selected.image ? `/team/${selected.image}` : undefined}
+								alt={selected.image ? `${selected.name} headshot` : ''}
+								hidden={!selected.image}
+								style={`object-fit: ${selected.imageFit ?? 'cover'}; object-position: ${selected.imagePosition ?? 'center'};`}
 							/>
 							<img
 								class="crew-photo"
 								data-theme-photo="light"
-								src={root.image ? `/team/light/${root.lightImage ?? root.image}` : undefined}
+								src={selected.image ? `/team/light/${selected.lightImage ?? selected.image}` : undefined}
 								alt=""
 								aria-hidden="true"
-								hidden={!root.image}
-								style={`object-fit: ${root.imageFit ?? 'cover'}; object-position: ${root.imagePosition ?? 'center'};`}
+								hidden={!selected.image}
+								style={`object-fit: ${selected.imageFit ?? 'cover'}; object-position: ${selected.imagePosition ?? 'center'};`}
 							/>
-							<PhotoPlaceholder initials={getInitials(root.name)} hidden={Boolean(root.image)} />
+							<PhotoPlaceholder initials={getInitials(selected.name)} hidden={Boolean(selected.image)} />
 						</button>
 					</div>
 				)
 			}
 
-			<h2 id="org-selected-name" class="org-selected-name" tabindex="-1">{root?.name}</h2>
-			<p class="org-selected-title">{root?.title}</p>
+			<h2 id="org-selected-name" class="org-selected-name" tabindex="-1">{selected?.name}</h2>
+			<p class="org-selected-title">{selected?.title}</p>
 		</section>
 
 		<section class="org-reports-section" aria-labelledby="org-reports-heading">
-			<h2 id="org-reports-heading" class="org-reports-heading">
-				Direct reports<span class="org-reports-count">{reports.length ? ` · ${reports.length}` : ''}</span>
-			</h2>
+			<h2 id="org-reports-heading" class="org-reports-heading">Direct reports</h2>
 			<ul class="org-report-list">
 				{
 					crewMembers.map((member) => {
 						const slug = crewSlug(member.name);
 						const index = getCrewIndex(member.name);
-						const reportCount = getDirectReports(member.name, showSecret).length;
+						const reportTotal = getReportTotal(member.name, showSecret);
 						return (
 							<li
 								class="org-report"
@@ -138,17 +149,17 @@ const manager = chain[chain.length - 1];
 										<span class="org-person-name">{member.name}</span>
 										<span class="org-person-title">{member.title}</span>
 									</span>
-									<span class="org-report-meta" data-org-meta hidden={reportCount === 0}>
+									<span class="org-report-meta" data-org-meta hidden={reportTotal === 0}>
 										<span class="org-report-count">
-											<span data-org-count-value>{reportCount}</span>
-											<span class="org-count-label"> direct reports</span>
+											<span data-org-count-value>{reportTotal}</span>
+											<span data-org-count-label>{reportTotal === 1 ? ' report' : ' reports'}</span>
 										</span>
 										<svg class="org-chevron" data-org-chevron viewBox="0 0 20 20" aria-hidden="true">
 											<path
-												d="M7.5 4.5 13 10l-5.5 5.5"
+												d="M7 5 12.5 10 7 15"
 												fill="none"
 												stroke="currentColor"
-												stroke-width="1.5"
+												stroke-width="2.25"
 												stroke-linecap="round"
 												stroke-linejoin="round"
 											/>
@@ -174,6 +185,7 @@ const manager = chain[chain.length - 1];
 		getDirectReports,
 		getInitials,
 		getManagerChain,
+		getReportTotal,
 		getVisibleFallback,
 		getVisibleRoot,
 		isCrewMemberVisible,
@@ -186,10 +198,10 @@ const manager = chain[chain.length - 1];
 	const chainList = browser?.querySelector<HTMLElement>('.org-chain-list');
 	const reportList = browser?.querySelector<HTMLElement>('.org-report-list');
 	const upButton = browser?.querySelector<HTMLButtonElement>('.org-up');
+	const upLabel = upButton?.querySelector<HTMLElement>('.org-up-label');
 	const selectedPhoto = browser?.querySelector<HTMLButtonElement>('#org-selected-photo');
 	const selectedName = browser?.querySelector<HTMLElement>('#org-selected-name');
 	const selectedTitle = browser?.querySelector<HTMLElement>('.org-selected-title');
-	const reportsCount = browser?.querySelector<HTMLElement>('.org-reports-count');
 	const reportsEmpty = browser?.querySelector<HTMLElement>('.org-reports-empty');
 
 	if (
@@ -198,10 +210,10 @@ const manager = chain[chain.length - 1];
 		chainList &&
 		reportList &&
 		upButton &&
+		upLabel &&
 		selectedPhoto &&
 		selectedName &&
 		selectedTitle &&
-		reportsCount &&
 		reportsEmpty
 	) {
 		let showSecret = document.documentElement.hasAttribute('data-rn-mode');
@@ -216,21 +228,27 @@ const manager = chain[chain.length - 1];
 			return raw || null;
 		}
 
+		function defaultMember() {
+			const nyle = getCrewMemberBySlug('nyle');
+			if (nyle && isCrewMemberVisible(nyle, showSecret)) return nyle;
+			return getVisibleRoot(showSecret);
+		}
+
 		function resolve(slug: string | null, keepCurrent = false) {
-			const root = getVisibleRoot(showSecret);
+			const fallback = defaultMember();
 			if (slug) {
 				const requested = getCrewMemberBySlug(slug);
-				if (!requested) return root;
+				if (!requested) return fallback;
 				if (isCrewMemberVisible(requested, showSecret)) return requested;
-				return getVisibleFallback(requested.name, showSecret) ?? root;
+				return getVisibleFallback(requested.name, showSecret) ?? fallback;
 			}
-			// Default view. RN Mode can change who the root is; keep the open person if they're still visible.
+			// Default view is Nyle. Keep the open person when RN Mode changes who is visible.
 			if (keepCurrent && paintedSlug) {
 				const current = getCrewMemberBySlug(paintedSlug);
 				if (current && isCrewMemberVisible(current, showSecret)) return current;
-				if (current) return getVisibleFallback(current.name, showSecret) ?? root;
+				if (current) return getVisibleFallback(current.name, showSecret) ?? fallback;
 			}
-			return root;
+			return fallback;
 		}
 
 		function writeHash(mode: 'push' | 'replace' | 'none', slug: string) {
@@ -252,16 +270,13 @@ const manager = chain[chain.length - 1];
 				const row = rows.get(crewSlug(member.name));
 				if (!row) continue;
 				row.hidden = false;
-				const reportCount = getDirectReports(member.name, showSecret).length;
-				row.querySelectorAll<HTMLElement>('[data-org-count-value]').forEach((value) => {
-					value.textContent = String(reportCount);
-				});
+				const reportTotal = getReportTotal(member.name, showSecret);
+				const value = row.querySelector<HTMLElement>('[data-org-count-value]');
+				if (value) value.textContent = String(reportTotal);
+				const label = row.querySelector<HTMLElement>('[data-org-count-label]');
+				if (label) label.textContent = reportTotal === 1 ? ' report' : ' reports';
 				const meta = row.querySelector<HTMLElement>('[data-org-meta]');
-				if (meta) meta.hidden = reportCount === 0;
-				const chainCount = row.querySelector<HTMLElement>('[data-org-chain-count]');
-				if (chainCount) chainCount.hidden = reportCount === 0;
-				const chainLabel = row.querySelector<HTMLElement>('[data-org-chain-a11y]');
-				if (chainLabel) chainLabel.hidden = reportCount === 0;
+				if (meta) meta.hidden = reportTotal === 0;
 				list.appendChild(row);
 			}
 			for (const row of rows.values()) {
@@ -312,21 +327,16 @@ const manager = chain[chain.length - 1];
 				upButton.hidden = false;
 				upButton.dataset.orgSelect = crewSlug(manager.name);
 				upButton.setAttribute('aria-label', `Reports to ${manager.name}`);
-				upButton.replaceChildren();
-				const arrow = document.createElement('span');
-				arrow.setAttribute('aria-hidden', 'true');
-				arrow.textContent = '↑ ';
-				upButton.append(arrow, document.createTextNode(`Reports to ${manager.name}`));
+				upLabel.textContent = `Reports to ${manager.name}`;
 			} else {
 				upButton.hidden = true;
 				delete upButton.dataset.orgSelect;
-				upButton.replaceChildren();
+				upLabel.textContent = '';
 			}
 
 			paintPhoto(member);
 			selectedName.textContent = member.name;
 			selectedTitle.textContent = member.title;
-			reportsCount.textContent = reports.length ? ` · ${reports.length}` : '';
 			reportsEmpty.hidden = reports.length > 0;
 
 			if (animate && paintedSlug !== slug) {

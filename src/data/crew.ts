@@ -277,6 +277,18 @@ export function getDirectReports(name: string, showSecret: boolean) {
 	return node ? visibleReports(node.reports, showSecret) : [];
 }
 
+/** Everyone under this person. Hidden secret members are omitted; their reports still count. */
+export function getReportTotal(name: string, showSecret: boolean) {
+	const node = findCrewNode(crewNodes(), name);
+	if (!node) return 0;
+	const count = (nodes: CrewNode[]): number =>
+		nodes.reduce((total, child) => {
+			const visible = isCrewMemberVisible(child.member, showSecret) ? 1 : 0;
+			return total + visible + count(child.reports);
+		}, 0);
+	return count(node.reports);
+}
+
 /** Managers above this person, highest first. Hidden secret managers are omitted. */
 export function getManagerChain(name: string, showSecret: boolean) {
 	const chain: CrewMember[] = [];
