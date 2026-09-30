@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import RnMode from '../components/RnMode.astro';
 import { SITE } from '../data/site';
 
 interface Props {
@@ -20,6 +21,14 @@ const {
 		<meta name="theme-color" content="#09090b" />
 		<meta name="color-scheme" content="dark" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<script is:inline>
+			(function () {
+				var match = document.cookie.match(/(?:^|; )rnracing-rn-mode=([^;]*)/);
+				if (match && decodeURIComponent(match[1]) === '1') {
+					document.documentElement.dataset.rnMode = '';
+				}
+			})();
+		</script>
 		<link rel="icon" type="image/png" href="/rn-racing-logo.png" />
 		<link rel="apple-touch-icon" href="/rn-racing-logo.png" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,6 +43,7 @@ const {
 		<title>{title}</title>
 	</head>
 	<body class="reveal-layout-body">
+		<RnMode />
 		<slot />
 	</body>
 </html>

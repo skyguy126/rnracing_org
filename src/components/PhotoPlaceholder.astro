@@ -2,12 +2,13 @@
 interface Props {
 	initials: string;
 	large?: boolean;
+	hidden?: boolean;
 }
 
-const { initials, large = false } = Astro.props;
+const { initials, large = false, hidden = false } = Astro.props;
 ---
 
-<div class:list={['photo-placeholder', { 'photo-placeholder--large': large }]}>
+<div class:list={['photo-placeholder', { 'photo-placeholder--large': large }]} hidden={hidden}>
 	<span class="photo-icon">{initials}</span>
 </div>
 
@@ -29,6 +30,10 @@ const { initials, large = false } = Astro.props;
 			border-color 0.15s ease,
 			background 0.15s ease,
 			transform 0.15s ease;
+	}
+
+	.photo-placeholder[hidden] {
+		display: none;
 	}
 
 	.photo-placeholder--large {

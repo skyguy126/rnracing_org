@@ -1,0 +1,386 @@
+---
+import PhotoPlaceholder from '../PhotoPlaceholder.astro';
+import CrewPhoto from './CrewPhoto.astro';
+import {
+	crewMembers,
+	crewSlug,
+	getCrewIndex,
+	getDirectReports,
+	getInitials,
+	getManagerChain,
+	getVisibleRoot,
+} from '../../data/crew';
+
+const showSecret = false;
+const root = getVisibleRoot(showSecret);
+const chain = root ? getManagerChain(root.name, showSecret) : [];
+const reports = root ? getDirectReports(root.name, showSecret) : [];
+const chainSlugs = new Set(chain.map((member) => crewSlug(member.name)));
+const reportSlugs = new Set(reports.map((member) => crewSlug(member.name)));
+const manager = chain[chain.length - 1];
+---
+
+<div class="mobile-org-browser" data-org-browser>
+	<script is:inline>
+		(function () {
+			var hash = location.hash.replace(/^#/, '');
+			var rn = document.documentElement.hasAttribute('data-rn-mode');
+			if (hash || rn) document.documentElement.dataset.orgPending = '';
+		})();
+	</script>
+
+	<div class="org-browser-stage">
+		<ol class="org-chain-list" aria-label="Chain of command" hidden={chain.length === 0}>
+			{
+				crewMembers.map((member) => {
+					const slug = crewSlug(member.name);
+					const index = getCrewIndex(member.name);
+					const reportCount = getDirectReports(member.name, showSecret).length;
+					return (
+						<li
+							class="org-chain-item"
+							data-org-slug={slug}
+							data-secret={member.secret ? '' : undefined}
+							hidden={!chainSlugs.has(slug)}
+						>
+							<CrewPhoto member={member} index={index} />
+							<button type="button" class="org-chain-select" data-org-select={slug}>
+								<span class="org-person-copy">
+									<span class="org-person-name">{member.name}</span>
+									<span class="org-person-title">{member.title}</span>
+								</span>
+								<span class="org-count-label" data-org-chain-a11y hidden={reportCount === 0}>
+									<span data-org-count-value>{reportCount}</span> direct reports
+								</span>
+							</button>
+							<div class="org-chain-link" aria-hidden="true">
+								<span class="org-chain-count" data-org-chain-count hidden={reportCount === 0}>
+									<span data-org-count-value>{reportCount}</span>
+								</span>
+								<span>↓</span>
+							</div>
+						</li>
+					);
+				})
+			}
+		</ol>
+
+		<section class="org-selected" aria-labelledby="org-selected-name">
+			<button
+				type="button"
+				class="org-up"
+				data-org-select={manager ? crewSlug(manager.name) : undefined}
+				hidden={!manager}
+				aria-label={manager ? `Reports to ${manager.name}` : undefined}
+			>
+				{manager && <span aria-hidden="true">↑ </span>}
+				{manager ? `Reports to ${manager.name}` : ''}
+			</button>
+
+			{
+				root && (
+					<div class="org-selected-portrait">
+						<button
+							type="button"
+							class="photo-trigger"
+							id="org-selected-photo"
+							data-member-index={getCrewIndex(root.name)}
+							aria-haspopup="dialog"
+							aria-label={`View profile for ${root.name}`}
+						>
+							<img
+								class="crew-photo"
+								data-theme-photo="dark"
+								src={root.image ? `/team/${root.image}` : undefined}
+								alt={root.image ? `${root.name} headshot` : ''}
+								hidden={!root.image}
+								style={`object-fit: ${root.imageFit ?? 'cover'}; object-position: ${root.imagePosition ?? 'center'};`}
+							/>
+							<img
+								class="crew-photo"
+								data-theme-photo="light"
+								src={root.image ? `/team/light/${root.lightImage ?? root.image}` : undefined}
+								alt=""
+								aria-hidden="true"
+								hidden={!root.image}
+								style={`object-fit: ${root.imageFit ?? 'cover'}; object-position: ${root.imagePosition ?? 'center'};`}
+							/>
+							<PhotoPlaceholder initials={getInitials(root.name)} hidden={Boolean(root.image)} />
+						</button>
+					</div>
+				)
+			}
+
+			<h2 id="org-selected-name" class="org-selected-name" tabindex="-1">{root?.name}</h2>
+			<p class="org-selected-title">{root?.title}</p>
+		</section>
+
+		<section class="org-reports-section" aria-labelledby="org-reports-heading">
+			<h2 id="org-reports-heading" class="org-reports-heading">
+				Direct reports<span class="org-reports-count">{reports.length ? ` · ${reports.length}` : ''}</span>
+			</h2>
+			<ul class="org-report-list">
+				{
+					crewMembers.map((member) => {
+						const slug = crewSlug(member.name);
+						const index = getCrewIndex(member.name);
+						const reportCount = getDirectReports(member.name, showSecret).length;
+						return (
+							<li
+								class="org-report"
+								data-org-slug={slug}
+								data-secret={member.secret ? '' : undefined}
+								hidden={!reportSlugs.has(slug)}
+							>
+								<CrewPhoto member={member} index={index} />
+								<button type="button" class="org-report-select" data-org-select={slug}>
+									<span class="org-person-copy">
+										<span class="org-person-name">{member.name}</span>
+										<span class="org-person-title">{member.title}</span>
+									</span>
+									<span class="org-report-meta" data-org-meta hidden={reportCount === 0}>
+										<span class="org-report-count">
+											<span data-org-count-value>{reportCount}</span>
+											<span class="org-count-label"> direct reports</span>
+										</span>
+										<svg class="org-chevron" data-org-chevron viewBox="0 0 20 20" aria-hidden="true">
+											<path
+												d="M7.5 4.5 13 10l-5.5 5.5"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.5"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+										</svg>
+									</span>
+								</button>
+							</li>
+						);
+					})
+				}
+			</ul>
+			<p class="org-reports-empty" hidden={reports.length > 0}>No direct reports</p>
+		</section>
+	</div>
+</div>
+
+<script>
+	import {
+		crewMembers,
+		crewSlug,
+		getCrewIndex,
+		getCrewMemberBySlug,
+		getDirectReports,
+		getInitials,
+		getManagerChain,
+		getVisibleFallback,
+		getVisibleRoot,
+		isCrewMemberVisible,
+		type CrewMember,
+	} from '../../data/crew';
+	import { RN_MODE_EVENT, type RnModeChangeDetail } from '../../lib/rn-mode';
+
+	const browser = document.querySelector<HTMLElement>('[data-org-browser]');
+	const stage = browser?.querySelector<HTMLElement>('.org-browser-stage');
+	const chainList = browser?.querySelector<HTMLElement>('.org-chain-list');
+	const reportList = browser?.querySelector<HTMLElement>('.org-report-list');
+	const upButton = browser?.querySelector<HTMLButtonElement>('.org-up');
+	const selectedPhoto = browser?.querySelector<HTMLButtonElement>('#org-selected-photo');
+	const selectedName = browser?.querySelector<HTMLElement>('#org-selected-name');
+	const selectedTitle = browser?.querySelector<HTMLElement>('.org-selected-title');
+	const reportsCount = browser?.querySelector<HTMLElement>('.org-reports-count');
+	const reportsEmpty = browser?.querySelector<HTMLElement>('.org-reports-empty');
+
+	if (
+		browser &&
+		stage &&
+		chainList &&
+		reportList &&
+		upButton &&
+		selectedPhoto &&
+		selectedName &&
+		selectedTitle &&
+		reportsCount &&
+		reportsEmpty
+	) {
+		let showSecret = document.documentElement.hasAttribute('data-rn-mode');
+		let requestedSlug = readHash();
+		let paintedSlug = '';
+		let booted = false;
+
+		const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		function readHash() {
+			const raw = decodeURIComponent(location.hash.replace(/^#/, '')).trim().toLowerCase();
+			return raw || null;
+		}
+
+		function resolve(slug: string | null, keepCurrent = false) {
+			const root = getVisibleRoot(showSecret);
+			if (slug) {
+				const requested = getCrewMemberBySlug(slug);
+				if (!requested) return root;
+				if (isCrewMemberVisible(requested, showSecret)) return requested;
+				return getVisibleFallback(requested.name, showSecret) ?? root;
+			}
+			// Default view. RN Mode can change who the root is; keep the open person if they're still visible.
+			if (keepCurrent && paintedSlug) {
+				const current = getCrewMemberBySlug(paintedSlug);
+				if (current && isCrewMemberVisible(current, showSecret)) return current;
+				if (current) return getVisibleFallback(current.name, showSecret) ?? root;
+			}
+			return root;
+		}
+
+		function writeHash(mode: 'push' | 'replace' | 'none', slug: string) {
+			if (mode === 'none') return;
+			const next = `#${encodeURIComponent(slug)}`;
+			if (decodeURIComponent(location.hash.replace(/^#/, '')).toLowerCase() === slug) return;
+			const url = `${location.pathname}${location.search}${next}`;
+			if (mode === 'push') history.pushState({ orgSlug: slug }, '', url);
+			else history.replaceState({ orgSlug: slug }, '', url);
+		}
+
+		function orderRows(list: HTMLElement, members: CrewMember[]) {
+			const rows = new Map<string, HTMLElement>();
+			list.querySelectorAll<HTMLElement>(':scope > [data-org-slug]').forEach((row) => {
+				rows.set(row.dataset.orgSlug || '', row);
+				row.hidden = true;
+			});
+			for (const member of members) {
+				const row = rows.get(crewSlug(member.name));
+				if (!row) continue;
+				row.hidden = false;
+				const reportCount = getDirectReports(member.name, showSecret).length;
+				row.querySelectorAll<HTMLElement>('[data-org-count-value]').forEach((value) => {
+					value.textContent = String(reportCount);
+				});
+				const meta = row.querySelector<HTMLElement>('[data-org-meta]');
+				if (meta) meta.hidden = reportCount === 0;
+				const chainCount = row.querySelector<HTMLElement>('[data-org-chain-count]');
+				if (chainCount) chainCount.hidden = reportCount === 0;
+				const chainLabel = row.querySelector<HTMLElement>('[data-org-chain-a11y]');
+				if (chainLabel) chainLabel.hidden = reportCount === 0;
+				list.appendChild(row);
+			}
+			for (const row of rows.values()) {
+				if (row.hidden) list.appendChild(row);
+			}
+		}
+
+		function paintPhoto(member: CrewMember) {
+			selectedPhoto.dataset.memberIndex = String(getCrewIndex(member.name));
+			selectedPhoto.setAttribute('aria-label', `View profile for ${member.name}`);
+			const images = selectedPhoto.querySelectorAll<HTMLImageElement>('.crew-photo');
+			const placeholder = selectedPhoto.querySelector<HTMLElement>('.photo-placeholder');
+			if (member.image) {
+				images.forEach((image) => {
+					const light = image.dataset.themePhoto === 'light';
+					const file = light ? member.lightImage ?? member.image : member.image;
+					image.src = `${light ? '/team/light/' : '/team/'}${file}`;
+					image.alt = light ? '' : `${member.name} headshot`;
+					image.style.objectFit = member.imageFit ?? 'cover';
+					image.style.objectPosition = member.imagePosition ?? 'center';
+					image.hidden = false;
+				});
+				if (placeholder) placeholder.hidden = true;
+			} else {
+				images.forEach((image) => {
+					image.hidden = true;
+					image.removeAttribute('src');
+				});
+				if (placeholder) {
+					placeholder.hidden = false;
+					const initials = placeholder.querySelector('.photo-icon');
+					if (initials) initials.textContent = getInitials(member.name);
+				}
+			}
+		}
+
+		function paint(member: CrewMember, animate: boolean) {
+			const slug = crewSlug(member.name);
+			const chain = getManagerChain(member.name, showSecret);
+			const reports = getDirectReports(member.name, showSecret);
+			const manager = chain[chain.length - 1];
+
+			orderRows(chainList, chain);
+			orderRows(reportList, reports);
+			chainList.hidden = chain.length === 0;
+
+			if (manager) {
+				upButton.hidden = false;
+				upButton.dataset.orgSelect = crewSlug(manager.name);
+				upButton.setAttribute('aria-label', `Reports to ${manager.name}`);
+				upButton.replaceChildren();
+				const arrow = document.createElement('span');
+				arrow.setAttribute('aria-hidden', 'true');
+				arrow.textContent = '↑ ';
+				upButton.append(arrow, document.createTextNode(`Reports to ${manager.name}`));
+			} else {
+				upButton.hidden = true;
+				delete upButton.dataset.orgSelect;
+				upButton.replaceChildren();
+			}
+
+			paintPhoto(member);
+			selectedName.textContent = member.name;
+			selectedTitle.textContent = member.title;
+			reportsCount.textContent = reports.length ? ` · ${reports.length}` : '';
+			reportsEmpty.hidden = reports.length > 0;
+
+			if (animate && paintedSlug !== slug) {
+				stage.classList.remove('is-entering');
+				void stage.offsetWidth;
+				stage.classList.add('is-entering');
+			}
+			paintedSlug = slug;
+		}
+
+		function show(options: { history: 'push' | 'replace' | 'none'; focus?: boolean; scroll?: boolean; keepCurrent?: boolean }) {
+			if (requestedSlug && !getCrewMemberBySlug(requestedSlug)) {
+				requestedSlug = null;
+				history.replaceState(null, '', `${location.pathname}${location.search}`);
+			}
+
+			const member = resolve(requestedSlug, options.keepCurrent);
+			if (!member) return;
+			const slug = crewSlug(member.name);
+			const changed = paintedSlug !== slug;
+			paint(member, booted && changed);
+			writeHash(options.history, slug);
+			document.documentElement.removeAttribute('data-org-pending');
+			booted = true;
+
+			if (options.scroll && changed) {
+				stage.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
+			}
+			if (options.focus) selectedName.focus({ preventScroll: true });
+		}
+
+		browser.addEventListener('click', (event) => {
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+			const control = target.closest<HTMLElement>('[data-org-select]');
+			if (!control || !browser.contains(control)) return;
+			const slug = control.dataset.orgSelect;
+			if (!slug || slug === paintedSlug) return;
+			requestedSlug = slug;
+			show({ history: 'push', focus: event.detail === 0, scroll: true });
+		});
+
+		window.addEventListener('popstate', () => {
+			requestedSlug = readHash();
+			show({ history: 'none', focus: true, scroll: true });
+		});
+
+		document.addEventListener(RN_MODE_EVENT, (event) => {
+			const enabled = (event as CustomEvent<RnModeChangeDetail>).detail?.enabled;
+			showSecret = Boolean(enabled);
+			show({ history: 'replace', scroll: false, keepCurrent: true });
+		});
+
+		if (!crewMembers.length) document.documentElement.removeAttribute('data-org-pending');
+		else show({ history: 'none' });
+	}
+</script>

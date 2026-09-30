@@ -5,4 +5,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
 	site: 'https://rnracing.org',
 	outDir: 'docs',
+	redirects: {
+		'/reveal': '/design',
+	},
 });

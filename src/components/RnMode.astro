@@ -1,0 +1,115 @@
+<p class="rn-mode-window" aria-live="polite">
+	<span class="rn-mode-window-icon" aria-hidden="true">🥷</span>
+	RN Mode Enabled
+</p>
+
+<script is:inline>
+	(function () {
+		var COOKIE = 'rnracing-rn-mode';
+		var EVENT = 'rn-mode-change';
+
+		function read() {
+			var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE + '=([^;]*)'));
+			return !!(match && decodeURIComponent(match[1]) === '1');
+		}
+
+		function write(enabled) {
+			if (enabled) {
+				document.cookie = COOKIE + '=1; path=/; SameSite=Lax';
+			} else {
+				document.cookie = COOKIE + '=; path=/; max-age=0; SameSite=Lax';
+			}
+		}
+
+		function badge() {
+			return document.querySelector('.rn-mode-window');
+		}
+
+		function place() {
+			var el = badge();
+			if (!el) return;
+			var header = document.querySelector('.site-header');
+			var sound = document.querySelector('.reveal-sound');
+			var top = 12;
+			if (header) top = header.getBoundingClientRect().bottom + 8;
+			else if (sound) top = sound.getBoundingClientRect().bottom + 8;
+			el.style.top = top + 'px';
+		}
+
+		function apply(enabled) {
+			if (enabled) document.documentElement.dataset.rnMode = '';
+			else delete document.documentElement.dataset.rnMode;
+			place();
+		}
+
+		function set(enabled) {
+			apply(enabled);
+			write(enabled);
+			document.dispatchEvent(new CustomEvent(EVENT, { detail: { enabled: enabled } }));
+		}
+
+		function isTypingTarget(el) {
+			if (!el || !el.closest) return false;
+			return !!el.closest('input, textarea, select, [contenteditable="true"]');
+		}
+
+		apply(read());
+
+		if (!window.__rnModeBound) {
+			window.__rnModeBound = true;
+			window.addEventListener(
+				'keydown',
+				function (event) {
+					if (event.key !== 'n' && event.key !== 'N') return;
+					if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+					if (isTypingTarget(event.target)) return;
+					event.preventDefault();
+					set(!document.documentElement.hasAttribute('data-rn-mode'));
+				},
+				true,
+			);
+			window.addEventListener('resize', place);
+			window.addEventListener('pageshow', function () {
+				apply(read());
+			});
+			document.addEventListener('DOMContentLoaded', place);
+			var header = document.querySelector('.site-header');
+			if (header && window.ResizeObserver) new ResizeObserver(place).observe(header);
+		}
+	})();
+</script>
+
+<style is:global>
+	.rn-mode-window {
+		display: none;
+		position: fixed;
+		z-index: 500;
+		left: 0.75rem;
+		top: 0.75rem;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0.4rem 0.65rem;
+		border: 1px solid var(--border, rgba(255, 255, 255, 0.16));
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--bg, #09090b) 88%, transparent);
+		box-shadow: 0 8px 20px color-mix(in srgb, #000 18%, transparent);
+		backdrop-filter: blur(12px);
+		color: var(--text, #fafafa);
+		font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.2;
+		letter-spacing: 0.02em;
+		pointer-events: none;
+	}
+
+	:root[data-rn-mode] .rn-mode-window {
+		display: flex;
+	}
+
+	.rn-mode-window-icon {
+		font-size: 0.95rem;
+		line-height: 1;
+	}
+</style>

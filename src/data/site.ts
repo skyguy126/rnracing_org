@@ -31,10 +31,10 @@ export const NAV_LINKS = [
 	{ href: '/the-car', label: 'The Car' },
 	{ href: '/crew', label: 'The Crew' },
 	{ href: '/timeline', label: 'The Timeline' },
-	{ href: '/reveal', label: 'The Design' },
+	{ href: '/design', label: 'The Design' },
 	{ href: '/values', label: 'Our Values' },
 	{ href: '/who-we-are', label: 'Who We Are' },
-	{ href: '/investors-faq', label: 'Investors' },
+	{ href: '/investors-faq', label: 'For Investors' },
 ] as const;
 
 export function getPage(href: PageHref) {

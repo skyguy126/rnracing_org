@@ -3,7 +3,7 @@ export const PLACEHOLDER_BIO =
 
 export const CREW_MEMBERS = [
 	{ name: 'Israel', title: 'Chairman of the Board' },
-	{ name: 'Claude', title: 'Holy Spirit' },
+	{ name: 'Claude', title: 'The Holy Spirit' },
 	{ name: 'Jesus', title: 'Chief Operating Officer, Faith' },
 	{ name: 'Nyle', title: 'President & CEO' },
 	{ name: 'Rohith', title: 'Dictator, Day Shift' },
@@ -13,12 +13,12 @@ export const CREW_MEMBERS = [
 	{ name: 'Sid', title: 'Head Intern, Human Resources' },
 	{ name: 'Varoon', title: 'General Counsel, Immigration Affairs' },
 	{ name: 'Jaime', title: 'General Counsel, Diversity' },
-	{ name: 'Danial', title: 'Director of Chirping' },
-	{ name: 'Baggy', title: 'Director of Ragebait Strategy' },
+	{ name: 'Danial', title: 'Director, Chirping' },
+	{ name: 'Baggy', title: 'Director, Ragebait Strategy' },
 	{ name: 'Disha', title: 'Executive Chef' },
-	{ name: 'Khadijah', title: 'Fan Club Leader' },
+	{ name: 'Khadijah', title: 'Corporate Vice President, Fan Club' },
 	{ name: 'Jatin', title: 'Intern, Intelligence' },
-	{ name: 'Tobias', title: 'Executive Vice President, Faith' },
+	{ name: 'Tobias', title: 'Executive Sponsor, Faith' },
 	{ name: 'Anmol', title: 'Intern Group Leader' },
 	{ name: 'Bavina', title: 'Intern, Pit Crew' },
 	{ name: 'Saharsh', title: 'Intern, Student Driver Program' },
@@ -206,4 +206,100 @@ export function getTreeDepth(nodes: CrewNode[], countSecret = true): number {
 
 export function getInitials(name: string) {
 	return name.slice(0, 2).toUpperCase();
+}
+
+export function crewSlug(name: string) {
+	return name.trim().toLowerCase();
+}
+
+export function getCrewMemberByName(name: string) {
+	return crewMembers.find((member) => member.name === name);
+}
+
+export function getCrewMemberBySlug(slug: string) {
+	const key = crewSlug(slug);
+	return crewMembers.find((member) => crewSlug(member.name) === key);
+}
+
+export function getCrewIndex(name: string) {
+	return crewMembers.findIndex((member) => member.name === name);
+}
+
+export function isCrewMemberVisible(member: CrewMember, showSecret: boolean) {
+	return showSecret || !member.secret;
+}
+
+let cachedCrewNodes: CrewNode[] | undefined;
+
+function crewNodes() {
+	cachedCrewNodes ??= getCrewTree(crewMembers);
+	return cachedCrewNodes;
+}
+
+function findCrewNode(nodes: CrewNode[], name: string): CrewNode | undefined {
+	for (const node of nodes) {
+		if (node.member.name === name) return node;
+		const nested = findCrewNode(node.reports, name);
+		if (nested) return nested;
+	}
+	return undefined;
+}
+
+/** Roots of the chart. Hidden secret nodes are skipped and their reports promoted. */
+export function getVisibleRoots(showSecret: boolean) {
+	const visible: CrewNode[] = [];
+	const walk = (nodes: CrewNode[]) => {
+		for (const node of nodes) {
+			if (isCrewMemberVisible(node.member, showSecret)) visible.push(node);
+			else walk(node.reports);
+		}
+	};
+	walk(crewNodes());
+	return visible;
+}
+
+export function getVisibleRoot(showSecret: boolean) {
+	return getVisibleRoots(showSecret)[0]?.member;
+}
+
+function visibleReports(nodes: CrewNode[], showSecret: boolean): CrewMember[] {
+	const reports: CrewMember[] = [];
+	for (const node of nodes) {
+		if (isCrewMemberVisible(node.member, showSecret)) reports.push(node.member);
+		else reports.push(...visibleReports(node.reports, showSecret));
+	}
+	return reports;
+}
+
+/** Immediate reports in chart order. Hidden secret reports are replaced by their visible reports. */
+export function getDirectReports(name: string, showSecret: boolean) {
+	const node = findCrewNode(crewNodes(), name);
+	return node ? visibleReports(node.reports, showSecret) : [];
+}
+
+/** Managers above this person, highest first. Hidden secret managers are omitted. */
+export function getManagerChain(name: string, showSecret: boolean) {
+	const chain: CrewMember[] = [];
+	const seen = new Set<string>();
+	let managerName = getCrewMemberByName(name)?.reportsTo;
+	while (managerName && !seen.has(managerName)) {
+		seen.add(managerName);
+		const manager = getCrewMemberByName(managerName);
+		if (!manager) break;
+		if (isCrewMemberVisible(manager, showSecret)) chain.push(manager);
+		managerName = manager.reportsTo;
+	}
+	chain.reverse();
+	return chain;
+}
+
+/** Someone still on screen when the requested person is hidden. */
+export function getVisibleFallback(name: string, showSecret: boolean) {
+	const member = getCrewMemberByName(name);
+	if (!member) return getVisibleRoot(showSecret);
+	if (isCrewMemberVisible(member, showSecret)) return member;
+	const promoted = getDirectReports(name, showSecret);
+	if (promoted[0]) return promoted[0];
+	const chain = getManagerChain(name, showSecret);
+	return chain[chain.length - 1] ?? getVisibleRoot(showSecret);
 }

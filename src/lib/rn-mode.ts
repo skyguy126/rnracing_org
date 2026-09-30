@@ -33,29 +33,3 @@ export function setRnMode(enabled: boolean) {
 	);
 }
 
-export function toggleRnMode() {
-	setRnMode(!document.documentElement.hasAttribute('data-rn-mode'));
-}
-
-function isTypingTarget(el: EventTarget | null) {
-	if (!(el instanceof HTMLElement)) return false;
-	const tag = el.tagName;
-	return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
-}
-
-/** Sync DOM from the session cookie and listen for the "n" toggle. Call once per page. */
-let rnModeInitialized = false;
-
-export function initRnMode() {
-	applyRnMode(isRnModeEnabled());
-	if (rnModeInitialized) return;
-	rnModeInitialized = true;
-
-	window.addEventListener('keydown', (event) => {
-		if (event.key !== 'n' && event.key !== 'N') return;
-		if (event.metaKey || event.ctrlKey || event.altKey) return;
-		if (isTypingTarget(event.target)) return;
-		event.preventDefault();
-		toggleRnMode();
-	});
-}

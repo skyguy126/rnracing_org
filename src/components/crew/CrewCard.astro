@@ -1,6 +1,6 @@
 ---
-import PhotoPlaceholder from '../PhotoPlaceholder.astro';
-import { getInitials, type CrewMember } from '../../data/crew';
+import CrewPhoto from './CrewPhoto.astro';
+import type { CrewMember } from '../../data/crew';
 
 interface Props {
 	member: CrewMember;
@@ -10,35 +10,7 @@ interface Props {
 const { member, index } = Astro.props;
 ---
 
-<button
-	type="button"
-	class="photo-trigger"
-	data-member-index={index}
-	aria-haspopup="dialog"
-	aria-label={`View profile for ${member.name}`}
->
-	{member.image ? (
-		<>
-			<img
-				class="crew-photo"
-				data-theme-photo="dark"
-				src={`/team/${member.image}`}
-				alt={`${member.name} headshot`}
-				style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
-			/>
-			<img
-				class="crew-photo"
-				data-theme-photo="light"
-				src={`/team/light/${member.lightImage ?? member.image}`}
-				alt=""
-				aria-hidden="true"
-				style={`object-fit: ${member.imageFit ?? 'cover'}; object-position: ${member.imagePosition ?? 'center'};`}
-			/>
-		</>
-	) : (
-		<PhotoPlaceholder initials={getInitials(member.name)} />
-	)}
-</button>
+<CrewPhoto member={member} index={index} />
 <div class="crew-member-info">
 	<h2>{member.name}</h2>
 	<p>{member.title}</p>

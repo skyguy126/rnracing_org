@@ -3,7 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
 import CrewMemberModal from '../components/crew/CrewMemberModal.astro';
 import OrgBranch from '../components/crew/OrgBranch.astro';
-import { crewMembers, getCrewTree, getTreeDepth, getWidestGroup } from '../data/crew';
+import MobileOrgBrowser from '../components/crew/MobileOrgBrowser.astro';
+import { crewMembers, getCrewTree, getWidestGroup } from '../data/crew';
 import { getPage, pageTitle } from '../data/site';
 import '../styles/pages/crew.css';
 
@@ -16,11 +17,12 @@ const crewTree = getCrewTree(crewMembers);
 		<PageHeader title={page.heading} />
 
 		<div
-			class="org-chart"
-			style={`--depth-base: ${getTreeDepth(crewTree, false)}; --depth-full: ${getTreeDepth(crewTree)}; --org-cols: ${getWidestGroup(crewTree)};`}
+			class="org-chart desktop-org-chart"
+			style={`--org-cols: ${getWidestGroup(crewTree)};`}
 		>
 			<OrgBranch nodes={crewTree} />
 		</div>
+		<MobileOrgBrowser />
 	</main>
 
 	<CrewMemberModal members={crewMembers} />

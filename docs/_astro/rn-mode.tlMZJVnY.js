@@ -1,0 +1,1 @@
+var e=`rn-mode-change`;function t(e=typeof document<`u`?document.cookie:``){let t=e.match(RegExp(`(?:^|; )rnracing-rn-mode=([^;]*)`));return t?decodeURIComponent(t[1])===`1`:!1}export{t as n,e as t};
