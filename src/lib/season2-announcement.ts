@@ -2,6 +2,7 @@ import type { CreateTypes } from 'canvas-confetti';
 import type * as THREE_NS from 'three';
 
 const EMBLEM_URL = '/season-2/season-2-emblem-transparent.svg';
+const MUSIC_URL = '/season-2/right-above-it.mp3';
 const SVG_W = 1231;
 const SVG_H = 975;
 const EXTRUDE_DEPTH = 96;
@@ -204,6 +205,7 @@ export function initSeason2Announcement() {
 async function launch(overlay: HTMLElement, reduced: boolean) {
 	const session = createSession(overlay, reduced);
 	session.open();
+	session.startMusic();
 	await nextFrame();
 
 	try {
@@ -252,6 +254,8 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 	const delayed: Array<{ kill: () => void }> = [];
 	const loops: Array<{ kill: () => void }> = [];
 	const trash: Disposable[] = [];
+	let music: HTMLAudioElement | null = null;
+	let musicFrame = 0;
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.key === 'Escape') {
@@ -278,11 +282,55 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 		while (loops.length) loops.pop()?.kill();
 	}
 
+	function rampMusic(to: number, ms: number) {
+		const audio = music;
+		if (!audio) return;
+		const from = audio.volume;
+		const start = performance.now();
+		if (musicFrame) cancelAnimationFrame(musicFrame);
+		const step = (now: number) => {
+			if (music !== audio) return;
+			const t = ms <= 0 ? 1 : Math.min(1, (now - start) / ms);
+			const eased = 1 - (1 - t) * (1 - t);
+			audio.volume = from + (to - from) * eased;
+			if (t < 1) musicFrame = requestAnimationFrame(step);
+			else musicFrame = 0;
+		};
+		musicFrame = requestAnimationFrame(step);
+	}
+
+	function startMusic() {
+		const audio = new Audio(MUSIC_URL);
+		audio.preload = 'auto';
+		audio.volume = 0;
+		music = audio;
+		void audio.play().then(
+			() => {
+				if (music !== audio || dismissed) return;
+				rampMusic(0.82, reduced ? 500 : 1700);
+			},
+			(error: unknown) => {
+				console.warn('Season 2 music could not play.', error);
+			},
+		);
+	}
+
+	function stopMusic() {
+		const audio = music;
+		if (!audio) return;
+		rampMusic(0, reduced ? 80 : 240);
+		window.setTimeout(() => {
+			if (music !== audio) return;
+			audio.pause();
+		}, reduced ? 100 : 260);
+	}
+
 	function requestClose() {
 		if (disposed || dismissed) return;
 		dismissed = true;
 		stopScheduledBursts();
 		stopLoops();
+		stopMusic();
 		timeline?.kill();
 		finishTimeline?.();
 		cancelPause?.();
@@ -697,8 +745,8 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 				ease: 'sine.inOut',
 			}),
 			gsap.to(emblem.spin.rotation, {
-				y: baseY + 0.2,
-				x: 0.28,
+				y: baseY + 0.3,
+				x: 0.38,
 				z: 0,
 				duration: 1.45,
 				yoyo: true,
@@ -853,7 +901,7 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 				loops.push(
 					gsap.to(coin, {
 						y: restY - window.innerHeight * 0.015,
-						rotationY: '+=12',
+						rotationY: '+=17',
 						duration: 1.15,
 						yoyo: true,
 						repeat: -1,
@@ -931,6 +979,14 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 			/* The confetti canvas may already be gone. */
 		}
 		shooter = null;
+		if (musicFrame) cancelAnimationFrame(musicFrame);
+		musicFrame = 0;
+		if (music) {
+			music.pause();
+			music.removeAttribute('src');
+			music.load();
+			music = null;
+		}
 		clearWebGL();
 
 		window.removeEventListener('keydown', onKeyDown);
@@ -963,6 +1019,7 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 			return dismissed;
 		},
 		open,
+		startMusic,
 		playWebGL,
 		playCss,
 		clearWebGL,
