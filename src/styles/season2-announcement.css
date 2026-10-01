@@ -1,0 +1,348 @@
+/* Homepage Season 2 reveal.
+   Stack inside the overlay: dimmer < confetti < emblem < dismiss.
+   The overlay itself is above the navbar (100) and the RN mode badge (500). */
+
+.s2-banner {
+	position: sticky;
+	top: var(--s2-nav-bottom, 4.5rem);
+	z-index: 90;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 2.75rem;
+	margin: 0;
+	padding: 0.5rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
+		max(0.75rem, env(safe-area-inset-left));
+	border: 0;
+	border-bottom: 1px solid color-mix(in srgb, var(--blue) 72%, #000);
+	background: var(--blue);
+	box-shadow: none;
+	color: #fff;
+	cursor: pointer;
+	font-family: var(--font-body);
+	font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	line-height: 1.35;
+	text-align: center;
+	text-wrap: balance;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+	user-select: none;
+	overflow: hidden;
+}
+
+.s2-banner__text {
+	position: relative;
+	z-index: 1;
+	display: block;
+	max-width: 72rem;
+}
+
+.s2-banner::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		105deg,
+		transparent 32%,
+		rgba(255, 255, 255, 0.28) 50%,
+		transparent 68%
+	);
+	transform: translateX(-130%);
+	pointer-events: none;
+}
+
+.s2-banner:hover {
+	background: var(--blue-soft);
+}
+
+.s2-banner:active {
+	background: color-mix(in srgb, var(--blue) 78%, #000);
+}
+
+.s2-banner:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: -3px;
+}
+
+.s2-banner:disabled {
+	cursor: default;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.s2-banner::before {
+		animation: s2-banner-sheen 3.8s ease-in-out infinite;
+	}
+}
+
+@keyframes s2-banner-sheen {
+	0%,
+	58% {
+		transform: translateX(-130%);
+	}
+
+	100% {
+		transform: translateX(130%);
+	}
+}
+
+html.s2-scroll-lock,
+html.s2-scroll-lock body {
+	overflow: hidden;
+	overscroll-behavior: none;
+}
+
+.s2-overlay[hidden] {
+	display: none !important;
+}
+
+.s2-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2000;
+	overflow: hidden;
+	background: transparent;
+	cursor: pointer;
+}
+
+.s2-overlay.is-leaving {
+	opacity: 0;
+	transition: opacity 600ms ease;
+}
+
+.s2-overlay.is-leaving.is-quick {
+	transition-duration: 220ms;
+}
+
+.s2-dimmer {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	background: rgba(0, 0, 0, 0.78);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	opacity: 0;
+}
+
+.s2-overlay.is-open .s2-dimmer {
+	opacity: 1;
+	transition: opacity 250ms linear;
+}
+
+.s2-confetti,
+.s2-webgl {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: block;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	background: transparent;
+}
+
+.s2-webgl {
+	z-index: 3;
+}
+
+.s2-fallback {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	display: grid;
+	place-items: center;
+	perspective: min(1100px, 120vw);
+	pointer-events: none;
+}
+
+.s2-fallback[hidden] {
+	display: none !important;
+}
+
+.s2-coin {
+	position: relative;
+	width: min(72vmin, 900px, calc(76vh * 1231 / 975));
+	aspect-ratio: 1231 / 975;
+	transform-style: preserve-3d;
+}
+
+@media (max-width: 899px), (max-height: 560px) {
+	.s2-coin {
+		width: min(86vw, calc(76vh * 1231 / 975));
+	}
+}
+
+.s2-coin__face {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+}
+
+.s2-coin__face--back {
+	transform: rotateY(180deg);
+}
+
+.s2-caption {
+	position: absolute;
+	z-index: 4;
+	left: 0;
+	right: 0;
+	bottom: max(7vh, 3.25rem, env(safe-area-inset-bottom));
+	margin: 0;
+	padding: 0 1.25rem;
+	text-align: center;
+	pointer-events: none;
+	visibility: hidden;
+	opacity: 0;
+}
+
+.s2-winner,
+.s2-winner-sub {
+	display: block;
+	font-family: 'Barlow Condensed', Impact, 'Arial Black', sans-serif;
+	font-weight: 900;
+	text-transform: uppercase;
+}
+
+.s2-winner {
+	color: var(--white);
+	font-size: clamp(3.25rem, 11vw, 6.75rem);
+	letter-spacing: 0.04em;
+	line-height: 0.85;
+	text-shadow: 0 0.06em 0 rgba(0, 0, 0, 0.4);
+}
+
+.s2-winner-sub {
+	max-width: 36rem;
+	margin: 0.4rem auto 0;
+	color: var(--blue-soft);
+	font-size: clamp(1.05rem, 3.5vw, 1.85rem);
+	letter-spacing: 0.045em;
+	line-height: 1.05;
+	text-wrap: balance;
+}
+
+@media (max-width: 700px) {
+	.s2-winner-sub span {
+		display: block;
+	}
+}
+
+@media (max-height: 560px) {
+	.s2-caption {
+		bottom: max(0.65rem, env(safe-area-inset-bottom));
+	}
+
+	.s2-winner {
+		font-size: clamp(1.85rem, 8vh, 3.25rem);
+	}
+
+	.s2-winner-sub {
+		margin-top: 0.2rem;
+		font-size: clamp(0.85rem, 3.2vh, 1.2rem);
+	}
+}
+
+.s2-coin.is-idle::after {
+	content: '';
+	position: absolute;
+	inset: -6%;
+	background: linear-gradient(
+		105deg,
+		transparent 32%,
+		rgba(255, 255, 255, 0.16) 44%,
+		rgba(255, 255, 255, 0.55) 50%,
+		rgba(255, 255, 255, 0.16) 56%,
+		transparent 68%
+	);
+	transform: translateX(-130%);
+	pointer-events: none;
+	mix-blend-mode: screen;
+	animation: s2-coin-sheen 2.4s ease-in-out infinite alternate;
+	-webkit-mask-image: url('/season-2/season-2-emblem-transparent.svg');
+	mask-image: url('/season-2/season-2-emblem-transparent.svg');
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
+}
+
+@keyframes s2-coin-sheen {
+	from {
+		transform: translateX(-120%);
+	}
+
+	to {
+		transform: translateX(120%);
+	}
+}
+
+.s2-a11y {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	pointer-events: none;
+}
+
+.s2-dismiss {
+	position: absolute;
+	top: max(0.75rem, env(safe-area-inset-top));
+	right: max(0.75rem, env(safe-area-inset-right));
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 1px solid rgba(255, 255, 255, 0.32);
+	border-radius: 999px;
+	background: rgba(9, 9, 11, 0.46);
+	color: var(--white);
+	cursor: pointer;
+	font-family: var(--font-body);
+	font-size: 1.75rem;
+	font-weight: 500;
+	line-height: 1;
+	pointer-events: auto;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+}
+
+.s2-dismiss:hover {
+	background: rgba(9, 9, 11, 0.68);
+}
+
+.s2-dismiss:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: 3px;
+}
+
+.s2-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.s2-overlay.is-open .s2-dimmer,
+	.s2-overlay.is-leaving {
+		transition-duration: 1ms;
+	}
+
+	.s2-coin.is-idle::after {
+		animation: none;
+	}
+}
