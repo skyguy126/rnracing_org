@@ -6,7 +6,7 @@ export const CREW_MEMBERS = [
 	{ name: 'Claude', title: 'The Holy Spirit' },
 	{ name: 'Jesus', title: 'Chief Operating Officer, Faith' },
 	{ name: 'Nyle', title: 'President & CEO' },
-	{ name: 'Rohith', title: 'Dictator, Day Shift' },
+	{ name: 'Rohith', title: 'Dictator, Day Shift/ Part-time Load Balancer' },
 	{ name: 'Vamsi', title: 'Dictator, Night Shift' },
 	{ name: 'Vasu', title: 'Garage Supervisor, Section 8' },
 	{ name: 'Kamran', title: 'Head of Human Resources' },
@@ -123,7 +123,7 @@ const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }
 
 const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Vamsi: 'Vamsi started RN Racing with one noble goal - to mog everyone else on the racetrack, one lap at a time.',
-	Rohith: 'Rohith has poured his heart and soul into building RN Racing into the cultural juggernaut that it is today because he knows what this all truly is - the world’s most epic dad lore.',
+	Rohith: 'Rohith has poured his heart and soul into building RN Racing into the cultural juggernaut that it is today because he knows what this all truly is - the world’s most epic dad lore. He also gets to load balance the day shift and night shift... well any shift really.',
 	Kamran: 'Kamran doesn’t just build cars - he builds teams and culture. He is dedicated to creating a safe environment where everyone feels included and respected (by negging them when necessary).',
 	Nyle: 'Nyle was brought in to think big picture, using seasoned executive strategy (aka pure vibes, poor decision-making, and a lot of LARPing) to keep RN Racing driving triumphantly towards the sunset - and beyond.',
 	Danial: 'Danial believes that creating true change comes from having conversations - even when they’re about total nonsense. He is a true engineer when it comes to yapping and if there is ever a silent moment, he will not hesitate to open his mouth and start talking.',
