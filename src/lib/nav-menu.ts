@@ -1,4 +1,4 @@
-const MOBILE_NAV_QUERY = '(max-width: 767px)';
+const MOBILE_NAV_QUERY = '(max-width: 959px)';
 
 export function initNavMenu(root: HTMLElement) {
 	const toggle = root.querySelector<HTMLButtonElement>('.nav-menu-toggle');

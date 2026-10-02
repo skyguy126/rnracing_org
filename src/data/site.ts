@@ -22,6 +22,7 @@ export const PAGES = [
 		heading: 'Investors',
 	},
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
+	{ href: '/community', slug: 'community', label: 'The Community', heading: 'The Community' },
 	{ href: '/store', slug: 'store', label: 'Store', heading: 'The Store' },
 ] as const;
 
@@ -32,6 +33,7 @@ export const NAV_LINKS = [
 	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/the-car', label: 'The Car' },
 	{ href: '/crew', label: 'The Crew' },
+	{ href: '/community', label: 'The Community' },
 	{ href: '/timeline', label: 'The Timeline' },
 	{ href: '/design', label: 'The Design' },
 	{ href: '/values', label: 'Our Values' },

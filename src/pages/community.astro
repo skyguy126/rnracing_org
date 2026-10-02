@@ -1,0 +1,97 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getPage, pageTitle } from '../data/site';
+import '../styles/pages/community.css';
+
+const page = getPage('/community');
+
+const photos = [
+	{
+		src: '/fundraiser/ninjas_in_the_press.jpg',
+		alt: 'An event photographer interviews two RN Racing members in ninja outfits.',
+		caption: 'Press coverage. Our media training was mostly fruit-based.',
+	},
+	{
+		src: '/fundraiser/ninjas_winning.jpg',
+		alt: 'The RN Racing team celebrates together at Buttonwillow.',
+		caption: 'The team after winning Halloween Meets Gasoline.',
+	},
+	{
+		src: '/fundraiser/romantic_ninjas.JPG',
+		alt: 'Three RN Racing members pose together beside the track at sunset.',
+		caption: 'Ninjas unmasked.',
+	},
+];
+---
+
+<BaseLayout
+	title={pageTitle(page.heading)}
+	description="RN Racing's Fruit Ninja fundraiser for Rosie's Heroes and our Halloween Meets Gasoline award at Buttonwillow 2026."
+>
+	<PageHeader title={page.heading} lead="Ninjas are supposed to serve the community. Fruit got sliced. Street dogs got help. The Camry got an award. Somehow, all in one weekend." wide />
+
+	<div class="community-page">
+		<section class="community-feature" aria-labelledby="community-fundraiser-title">
+			<div class="community-feature__copy">
+				<p class="community-eyebrow">BUTTONWILLOW 2026 / FUNDRAISER</p>
+				<h2 id="community-fundraiser-title">A fruit stand with a serious soft spot.</h2>
+				<p>
+                    We are all huge dog lovers (probably because we are dawgs ourselves).
+					We set up a Fruit Ninja stand at the race and sold snacks for the only cause that might matter to us 
+                    as much as our lap times. Together, we raised and donated almost <strong>$4,000</strong> to{' '}
+					<a href="https://rosiesheroes.org/" target="_blank" rel="noopener noreferrer">
+						Rosie's Heroes
+					</a>, a 501(c)(3) animal rescue helping street dogs in India.
+				</p>
+				<p>
+					The stand was powered by fruit, snacks, and an unreasonable number of ninja outfits. Our
+					usual pit strategy is less organized.
+				</p>
+				<a class="community-link" href="https://rosiesheroes.org/" target="_blank" rel="noopener noreferrer">
+					Contribute to Rosie's Heroes <span aria-hidden="true">↗</span>
+				</a>
+			</div>
+			<figure class="community-feature__photo">
+				<img
+					src="/fundraiser/fruit_stand.jpg"
+					alt="Two RN Racing members in ninja outfits behind the Fruit Ninja fruit stand supporting Rosie's Heroes."
+					fetchpriority="high"
+				/>
+				<figcaption>Dawgs for dogs</figcaption>
+			</figure>
+		</section>
+
+		<section class="community-award" aria-labelledby="community-award-title">
+			<div class="community-award__label">ALSO, AGAINST ALL ODDS</div>
+			<div>
+				<h2 id="community-award-title">Halloween Meets Gasoline</h2>
+				<p>
+					Our Fruit Ninja-themed '96 Camry won the Halloween Meets Gasoline award at Buttonwillow.
+					Turns out dressing like a ninja and feeding people fruit is a stronger race-weekend strategy
+					than anyone expected.
+				</p>
+				<a href="https://24hoursoflemons.com/results-2/?id=454" target="_blank" rel="noopener noreferrer">
+					See the race results <span aria-hidden="true">↗</span>
+				</a>
+			</div>
+		</section>
+
+		<section class="community-gallery-section" aria-labelledby="community-gallery-title">
+			<div class="community-gallery-heading">
+				<p class="community-eyebrow">THE WEEKEND, DOCUMENTED</p>
+				<h2 id="community-gallery-title">Ninjas, good dogs, and one shiny award.</h2>
+			</div>
+			<div class="community-gallery">
+				{
+					photos.map((photo) => (
+						<figure class="community-gallery__item">
+							<img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" />
+							<figcaption>{photo.caption}</figcaption>
+						</figure>
+					))
+				}
+			</div>
+		</section>
+	</div>
+</BaseLayout>

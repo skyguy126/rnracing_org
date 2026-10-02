@@ -110,7 +110,7 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		justify-content: space-between;
 		gap: 1rem;
 		width: 100%;
-		max-width: var(--layout-max-width);
+		max-width: none;
 		margin: 0 auto;
 		padding: 1rem var(--page-gutter);
 	}
@@ -174,12 +174,17 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		border-radius: 0.375rem;
 		color: var(--muted);
 		font-family: var(--font-display);
-		font-size: 1.125rem;
+		font-size: 1rem;
 		font-weight: 500;
 		line-height: var(--display-line);
 		text-decoration: none;
 		background: transparent;
 		transition: color 0.15s ease;
+	}
+
+	.nav-links--inline .nav-link {
+		padding-inline: 0.5rem;
+		white-space: nowrap;
 	}
 
 	.nav-link:hover:not(.is-active) {
@@ -339,7 +344,14 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		display: inline-flex;
 	}
 
-	@media (max-width: 767px) {
+	@media (min-width: 900px) and (max-width: 1100px) {
+		.nav-links--inline .nav-link {
+			padding-inline: 0.25rem;
+			font-size: 0.8125rem;
+		}
+	}
+
+	@media (max-width: 959px) {
 		.nav {
 			padding-block: 0.875rem;
 		}
