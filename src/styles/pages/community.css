@@ -57,6 +57,20 @@
 	font-weight: 600;
 }
 
+.community-feature__photo-link {
+	display: block;
+	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: 0.5rem;
+	background: #000;
+}
+
+.community-feature__photo-link img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
 .community-feature__photo {
 	margin: 0;
 	min-width: 0;
@@ -65,10 +79,8 @@
 .community-feature__photo img {
 	display: block;
 	width: 100%;
-	 aspect-ratio: 4 / 3;
-	object-fit: cover;
-	border: 1px solid var(--border);
-	border-radius: 0.5rem;
+	aspect-ratio: 3 / 2;
+	object-fit: contain;
 }
 
 .community-feature__photo figcaption,
