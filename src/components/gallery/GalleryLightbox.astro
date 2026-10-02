@@ -2,21 +2,20 @@
 ---
 
 <div class="gallery-lightbox" data-gallery-lightbox hidden>
-	<div class="gallery-lightbox__backdrop" data-lightbox-close aria-hidden="true"></div>
+	<div class="gallery-lightbox__backdrop" aria-hidden="true"></div>
 	<div
 		class="gallery-lightbox__panel"
 		role="dialog"
 		aria-modal="true"
-		aria-labelledby="gallery-lightbox-caption"
+		aria-label="Photograph"
 		tabindex="-1"
 		data-lightbox-panel
 	>
-		<button type="button" class="gallery-lightbox__close" data-lightbox-close aria-label="Close photograph">
+		<button type="button" class="gallery-lightbox__close" aria-label="Close photograph">
 			<span aria-hidden="true">&times;</span>
 		</button>
 		<figure class="gallery-lightbox__figure">
 			<img class="gallery-lightbox__image" data-lightbox-image alt="" hidden />
-			<figcaption id="gallery-lightbox-caption" class="gallery-lightbox__caption" data-lightbox-caption></figcaption>
 		</figure>
 	</div>
 </div>
@@ -29,6 +28,7 @@
 		display: grid;
 		place-items: center;
 		padding: 1.5rem;
+		cursor: zoom-out;
 	}
 
 	.gallery-lightbox[hidden] {
@@ -103,16 +103,6 @@
 
 	.gallery-lightbox__image[hidden] {
 		display: none;
-	}
-
-	.gallery-lightbox__caption {
-		margin: 0;
-		padding-inline: 2.5rem;
-		font-size: 0.8125rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--muted);
-		text-align: center;
 	}
 
 	@media (max-width: 640px) {

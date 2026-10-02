@@ -62,12 +62,59 @@ export function listPrice(cost: number) {
 	return Math.round((cost * 100) / (100 - STORE_SALE.percentOff));
 }
 
-const BEST_SCORE_KEY = 'rnracing-best-score';
+/** Cookie holding the dojo save: best score is the whole game state the store reads. */
+const STORE_COOKIE = 'rnracing-store';
+/** Previous localStorage key, read once so an existing best is not lost. */
+const LEGACY_SCORE_KEY = 'rnracing-best-score';
+const STORE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+type StoreSave = {
+	score: number;
+};
+
+function floorScore(value: unknown): number {
+	const score = Number(value);
+	return Number.isFinite(score) && score > 0 ? Math.floor(score) : 0;
+}
+
+function readStoreCookie(): string | null {
+	const match = document.cookie.match(new RegExp(`(?:^|; )${STORE_COOKIE}=([^;]*)`));
+	return match ? decodeURIComponent(match[1]) : null;
+}
+
+function parseStoreSave(raw: string | null): StoreSave {
+	if (!raw) return { score: 0 };
+	try {
+		const parsed = JSON.parse(raw) as { score?: unknown };
+		return { score: floorScore(parsed.score) };
+	} catch {
+		return { score: floorScore(raw) };
+	}
+}
+
+function writeStoreSave(save: StoreSave) {
+	const value = encodeURIComponent(JSON.stringify({ score: save.score }));
+	document.cookie = `${STORE_COOKIE}=${value}; path=/; max-age=${STORE_COOKIE_MAX_AGE}; SameSite=Lax`;
+}
+
+function readLegacyScore(): number {
+	try {
+		return floorScore(window.localStorage.getItem(LEGACY_SCORE_KEY));
+	} catch {
+		return 0;
+	}
+}
 
 export function readBestScore(): number {
 	try {
-		const value = Number(window.localStorage.getItem(BEST_SCORE_KEY));
-		return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+		const saved = parseStoreSave(readStoreCookie()).score;
+		if (saved > 0) return saved;
+		const legacy = readLegacyScore();
+		if (legacy > 0) {
+			writeStoreSave({ score: legacy });
+			return legacy;
+		}
+		return 0;
 	} catch {
 		return 0;
 	}
@@ -76,11 +123,22 @@ export function readBestScore(): number {
 /** Saves `score` if it beats the stored best. Returns the resulting best. */
 export function recordScore(score: number): number {
 	const best = readBestScore();
-	if (score <= best) return best;
+	const next = Math.floor(score);
+	if (next <= best) return best;
 	try {
-		window.localStorage.setItem(BEST_SCORE_KEY, String(Math.floor(score)));
+		writeStoreSave({ score: next });
 	} catch {
-		/* storage blocked — best only lasts this page view */
+		/* cookie blocked — best only lasts this page view */
 	}
-	return Math.floor(score);
+	return next;
+}
+
+/** Clears the saved score so the store locks again. */
+export function resetStoreSave(): void {
+	try {
+		document.cookie = `${STORE_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+		window.localStorage.removeItem(LEGACY_SCORE_KEY);
+	} catch {
+		/* storage blocked */
+	}
 }

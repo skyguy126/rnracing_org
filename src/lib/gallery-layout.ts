@@ -37,73 +37,140 @@ export interface GalleryLayoutOptions {
 	mode: 'single' | 'spread';
 }
 
+/**
+ * Physical page ratio: width / height.
+ * A desktop spread is two of these portrait pages side by side.
+ */
+export const PAGE_ASPECT = 1100 / 1600;
+
+export interface PageGeometry {
+	pageWidth: number;
+	pageHeight: number;
+	padding: number;
+	pageNumberHeight: number;
+	pageNumberGap: number;
+	collageGap: number;
+	photoPad: number;
+	photoBorder: number;
+	usableWidth: number;
+	usableHeight: number;
+}
+
+/**
+ * Chrome shared with gallery.css. The book applies these as CSS variables
+ * so layout scoring and the rendered content rectangle stay the same.
+ */
+export function pageGeometry(pageWidth: number, pageHeight: number): PageGeometry {
+	const padding = Math.round(clamp(pageWidth * 0.042, 12, 22));
+	const pageNumberHeight = 16;
+	const pageNumberGap = 8;
+	const collageGap = Math.round(clamp(pageWidth * 0.02, 6, 12));
+	const photoPad = Math.round(clamp(pageWidth * 0.016, 4, 10));
+	const photoBorder = 2;
+	const usableWidth = Math.max(1, pageWidth - padding * 2);
+	const usableHeight = Math.max(1, pageHeight - padding * 2 - pageNumberHeight - pageNumberGap);
+	return {
+		pageWidth,
+		pageHeight,
+		padding,
+		pageNumberHeight,
+		pageNumberGap,
+		collageGap,
+		photoPad,
+		photoBorder,
+		usableWidth,
+		usableHeight,
+	};
+}
+
 interface SlotDef {
 	area: string;
-	/** Relative width fraction of the usable mat. */
-	w: number;
-	/** Relative height fraction of the usable mat. */
-	h: number;
+	col: number;
+	row: number;
+	colSpan: number;
+	rowSpan: number;
 	preferred: GalleryOrientation | 'any';
 }
 
 interface TemplateDef {
 	id: GalleryTemplateId;
+	/** Must match the CSS grid tracks in gallery.css */
+	columns: number[];
+	rows: number[];
 	slots: SlotDef[];
 }
 
 const TEMPLATES: TemplateDef[] = [
 	{
 		id: 'hero',
-		slots: [{ area: 'a', w: 1, h: 1, preferred: 'any' }],
+		columns: [1],
+		rows: [1],
+		slots: [{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' }],
 	},
 	{
 		id: 'stack-2',
+		columns: [1],
+		rows: [1, 1],
 		slots: [
-			{ area: 'a', w: 1, h: 0.48, preferred: 'landscape' },
-			{ area: 'b', w: 1, h: 0.48, preferred: 'landscape' },
+			{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 1, preferred: 'landscape' },
+			{ area: 'b', col: 0, row: 1, colSpan: 1, rowSpan: 1, preferred: 'landscape' },
 		],
 	},
 	{
 		id: 'side-2',
+		columns: [1, 1],
+		rows: [1],
 		slots: [
-			{ area: 'a', w: 0.48, h: 1, preferred: 'portrait' },
-			{ area: 'b', w: 0.48, h: 1, preferred: 'portrait' },
+			{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 1, preferred: 'portrait' },
+			{ area: 'b', col: 1, row: 0, colSpan: 1, rowSpan: 1, preferred: 'portrait' },
 		],
 	},
 	{
 		id: 'hero-land-2',
+		columns: [1, 1],
+		rows: [1.35, 0.9],
 		slots: [
-			{ area: 'a', w: 1, h: 0.58, preferred: 'landscape' },
-			{ area: 'b', w: 0.48, h: 0.36, preferred: 'any' },
-			{ area: 'c', w: 0.48, h: 0.36, preferred: 'any' },
+			{ area: 'a', col: 0, row: 0, colSpan: 2, rowSpan: 1, preferred: 'landscape' },
+			{ area: 'b', col: 0, row: 1, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'c', col: 1, row: 1, colSpan: 1, rowSpan: 1, preferred: 'any' },
 		],
 	},
 	{
 		id: 'hero-port-2',
+		columns: [1.2, 0.9],
+		rows: [1, 1],
 		slots: [
-			{ area: 'a', w: 0.56, h: 1, preferred: 'portrait' },
-			{ area: 'b', w: 0.4, h: 0.48, preferred: 'any' },
-			{ area: 'c', w: 0.4, h: 0.48, preferred: 'any' },
+			{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 2, preferred: 'portrait' },
+			{ area: 'b', col: 1, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'c', col: 1, row: 1, colSpan: 1, rowSpan: 1, preferred: 'any' },
 		],
 	},
 	{
 		id: 'three-balance',
+		columns: [1, 1],
+		rows: [1.15, 0.85],
 		slots: [
-			{ area: 'a', w: 0.48, h: 0.58, preferred: 'any' },
-			{ area: 'b', w: 0.48, h: 0.58, preferred: 'any' },
-			{ area: 'c', w: 1, h: 0.36, preferred: 'landscape' },
+			{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'b', col: 1, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'c', col: 0, row: 1, colSpan: 2, rowSpan: 1, preferred: 'landscape' },
 		],
 	},
 	{
 		id: 'grid-4',
+		columns: [1, 1],
+		rows: [1, 1],
 		slots: [
-			{ area: 'a', w: 0.48, h: 0.48, preferred: 'any' },
-			{ area: 'b', w: 0.48, h: 0.48, preferred: 'any' },
-			{ area: 'c', w: 0.48, h: 0.48, preferred: 'any' },
-			{ area: 'd', w: 0.48, h: 0.48, preferred: 'any' },
+			{ area: 'a', col: 0, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'b', col: 1, row: 0, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'c', col: 0, row: 1, colSpan: 1, rowSpan: 1, preferred: 'any' },
+			{ area: 'd', col: 1, row: 1, colSpan: 1, rowSpan: 1, preferred: 'any' },
 		],
 	},
 ];
+
+function clamp(value: number, min: number, max: number) {
+	return Math.min(max, Math.max(min, value));
+}
 
 export function orientationFromAspect(aspectRatio: number): GalleryOrientation {
 	if (aspectRatio < 0.85) return 'portrait';
@@ -130,17 +197,33 @@ export function createImageMeta(
 	};
 }
 
-function maxPhotosForGeometry(options: GalleryLayoutOptions): number {
-	const area = options.pageWidth * options.pageHeight;
-	if (options.pageWidth < 340 || area < 140_000) return 2;
-	if (options.pageWidth < 420 || (options.mode === 'single' && options.pageWidth < 480)) return 3;
+function maxPhotosForGeometry(geo: PageGeometry): number {
+	const shortSide = Math.min(geo.usableWidth, geo.usableHeight);
+	if (shortSide < 250 || geo.usableHeight < 340) return 2;
+	if (shortSide < 340 || geo.usableHeight < 480) return 3;
 	return 4;
 }
 
-function slotAspect(pageWidth: number, pageHeight: number, slot: SlotDef): number {
-	const usableW = pageWidth * 0.86;
-	const usableH = pageHeight * 0.86;
-	return (usableW * slot.w) / Math.max(1, usableH * slot.h);
+function trackSpan(tracks: number[], index: number, span: number, total: number, gap: number) {
+	const sum = tracks.reduce((totalFr, fr) => totalFr + fr, 0);
+	const free = total - gap * Math.max(0, tracks.length - 1);
+	let size = 0;
+	for (let i = 0; i < span; i += 1) {
+		size += ((tracks[index + i] ?? 0) / sum) * free;
+	}
+	if (span > 1) size += gap * (span - 1);
+	return size;
+}
+
+/** Image box inside the photo button, matching CSS padding and border. */
+function slotFrame(template: TemplateDef, slot: SlotDef, geo: PageGeometry) {
+	const cellW = trackSpan(template.columns, slot.col, slot.colSpan, geo.usableWidth, geo.collageGap);
+	const cellH = trackSpan(template.rows, slot.row, slot.rowSpan, geo.usableHeight, geo.collageGap);
+	const inset = geo.photoPad * 2 + geo.photoBorder;
+	return {
+		w: Math.max(1, cellW - inset),
+		h: Math.max(1, cellH - inset),
+	};
 }
 
 function cropAmount(imageAspect: number, frameAspect: number): number {
@@ -156,72 +239,77 @@ function chooseObjectFit(imageAspect: number, frameAspect: number): 'cover' | 'c
 function scoreSlot(
 	photo: GalleryImageMeta,
 	slot: SlotDef,
-	pageWidth: number,
-	pageHeight: number,
+	template: TemplateDef,
+	geo: PageGeometry,
 ): { score: number; objectFit: 'cover' | 'contain' } {
-	const frameAspect = slotAspect(pageWidth, pageHeight, slot);
+	const frame = slotFrame(template, slot, geo);
+	const frameAspect = frame.w / frame.h;
 	const crop = cropAmount(photo.aspectRatio, frameAspect);
 	const objectFit = chooseObjectFit(photo.aspectRatio, frameAspect);
-	const area = slot.w * slot.h;
+	const area = (frame.w * frame.h) / Math.max(1, geo.usableWidth * geo.usableHeight);
+	const minEdge = Math.min(frame.w, frame.h);
 
-	let score = 0.5;
-	score += Math.min(area, 1) * 0.28;
+	let score = 0.45;
+	score += Math.min(area, 1) * 0.3;
 
 	if (slot.preferred !== 'any') {
 		if (photo.orientation === slot.preferred) score += 0.2;
 		else if (photo.orientation === 'square') score += 0.05;
-		else score -= 0.2;
+		else score -= 0.22;
 	}
 
-	if (objectFit === 'cover') score -= crop * 0.75;
-	else score -= Math.min(0.35, crop * 0.4);
+	if (objectFit === 'cover') score -= crop * 0.85;
+	else score -= Math.min(0.4, crop * 0.45);
 
-	if (area < 0.2) score -= 0.22;
-	if (area < 0.15) score -= 0.28;
+	if (area < 0.18) score -= 0.2;
+	if (area < 0.12) score -= 0.32;
+	if (minEdge < 150) score -= 0.28;
+	if (minEdge < 110) score -= 0.45;
 
 	return { score, objectFit };
 }
 
 function compatibilityBonus(template: TemplateDef, photos: GalleryImageMeta[]): number {
-	const orientations = photos.map((p) => p.orientation);
+	const orientations = photos.map((photo) => photo.orientation);
 
 	switch (template.id) {
 		case 'stack-2': {
-			const lands = orientations.filter((o) => o === 'landscape').length;
-			if (lands === 2) return 0.42;
-			if (lands === 1 && orientations.includes('square')) return 0.18;
-			return -0.15;
+			const lands = orientations.filter((orientation) => orientation === 'landscape').length;
+			if (lands === 2) return 0.46;
+			if (lands === 1 && orientations.includes('square')) return 0.16;
+			return -0.16;
 		}
 		case 'side-2': {
-			const ports = orientations.filter((o) => o === 'portrait' || o === 'square').length;
+			const ports = orientations.filter((orientation) => orientation === 'portrait' || orientation === 'square').length;
 			if (ports === 2) return 0.42;
-			if (orientations[0] === orientations[1]) return 0.12;
-			return -0.18;
+			if (orientations[0] === orientations[1]) return 0.1;
+			return -0.2;
 		}
 		case 'hero-land-2': {
-			if (photos[0]?.orientation === 'landscape') return 0.34;
-			if (photos[0]?.orientation === 'square') return 0.12;
-			return -0.12;
+			if (photos[0]?.orientation === 'landscape') return 0.32;
+			if (photos[0]?.orientation === 'square') return 0.1;
+			return -0.14;
 		}
 		case 'hero-port-2': {
 			if (photos[0]?.orientation === 'portrait') return 0.34;
 			if (photos[0]?.orientation === 'square') return 0.1;
-			return -0.12;
+			return -0.14;
 		}
 		case 'three-balance': {
-			const lands = orientations.filter((o) => o === 'landscape').length;
-			return lands >= 1 ? 0.22 : 0.08;
+			const lands = orientations.filter((orientation) => orientation === 'landscape').length;
+			return lands >= 1 ? 0.2 : 0.06;
 		}
 		case 'grid-4': {
-			const tinyRisk = photos.some((p) => p.aspectRatio > 2.1 || p.aspectRatio < 0.5);
-			return tinyRisk ? -0.2 : 0.16;
+			const lands = orientations.filter((orientation) => orientation === 'landscape').length;
+			if (lands >= 3) return -0.34;
+			const tinyRisk = photos.some((photo) => photo.aspectRatio > 2.1 || photo.aspectRatio < 0.5);
+			return tinyRisk ? -0.24 : 0.06;
 		}
 		case 'hero': {
 			const photo = photos[0]!;
-			if (photo.aspectRatio >= 1.85 || photo.aspectRatio <= 0.58) return 0.28;
-			if (photo.aspectRatio >= 1.55 || photo.aspectRatio <= 0.7) return 0.12;
-			// Ordinary singles are fine but should lose to good multi packs
-			return -0.08;
+			if (photo.aspectRatio >= 1.85 || photo.aspectRatio <= 0.58) return 0.26;
+			if (photo.aspectRatio >= 1.55 || photo.aspectRatio <= 0.7) return 0.08;
+			return -0.12;
 		}
 		default:
 			return 0;
@@ -231,45 +319,47 @@ function compatibilityBonus(template: TemplateDef, photos: GalleryImageMeta[]): 
 function scoreTemplate(
 	template: TemplateDef,
 	photos: GalleryImageMeta[],
-	options: GalleryLayoutOptions,
+	geo: PageGeometry,
 ): { score: number; slots: GallerySlotPlacement[] } | null {
 	if (photos.length !== template.slots.length) return null;
 
 	const slots: GallerySlotPlacement[] = [];
 	let total = 0;
 	let minSlotScore = Infinity;
+	let minEdge = Infinity;
 
 	for (let i = 0; i < template.slots.length; i += 1) {
 		const slot = template.slots[i]!;
 		const photo = photos[i]!;
-		const rated = scoreSlot(photo, slot, options.pageWidth, options.pageHeight);
+		const frame = slotFrame(template, slot, geo);
+		const rated = scoreSlot(photo, slot, template, geo);
 		slots.push({ photo, area: slot.area, objectFit: rated.objectFit });
 		total += rated.score;
 		minSlotScore = Math.min(minSlotScore, rated.score);
+		minEdge = Math.min(minEdge, frame.w, frame.h);
 	}
 
 	let score = total / photos.length;
 	score += compatibilityBonus(template, photos);
 
-	// Soft preference for richer pages when slots stay healthy
-	if (photos.length === 2) score += 0.08;
-	if (photos.length === 3) score += 0.1;
-	if (photos.length === 4) score += options.pageWidth >= 420 ? 0.04 : -0.08;
+	if (photos.length === 2) score += 0.06;
+	if (photos.length === 3) score += 0.05;
+	if (photos.length === 4) score += minEdge >= 170 ? 0.02 : -0.2;
 
-	if (minSlotScore < 0.15) score -= 0.4;
-	if (photos.length === 4 && options.pageHeight < 400) score -= 0.22;
+	if (minSlotScore < 0.12) score -= 0.45;
+	if (minEdge < 120) score -= 0.35;
 
 	return { score, slots };
 }
 
 function bestLayoutForGroup(
 	photos: GalleryImageMeta[],
-	options: GalleryLayoutOptions,
+	geo: PageGeometry,
 ): { score: number; layout: GalleryPageLayout } | null {
 	let best: { score: number; layout: GalleryPageLayout } | null = null;
 
 	for (const template of TEMPLATES) {
-		const rated = scoreTemplate(template, photos, options);
+		const rated = scoreTemplate(template, photos, geo);
 		if (!rated) continue;
 		if (!best || rated.score > best.score) {
 			best = {
@@ -295,7 +385,8 @@ export function createGalleryLayout(
 ): GalleryPageLayout[] {
 	if (images.length === 0) return [];
 
-	const maxPhotos = maxPhotosForGeometry(options);
+	const geo = pageGeometry(options.pageWidth, options.pageHeight);
+	const maxPhotos = maxPhotosForGeometry(geo);
 	const pages: GalleryPageLayout[] = [];
 	let cursor = 0;
 
@@ -306,12 +397,10 @@ export function createGalleryLayout(
 
 		for (let count = 1; count <= limit; count += 1) {
 			const group = images.slice(cursor, cursor + count);
-			const candidate = bestLayoutForGroup(group, options);
+			const candidate = bestLayoutForGroup(group, geo);
 			if (!candidate) continue;
 
-			// Slight preference to consume more when quality is comparable
-			const adjusted = candidate.score + count * 0.01;
-
+			const adjusted = candidate.score + count * 0.012;
 			if (!best || adjusted > best.score) {
 				best = { score: adjusted, layout: candidate.layout, count };
 			}
@@ -339,12 +428,4 @@ export function createGalleryLayout(
 export function findPageForPhoto(pages: GalleryPageLayout[], photoIndex: number): number {
 	const idx = pages.findIndex((page) => page.photos.some((photo) => photo.index === photoIndex));
 	return idx < 0 ? 0 : idx;
-}
-
-export function photoRangeLabel(page: GalleryPageLayout): string {
-	const start = page.photos[0]?.index ?? 0;
-	const end = page.photos[page.photos.length - 1]?.index ?? start;
-	const a = String(start + 1).padStart(2, '0');
-	const b = String(end + 1).padStart(2, '0');
-	return start === end ? `Photo ${a}` : `Photos ${a}–${b}`;
 }
