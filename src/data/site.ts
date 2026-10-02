@@ -29,12 +29,12 @@ export type PageHref = (typeof PAGES)[number]['href'];
 
 export const NAV_LINKS = [
 	{ href: '/', label: 'Home' },
+	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/the-car', label: 'The Car' },
 	{ href: '/crew', label: 'The Crew' },
 	{ href: '/timeline', label: 'The Timeline' },
 	{ href: '/design', label: 'The Design' },
 	{ href: '/values', label: 'Our Values' },
-	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/investors-faq', label: 'For Investors' },
 	{ href: '/store', label: 'Store' },
 ] as const;

@@ -84,6 +84,10 @@ main.layout-inner {
 	margin-bottom: 3.5rem;
 }
 
+.page-header--wide {
+	max-width: var(--layout-max-width);
+}
+
 .page-header h1:only-child {
 	margin-bottom: 0;
 }
@@ -103,6 +107,18 @@ main.layout-inner {
 	font-size: 1.0625rem;
 	line-height: 1.7;
 	color: var(--muted);
+}
+
+.page-header--wide .lead {
+	max-width: none;
+}
+
+.lead > p {
+	margin: 0;
+}
+
+.lead > p + p {
+	margin-top: 1rem;
 }
 
 h1,

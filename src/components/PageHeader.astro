@@ -2,17 +2,21 @@
 interface Props {
 	title: string;
 	lead?: string;
+	wide?: boolean;
 }
 
-const { title, lead } = Astro.props;
+const { title, lead, wide = false } = Astro.props;
 const hasLead = Boolean(lead) || Astro.slots.has('lead');
 ---
 
-<header class="page-header">
+<header class:list={['page-header', { 'page-header--wide': wide }]}>
 	<h1>{title}</h1>
-	{hasLead && (
-		<p class="lead">
-			<slot name="lead">{lead}</slot>
-		</p>
-	)}
+	{hasLead &&
+		(Astro.slots.has('lead') ? (
+			<div class="lead">
+				<slot name="lead" />
+			</div>
+		) : (
+			<p class="lead">{lead}</p>
+		))}
 </header>
