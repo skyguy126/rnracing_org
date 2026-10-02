@@ -1,4 +1,6 @@
 ---
+import { GAME_RULES } from '../data/store';
+
 const ASSETS = {
 	background: '/reveal/background/wood_dojo_background.jpg',
 	logo: '/reveal/brand/rn_logo_original.png',
@@ -8,6 +10,8 @@ const ASSETS = {
 	slash: '/reveal/effects/blade_slash.png',
 	splash: '/reveal/effects/juice_splash.png',
 	droplets: '/reveal/effects/juice_droplets.png',
+	koi: '/reveal/hazards/koi.svg',
+	strike: '/reveal/ui/score_x.png',
 	scoreDigits: [
 		'/reveal/ui/score_digits/0.png',
 		'/reveal/ui/score_digits/1.png',
@@ -43,6 +47,26 @@ const PAINT_STROKES = [
 	preload="auto"
 ></audio>
 <p class="reveal-loading" id="reveal-loading" role="status">Loading...</p>
+<div class="reveal-over reveal-start" id="reveal-start" role="dialog" aria-labelledby="reveal-start-title" hidden>
+	<div class="reveal-over__frame">
+		<div class="reveal-over__bezel">
+			<div class="reveal-over__screen">
+				<p class="reveal-over__title" id="reveal-start-title">Ready to slice?</p>
+				<p class="reveal-over__unlock">
+					Slice the lemons. Don’t slice the koi. Drop {GAME_RULES.maxMisses} lemons and you’re out.
+				</p>
+				<button type="button" class="reveal-start__music" id="reveal-start-music" aria-pressed="true">
+					Music: On
+				</button>
+				<div class="reveal-over__actions">
+					<button type="button" class="reveal-over__btn reveal-over__btn--primary" id="reveal-start-go">
+						Start
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="reveal-root" id="reveal-root">
 <div class="reveal-stage" id="reveal-stage" aria-label="RN Racing teaser reveal" role="img">
 	<div class="reveal-veil" id="reveal-veil" aria-hidden="true"></div>
@@ -59,6 +83,8 @@ const PAINT_STROKES = [
 		}
 		<div class="reveal-bg__full" id="reveal-bg-full" style={`background-image:url(${ASSETS.background})`}></div>
 	</div>
+
+	<canvas class="reveal-oil" id="reveal-oil" aria-hidden="true"></canvas>
 
 	<div class="reveal-scene" id="reveal-scene">
 		<img
@@ -99,6 +125,15 @@ const PAINT_STROKES = [
 				height="1254"
 				draggable="false"
 			/>
+			<img
+				class="reveal-koi"
+				id="reveal-koi"
+				src={ASSETS.koi}
+				alt=""
+				width="240"
+				height="200"
+				draggable="false"
+			/>
 		</div>
 
 		<img
@@ -135,10 +170,13 @@ const PAINT_STROKES = [
 	</div>
 
 	<canvas id="reveal-swipe-canvas" class="reveal-swipe-canvas" aria-hidden="true"></canvas>
+	<div class="reveal-flash" id="reveal-flash" aria-hidden="true"></div>
+	<canvas class="reveal-shrapnel" id="reveal-shrapnel" aria-hidden="true"></canvas>
+	<p class="reveal-toast" id="reveal-toast" aria-live="polite"></p>
 </div>
 
 <div class="reveal-hud">
-	<a class="reveal-back" href="/" aria-label="Back to RN Racing home">
+	<a class="reveal-back" id="reveal-back" href="/" aria-label="Back to RN Racing home">
 		<span class="reveal-back__frame">
 			<span class="reveal-back__bezel">
 				<span class="reveal-back__screen">
@@ -164,13 +202,22 @@ const PAINT_STROKES = [
 		</span>
 	</a>
 
-	<div class="reveal-score" id="reveal-score" aria-live="polite" aria-label="Score 0">
-		<div class="reveal-score__frame">
-			<div class="reveal-score__bezel">
-				<div class="reveal-score__screen">
-					<div class="reveal-score__digits" id="reveal-score-digits" aria-hidden="true"></div>
+	<div class="reveal-scorebox">
+		<div class="reveal-score" id="reveal-score" aria-live="polite" aria-label="Score 0">
+			<div class="reveal-score__frame">
+				<div class="reveal-score__bezel">
+					<div class="reveal-score__screen">
+						<div class="reveal-score__digits" id="reveal-score-digits" aria-hidden="true"></div>
+					</div>
 				</div>
 			</div>
+		</div>
+		<div class="reveal-strikes" id="reveal-strikes" role="img" aria-label={`Missed lemons: 0 of ${GAME_RULES.maxMisses}`}>
+			{
+				Array.from({ length: GAME_RULES.maxMisses }, () => (
+					<img class="reveal-strike" src={ASSETS.strike} alt="" width="211" height="237" draggable="false" />
+				))
+			}
 		</div>
 	</div>
 </div>
@@ -222,6 +269,33 @@ const PAINT_STROKES = [
 		</span>
 	</span>
 </button>
+
+<div class="reveal-over" id="reveal-over" role="dialog" aria-modal="false" aria-labelledby="reveal-over-title" hidden>
+	<div class="reveal-over__frame">
+		<div class="reveal-over__bezel">
+			<div class="reveal-over__screen">
+				<p class="reveal-over__title" id="reveal-over-title">You sliced the koi!</p>
+				<dl class="reveal-over__stats">
+					<div>
+						<dt>Score</dt>
+						<dd id="reveal-over-score">0</dd>
+					</div>
+					<div>
+						<dt>Best</dt>
+						<dd id="reveal-over-best">0</dd>
+					</div>
+				</dl>
+				<p class="reveal-over__unlock" id="reveal-over-unlock"></p>
+				<div class="reveal-over__actions">
+					<button type="button" class="reveal-over__btn reveal-over__btn--primary" id="reveal-over-retry">
+						Play again
+					</button>
+					<a class="reveal-over__btn" href="/store">Store</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 </div>
 
 <style>
@@ -701,6 +775,317 @@ const PAINT_STROKES = [
 		}
 	}
 
+	.reveal-scorebox {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 6px;
+	}
+
+	.reveal-strikes {
+		display: flex;
+		gap: 4px;
+		opacity: 0;
+		transition: opacity 0.35s ease-out;
+	}
+
+	.reveal-strikes.is-visible {
+		opacity: 1;
+	}
+
+	.reveal-strike {
+		display: block;
+		width: auto;
+		height: clamp(20px, 2.2vw, 28px);
+		filter: grayscale(1) brightness(0.55) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+		opacity: 0.55;
+		user-select: none;
+		pointer-events: none;
+	}
+
+	.reveal-strike.is-hit {
+		filter: hue-rotate(-38deg) saturate(1.8) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+		opacity: 1;
+		animation: reveal-strike-pop 260ms ease-out;
+	}
+
+	@keyframes reveal-strike-pop {
+		0% {
+			transform: scale(1.7);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	.reveal-koi {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: min(26vw, 168px);
+		height: auto;
+		opacity: 0;
+		visibility: hidden;
+		transform: translate3d(-50%, -50%, 0);
+		transform-origin: center center;
+		filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.45));
+		will-change: transform, opacity;
+		pointer-events: none;
+	}
+
+	.reveal-flash {
+		position: absolute;
+		inset: 0;
+		z-index: 7;
+		background: radial-gradient(
+			circle at var(--flash-x, 50%) var(--flash-y, 50%),
+			rgba(255, 255, 255, 0.95),
+			rgba(255, 150, 60, 0.6) 22%,
+			rgba(120, 40, 10, 0.35) 55%,
+			transparent 80%
+		);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	/* Sits on the backdrop: above the wood, below the logo and fruit. */
+	.reveal-oil {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		opacity: 0.94;
+		pointer-events: none;
+	}
+
+	.reveal-shrapnel {
+		position: absolute;
+		inset: 0;
+		z-index: 7;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.reveal-flash.is-on {
+		animation: reveal-flash 0.9s ease-out forwards;
+	}
+
+	@keyframes reveal-flash {
+		0% {
+			opacity: 0;
+		}
+		12% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	.reveal-stage.is-shaking .reveal-scene {
+		animation: reveal-shake 0.45s linear;
+	}
+
+	@keyframes reveal-shake {
+		0%,
+		100% {
+			transform: translate(0, 0);
+		}
+		20% {
+			transform: translate(-12px, 6px);
+		}
+		40% {
+			transform: translate(10px, -8px);
+		}
+		60% {
+			transform: translate(-7px, -4px);
+		}
+		80% {
+			transform: translate(5px, 5px);
+		}
+	}
+
+	.reveal-toast {
+		position: absolute;
+		left: 50%;
+		bottom: max(28px, env(safe-area-inset-bottom, 0px));
+		z-index: 8;
+		margin: 0;
+		padding: 8px 16px;
+		border-radius: 999px;
+		background: rgba(20, 10, 4, 0.72);
+		color: #fff4dc;
+		font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+		font-size: clamp(1rem, 2.4vw, 1.25rem);
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		width: max-content;
+		max-width: calc(100% - 32px);
+		box-sizing: border-box;
+		text-align: center;
+		opacity: 0;
+		transform: translate(-50%, 8px);
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
+		pointer-events: none;
+	}
+
+	.reveal-toast.is-visible {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+
+	.reveal-over {
+		position: fixed;
+		inset: 0;
+		z-index: 35;
+		display: grid;
+		place-items: center;
+		padding: 16px;
+		background: rgba(5, 3, 2, 0.45);
+		animation: reveal-over-in 0.25s ease-out;
+	}
+
+	.reveal-over[hidden] {
+		display: none;
+	}
+
+	@keyframes reveal-over-in {
+		from {
+			opacity: 0;
+			transform: scale(0.96);
+		}
+	}
+
+	.reveal-over__frame {
+		width: min(100%, 360px);
+		padding: 6px;
+		border-radius: 18px;
+		border: 2px solid rgba(24, 12, 5, 0.9);
+		background: linear-gradient(145deg, #76451f, #4d2913 45%, #2f190d);
+		box-shadow:
+			0 18px 40px rgba(0, 0, 0, 0.55),
+			inset 0 1px 1px rgba(255, 220, 165, 0.25);
+	}
+
+	.reveal-over__bezel {
+		padding: 4px;
+		border-radius: 13px;
+		border: 1px solid rgba(0, 0, 0, 0.8);
+		background: #171514;
+	}
+
+	.reveal-over__screen {
+		padding: 20px 20px 18px;
+		border-radius: 10px;
+		background:
+			radial-gradient(120% 90% at 50% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
+			linear-gradient(165deg, rgba(242, 235, 213, 0.98), rgba(201, 195, 178, 0.97));
+		color: #2c1810;
+		font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+		text-align: center;
+	}
+
+	.reveal-over__title {
+		margin: 0 0 14px;
+		font-size: 1.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.reveal-over__stats {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin: 0 0 12px;
+	}
+
+	.reveal-over__stats div {
+		padding: 8px;
+		border-radius: 8px;
+		background: rgba(44, 24, 16, 0.08);
+	}
+
+	.reveal-over__stats dt {
+		font-size: 0.85rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		opacity: 0.7;
+	}
+
+	.reveal-over__stats dd {
+		margin: 0;
+		font-size: 2rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.reveal-over__unlock {
+		margin: 0 0 16px;
+		font-family: 'Barlow', sans-serif;
+		font-size: 0.95rem;
+		line-height: 1.4;
+	}
+
+	.reveal-over__actions {
+		display: flex;
+		gap: 8px;
+	}
+
+	.reveal-over__btn {
+		flex: 1;
+		padding: 10px 12px;
+		border: 2px solid #2c1810;
+		border-radius: 10px;
+		background: transparent;
+		color: #2c1810;
+		font: inherit;
+		font-size: 1.15rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-decoration: none;
+		text-transform: uppercase;
+		cursor: pointer;
+	}
+
+	.reveal-over__btn--primary {
+		background: #2c1810;
+		color: #fff4dc;
+	}
+
+	.reveal-start__music {
+		display: block;
+		width: 100%;
+		margin: 0 0 10px;
+		padding: 8px 12px;
+		border: 2px dashed rgba(44, 24, 16, 0.5);
+		border-radius: 10px;
+		background: rgba(44, 24, 16, 0.06);
+		color: #2c1810;
+		font: inherit;
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		cursor: pointer;
+	}
+
+	.reveal-start__music[aria-pressed='false'] {
+		opacity: 0.65;
+		text-decoration: line-through;
+	}
+
+	.reveal-start__music:focus-visible,
+	.reveal-over__btn:focus-visible {
+		outline: 2px solid #ff7a1a;
+		outline-offset: 2px;
+	}
+
 	/* Desktop: back arrow opposite the score, sound sits just to its right */
 	@media (min-width: 641px) {
 		.reveal-hud {
@@ -806,6 +1191,18 @@ const PAINT_STROKES = [
 			width: min(30vw, 128px);
 		}
 
+		.reveal-koi {
+			width: min(34vw, 140px);
+		}
+
+		.reveal-scorebox {
+			align-items: center;
+		}
+
+		.reveal-strike {
+			height: clamp(18px, 5vw, 22px);
+		}
+
 		.reveal-fx--slash {
 			width: min(78vw, 300px);
 		}
@@ -827,10 +1224,17 @@ const PAINT_STROKES = [
 		.reveal-lemon {
 			width: min(16vw, 160px);
 		}
+
+		.reveal-koi {
+			width: min(18vw, 180px);
+		}
 	}
 </style>
 
 <script>
+	import type { CreateTypes, Shape } from 'canvas-confetti';
+	import { GAME_RULES, STORE_ITEMS, readBestScore, recordScore } from '../data/store';
+
 	type Vec = { x: number; y: number };
 
 	type Projectile = {
@@ -935,8 +1339,6 @@ const PAINT_STROKES = [
 	const HALF_B_C = { x: -2.0, y: 13.0 };
 
 	const GAME = {
-		minGap: 0.85,
-		maxGap: 2.6,
 		flightMin: 0.72,
 		flightMax: 0.92,
 		slashMs: 0.12,
@@ -949,9 +1351,32 @@ const PAINT_STROKES = [
 		slashArtOffsetDeg: -8,
 		trailHistoryMs: 140,
 		scoreFadeMs: 400,
-		maxFruits: 3,
-		waveStaggerMin: 0.04,
-		waveStaggerMax: 0.14,
+		maxFruits: 8,
+		maxKoi: 2,
+		maxMisses: GAME_RULES.maxMisses,
+		koiHitFactor: 0.3,
+		waveStaggerMin: 0.08,
+		waveStaggerMax: 0.2,
+		/** Minimum horizontal gap between airborne objects, in object widths. */
+		laneSpacing: 1.35,
+		/** How long a launch waits when there's no free lane. */
+		laneRetrySec: 0.2,
+	} as const;
+
+	/**
+	 * Difficulty ramps from 0 → 1 over `rampSec` of a single run. Each pair is
+	 * [easy, hard]; values are interpolated by the current level.
+	 */
+	const DIFFICULTY = {
+		rampSec: 100,
+		gapMin: [1.6, 0.65],
+		gapMax: [2.4, 1.05],
+		waveSize: [1.5, 4],
+		flightScale: [0.95, 0.8],
+		koiChance: [0.45, 0.85],
+		doubleKoiChance: [0.1, 0.4],
+		/** No koi until the run is this many seconds old. */
+		koiGraceSec: 3,
 	} as const;
 
 	const SCORE_DIGIT_SRCS = [
@@ -1037,8 +1462,29 @@ const PAINT_STROKES = [
 	const revealScene = document.getElementById('reveal-scene') as HTMLElement;
 	const soundToggle = document.getElementById('reveal-sound-toggle') as HTMLButtonElement;
 	if (!soundToggle) throw new Error('Reveal sound toggle missing');
+	const koiTemplate = document.getElementById('reveal-koi') as HTMLImageElement;
+	const flashEl = document.getElementById('reveal-flash') as HTMLElement;
+	const shrapnelCanvas = document.getElementById('reveal-shrapnel') as HTMLCanvasElement;
+	const oilCanvas = document.getElementById('reveal-oil') as HTMLCanvasElement;
+	const oilCtx = oilCanvas.getContext('2d');
+	const toastEl = document.getElementById('reveal-toast') as HTMLElement;
+	const backLink = document.getElementById('reveal-back') as HTMLAnchorElement;
+	const overEl = document.getElementById('reveal-over') as HTMLElement;
+	const overScoreEl = document.getElementById('reveal-over-score') as HTMLElement;
+	const overBestEl = document.getElementById('reveal-over-best') as HTMLElement;
+	const overUnlockEl = document.getElementById('reveal-over-unlock') as HTMLElement;
+	const overRetryBtn = document.getElementById('reveal-over-retry') as HTMLButtonElement;
+	const overTitleEl = document.getElementById('reveal-over-title') as HTMLElement;
+	const strikesEl = document.getElementById('reveal-strikes') as HTMLElement;
+	const strikeEls = Array.from(strikesEl.querySelectorAll<HTMLImageElement>('.reveal-strike'));
+
+	if (new URLSearchParams(window.location.search).get('from') === 'store') {
+		backLink.href = '/store';
+		backLink.setAttribute('aria-label', 'Back to the RN Racing store');
+	}
 
 	const MUSIC_FLOOR = 0.08;
+	const MUSIC_PREF_KEY = 'rnracing-music-muted';
 
 	const music = document.getElementById('reveal-music') as HTMLAudioElement;
 	if (!music) throw new Error('Reveal music missing');
@@ -1046,7 +1492,7 @@ const PAINT_STROKES = [
 	music.preload = 'auto';
 	music.autoplay = true;
 	music.volume = MUSIC_FLOOR;
-	music.muted = false;
+	music.muted = readMusicMutedPref();
 	music.setAttribute('playsinline', '');
 	music.setAttribute('webkit-playsinline', '');
 	void music.play();
@@ -1113,11 +1559,19 @@ const PAINT_STROKES = [
 		dropScale: number;
 	};
 
-	type PendingLaunch = { at: number; x: number };
+	type Koi = { el: HTMLImageElement; p: Projectile; busy: boolean };
+
+	type PendingLaunch = { at: number; kind: 'fruit' | 'koi' };
 
 	let gameFruits: GameFruit[] = [];
+	let kois: Koi[] = [];
 	let pendingLaunches: PendingLaunch[] = [];
 	let nextWaveAt = 0;
+	let runStartedAt = 0;
+	let runStartBest = 0;
+	let gameOver = false;
+	let misses = 0;
+	let toastTimer = 0;
 
 	let pointerSamples: PointerSample[] = [];
 	let pointerDown = false;
@@ -1391,6 +1845,7 @@ const PAINT_STROKES = [
 	}
 
 	function showScoreHud() {
+		strikesEl.classList.add('is-visible');
 		scoreVisible = true;
 		renderScoreDigits(score, false);
 		scoreEl.classList.add('is-visible');
@@ -1511,51 +1966,54 @@ const PAINT_STROKES = [
 		syncFruitFromLemon();
 	}
 
-	function spawnX() {
+	function laneBounds() {
 		const { w } = size();
 		const mobile = isMobileLayout();
-		const minFrac = mobile ? 0.14 : 0.18;
-		const maxFrac = mobile ? 0.86 : 0.82;
-		const logoW = logo.getBoundingClientRect().width || w * 0.4;
-		const center = w * 0.5;
-		const halfLogo = logoW * 0.38;
-		// Bias away from the logo core so arcs stay sliceable.
-		const side = Math.random() < 0.5 ? -1 : 1;
-		const minOff = halfLogo * 0.45;
-		const maxOff = Math.min(w * (mobile ? 0.34 : 0.3), halfLogo + w * 0.14);
-		const offset = rand(minOff, maxOff) * side;
-		return clamp(center + offset, w * minFrac, w * maxFrac);
+		return { minX: w * (mobile ? 0.14 : 0.18), maxX: w * (mobile ? 0.86 : 0.82) };
 	}
 
-	function spawnXs(count: number) {
-		const { w } = size();
-		const mobile = isMobileLayout();
-		const minFrac = mobile ? 0.14 : 0.18;
-		const maxFrac = mobile ? 0.86 : 0.82;
-		const minX = w * minFrac;
-		const maxX = w * maxFrac;
-		if (count <= 1) return [spawnX()];
+	function laneSpacing() {
+		const koiWidth = koiTemplate.getBoundingClientRect().width || lemonDisplayWidth();
+		return Math.max(lemonDisplayWidth(), koiWidth) * GAME.laneSpacing;
+	}
 
+	/** X positions of everything still flying that a new launch must stay clear of. */
+	function occupiedLanes() {
 		const xs: number[] = [];
-		const minSep = w * (mobile ? 0.16 : 0.14);
-		for (let i = 0; i < count; i++) {
-			let x = spawnX();
-			let attempts = 0;
-			while (attempts < 8 && xs.some((other) => Math.abs(other - x) < minSep)) {
-				x = lerp(minX, maxX, (i + 0.5) / count + rand(-0.08, 0.08));
-				x = clamp(x, minX, maxX);
-				attempts++;
-			}
-			xs.push(x);
-		}
+		for (const f of gameFruits) if (f.busy && !f.sliced) xs.push(f.lemon.x);
+		for (const k of kois) if (k.busy) xs.push(k.p.x);
 		return xs;
 	}
 
-	function pickWaveCount() {
-		const r = Math.random();
-		if (r < 0.52) return 1;
-		if (r < 0.82) return 2;
-		return 3;
+	/** A launch X clear of every airborne object, or null if there's no room right now. */
+	function pickFreeLane() {
+		const { minX, maxX } = laneBounds();
+		const gap = laneSpacing();
+		const taken = occupiedLanes();
+		for (let attempt = 0; attempt < 14; attempt++) {
+			const x = rand(minX, maxX);
+			if (taken.every((other) => Math.abs(other - x) >= gap)) return x;
+		}
+		return null;
+	}
+
+	function difficultyLevel(nowSec: number) {
+		return clamp((nowSec - runStartedAt) / DIFFICULTY.rampSec, 0, 1);
+	}
+
+	function ramp(pair: readonly [number, number], level: number) {
+		return lerp(pair[0], pair[1], level);
+	}
+
+	function pickWaveCount(level: number) {
+		const base = ramp(DIFFICULTY.waveSize, level);
+		return clamp(Math.round(base + rand(-0.9, 1.1)), 1, GAME.maxFruits);
+	}
+
+	function pickKoiCount(nowSec: number, level: number) {
+		if (nowSec - runStartedAt < DIFFICULTY.koiGraceSec) return 0;
+		if (Math.random() >= ramp(DIFFICULTY.koiChance, level)) return 0;
+		return Math.random() < ramp(DIFFICULTY.doubleKoiChance, level) ? 2 : 1;
 	}
 
 	function cloneFruitImg(source: HTMLImageElement, parent: HTMLElement) {
@@ -1622,6 +2080,349 @@ const PAINT_STROKES = [
 		}
 	}
 
+	function ensureKoiPool() {
+		if (kois.length) return;
+		for (let i = 0; i < GAME.maxKoi; i++) {
+			kois.push({ el: cloneFruitImg(koiTemplate, lemonLayer), p: blankProjectile(), busy: false });
+		}
+	}
+
+	function resetKoi(k: Koi) {
+		hideFx(k.el);
+		k.p = blankProjectile();
+		k.busy = false;
+	}
+
+	function launchKoi(k: Koi, startX: number, level: number) {
+		const { w, h } = size();
+		const startY = h + 100;
+		const apexX = startX + rand(-w * 0.015, w * 0.015);
+		const apexY = h * rand(0.3, 0.44);
+		const flight = rand(GAME.flightMin, GAME.flightMax) * ramp(DIFFICULTY.flightScale, level);
+		k.p = {
+			x: startX,
+			y: startY,
+			vx: (apexX - startX) / flight,
+			vy: (apexY - startY) / flight - 0.5 * GRAVITY * flight,
+			rotation: rand(-30, 30),
+			angularVelocity: rand(50, 140) * (Math.random() < 0.5 ? -1 : 1),
+			visible: true,
+		};
+		k.busy = true;
+		showFx(k.el, '1');
+		setTransform(k.el, k.p.x, k.p.y, k.p.rotation, 1);
+	}
+
+	function koiHitRadius(k: Koi) {
+		return (k.el.getBoundingClientRect().width || 150) * GAME.koiHitFactor;
+	}
+
+	function updateKoi(k: Koi, dt: number) {
+		if (!k.busy) return;
+		integrate(k.p, dt);
+		// Little tail wiggle on top of the spin.
+		const wiggle = Math.sin(performance.now() * 0.018) * 6;
+		setTransform(k.el, k.p.x, k.p.y, k.p.rotation + wiggle, 1);
+		if (k.p.vy > 0 && offscreenBottom(k.p.y)) resetKoi(k);
+	}
+
+	function showToast(text: string, ms = 2600) {
+		toastEl.textContent = text;
+		toastEl.classList.add('is-visible');
+		if (toastTimer) window.clearTimeout(toastTimer);
+		toastTimer = window.setTimeout(() => toastEl.classList.remove('is-visible'), ms);
+	}
+
+	function unlockMessage(best: number) {
+		const fresh = STORE_ITEMS.filter((item) => runStartBest < item.cost && best >= item.cost);
+		if (fresh.length) {
+			return `Unlocked in the store: ${fresh.map((item) => item.name).join(', ')}!`;
+		}
+		const next = [...STORE_ITEMS].sort((a, b) => a.cost - b.cost).find((item) => best < item.cost);
+		if (!next) return 'Everything in the store is unlocked. Now you’re just showing off.';
+		return `Score ${next.cost} in one run to unlock ${next.name}.`;
+	}
+
+	function renderStrikes(popIndex = -1) {
+		strikeEls.forEach((el, i) => {
+			el.classList.toggle('is-hit', i < misses);
+			if (i === popIndex) {
+				el.classList.remove('is-hit');
+				void el.offsetWidth;
+				el.classList.add('is-hit');
+			}
+		});
+		strikesEl.setAttribute('aria-label', `Missed lemons: ${misses} of ${GAME.maxMisses}`);
+	}
+
+	function shakeStage() {
+		stage.classList.remove('is-shaking');
+		void stage.offsetWidth;
+		stage.classList.add('is-shaking');
+	}
+
+	function registerMiss() {
+		if (gameOver) return;
+		misses += 1;
+		renderStrikes(misses - 1);
+		if (misses >= GAME.maxMisses) endRun(`You dropped ${GAME.maxMisses} lemons!`);
+	}
+
+	/** Jagged metal shards (SVG path data) for the koi explosion. */
+	const SHARD_PATHS = [
+		'M0 0 L9 2 L6 5 L11 9 L2 7 Z',
+		'M0 3 L4 0 L12 1 L8 4 L10 8 L3 6 Z',
+		'M1 0 L7 1 L5 4 L8 10 L0 5 Z',
+	];
+	const SHRAPNEL_COLORS = ['#e3e7ec', '#b9c0c8', '#8a9199', '#5d636a', '#3c4146', '#b87333'];
+
+	let shrapnel: Promise<{ fire: CreateTypes; shapes: Shape[] }> | null = null;
+
+	/** Loads canvas-confetti once, ahead of the first koi, so the burst is instant. */
+	function loadShrapnel() {
+		shrapnel ??= import('canvas-confetti').then(({ default: confetti }) => ({
+			fire: confetti.create(shrapnelCanvas, { resize: true, useWorker: false }),
+			shapes: SHARD_PATHS.map((path) => confetti.shapeFromPath({ path })),
+		}));
+		return shrapnel;
+	}
+
+	function burstShrapnel(x: number, y: number) {
+		const { w, h } = size();
+		const origin = { x: x / w, y: y / h };
+		void loadShrapnel()
+			.then(({ fire, shapes }) => {
+				// Heavy rigid shards: no paper flutter, fall fast.
+				void fire({
+					origin,
+					particleCount: 70,
+					spread: 360,
+					startVelocity: 42,
+					gravity: 1.8,
+					decay: 0.92,
+					ticks: 240,
+					scalar: 1.5,
+					flat: true,
+					shapes,
+					colors: SHRAPNEL_COLORS,
+				});
+				// Smaller bits that tumble on the way down.
+				void fire({
+					origin,
+					particleCount: 90,
+					angle: 90,
+					spread: 140,
+					startVelocity: 34,
+					gravity: 1.3,
+					decay: 0.93,
+					ticks: 280,
+					scalar: 0.9,
+					shapes: [...shapes, 'square'],
+					colors: SHRAPNEL_COLORS,
+				});
+			})
+			.catch(() => {
+				/* Shrapnel is decoration; the run still ends without it. */
+			});
+	}
+
+	type OilDrip = { x: number; y: number; w: number; len: number; dur: number };
+
+	let oilRaf = 0;
+
+	function resizeOilCanvas() {
+		if (!oilCtx) return;
+		const dpr = Math.max(1, window.devicePixelRatio || 1);
+		const { w, h } = size();
+		oilCanvas.width = Math.max(1, Math.floor(w * dpr));
+		oilCanvas.height = Math.max(1, Math.floor(h * dpr));
+		oilCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	}
+
+	function clearOil() {
+		if (oilRaf) cancelAnimationFrame(oilRaf);
+		oilRaf = 0;
+		if (!oilCtx) return;
+		const { w, h } = size();
+		oilCtx.clearRect(0, 0, w, h);
+	}
+
+	/** Smooth irregular blob path through jittered points around (cx, cy). */
+	function blobPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, jitter: number) {
+		const count = 14;
+		const pts: Vec[] = [];
+		for (let i = 0; i < count; i++) {
+			const a = (i / count) * Math.PI * 2;
+			const rr = r * (1 + rand(-jitter, jitter));
+			pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+		}
+		const mid = (a: Vec, b: Vec) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+		const start = mid(pts[count - 1]!, pts[0]!);
+		ctx.beginPath();
+		ctx.moveTo(start.x, start.y);
+		for (let i = 0; i < count; i++) {
+			const p = pts[i]!;
+			const m = mid(p, pts[(i + 1) % count]!);
+			ctx.quadraticCurveTo(p.x, p.y, m.x, m.y);
+		}
+		ctx.closePath();
+	}
+
+	function fillOil(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+		const body = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.25, r * 0.1, cx, cy, r * 1.3);
+		body.addColorStop(0, '#0f0c08');
+		body.addColorStop(0.6, '#060504');
+		body.addColorStop(1, '#020101');
+		ctx.fillStyle = body;
+		ctx.fill();
+	}
+
+	/** Oil-slick rainbow sheen + specular highlight, clipped to the current path. */
+	function sheenOil(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+		ctx.save();
+		ctx.clip();
+		const film = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+		film.addColorStop(0, 'rgba(130, 70, 210, 0.07)');
+		film.addColorStop(0.35, 'rgba(40, 170, 170, 0.05)');
+		film.addColorStop(0.65, 'rgba(210, 170, 50, 0.04)');
+		film.addColorStop(1, 'rgba(200, 60, 120, 0.05)');
+		ctx.fillStyle = film;
+		ctx.fillRect(cx - r * 2, cy - r * 2, r * 4, r * 4);
+		ctx.beginPath();
+		ctx.ellipse(cx - r * 0.3, cy - r * 0.35, r * 0.3, r * 0.08, -0.5, 0, Math.PI * 2);
+		ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+		ctx.fill();
+		ctx.restore();
+	}
+
+	function splatterOil(cx: number, cy: number) {
+		if (!oilCtx) return;
+		clearOil();
+		const ctx = oilCtx;
+		const r = lemonDisplayWidth() * 0.55;
+
+		// Main splat: a core blob plus overlapping lobes.
+		const lobes = [{ x: cx, y: cy, r }];
+		const lobeCount = 5 + Math.floor(Math.random() * 3);
+		for (let i = 0; i < lobeCount; i++) {
+			const a = rand(0, Math.PI * 2);
+			const d = r * rand(0.45, 0.85);
+			lobes.push({ x: cx + Math.cos(a) * d, y: cy + Math.sin(a) * d, r: r * rand(0.25, 0.45) });
+		}
+		for (const lobe of lobes) {
+			blobPath(ctx, lobe.x, lobe.y, lobe.r, 0.22);
+			fillOil(ctx, lobe.x, lobe.y, lobe.r);
+		}
+		blobPath(ctx, cx, cy, r, 0.12);
+		sheenOil(ctx, cx, cy, r);
+
+		// Flung droplets and streaks, smaller the further they fly.
+		for (let i = 0; i < 26; i++) {
+			const a = rand(0, Math.PI * 2);
+			const t = rand(0, 1);
+			const d = r * lerp(1.15, 3.4, t);
+			const size = r * lerp(0.15, 0.035, t) * rand(0.7, 1.2);
+			const x = cx + Math.cos(a) * d;
+			const y = cy + Math.sin(a) * d;
+			ctx.beginPath();
+			if (Math.random() < 0.4) {
+				ctx.ellipse(x, y, size * rand(2, 3.4), size * 0.6, a, 0, Math.PI * 2);
+			} else {
+				ctx.arc(x, y, size, 0, Math.PI * 2);
+			}
+			ctx.fillStyle = '#0b0906';
+			ctx.fill();
+		}
+
+		// Drips run down the backdrop from the bottom of the splat.
+		const drips: OilDrip[] = [];
+		const dripCount = 3 + Math.floor(Math.random() * 4);
+		for (let i = 0; i < dripCount; i++) {
+			drips.push({
+				x: cx + rand(-r * 0.75, r * 0.75),
+				y: cy + r * rand(0.3, 0.6),
+				w: r * rand(0.06, 0.13),
+				len: r * rand(0.8, 3.2),
+				dur: rand(1.2, 2.8),
+			});
+		}
+		const started = performance.now();
+		const drawDrips = (now: number) => {
+			const elapsed = (now - started) / 1000;
+			let running = false;
+			for (const drip of drips) {
+				const t = clamp(elapsed / drip.dur, 0, 1);
+				if (t < 1) running = true;
+				const len = drip.len * easeOutCubic(t);
+				ctx.fillStyle = '#0b0906';
+				ctx.fillRect(drip.x - drip.w / 2, drip.y, drip.w, len);
+				ctx.beginPath();
+				ctx.arc(drip.x, drip.y + len, drip.w * 0.75, 0, Math.PI * 2);
+				ctx.fill();
+			}
+			oilRaf = running ? requestAnimationFrame(drawDrips) : 0;
+		};
+		oilRaf = requestAnimationFrame(drawDrips);
+	}
+
+	function explodeKoi(k: Koi) {
+		if (gameOver) return;
+		splatterOil(k.p.x, k.p.y);
+		burstShrapnel(k.p.x, k.p.y);
+		const { w, h } = size();
+		flashEl.style.setProperty('--flash-x', `${(k.p.x / w) * 100}%`);
+		flashEl.style.setProperty('--flash-y', `${(k.p.y / h) * 100}%`);
+		flashEl.classList.remove('is-on');
+		void flashEl.offsetWidth;
+		flashEl.classList.add('is-on');
+		resetKoi(k);
+		endRun('You sliced the koi!');
+	}
+
+	function endRun(title: string) {
+		gameOver = true;
+		pendingLaunches = [];
+		shakeStage();
+
+		const best = recordScore(score);
+		overTitleEl.textContent = title;
+		overScoreEl.textContent = String(score);
+		overBestEl.textContent = String(best);
+		overUnlockEl.textContent = unlockMessage(best);
+
+		window.setTimeout(() => {
+			stage.classList.remove('is-game-active', 'is-shaking');
+			overEl.hidden = false;
+			overRetryBtn.focus({ preventScroll: true });
+		}, 750);
+	}
+
+	function startRun(nowSec: number) {
+		runStartedAt = nowSec;
+		runStartBest = readBestScore();
+		gameOver = false;
+		score = 0;
+		misses = 0;
+		renderScoreDigits(score, false);
+		renderStrikes();
+		ensureGameFruitPool();
+		ensureKoiPool();
+		for (const f of gameFruits) resetGameFruit(f);
+		for (const k of kois) resetKoi(k);
+		pendingLaunches = [];
+		overEl.hidden = true;
+		flashEl.classList.remove('is-on');
+		clearOil();
+		void loadShrapnel().then(({ fire }) => fire.reset()).catch(() => {});
+		stage.classList.add('is-game-active');
+		scheduleNextWave(nowSec + 0.35);
+		showToast(`Slice the lemons. Don’t slice the koi. Drop ${GAME.maxMisses} and you’re out!`, 3200);
+	}
+
+	overRetryBtn.addEventListener('click', () => {
+		startRun(startTime ? (performance.now() - startTime) / 1000 : 0);
+	});
+
 	function resetGameFruit(f: GameFruit) {
 		f.whole.style.opacity = '0';
 		f.whole.style.visibility = 'hidden';
@@ -1644,17 +2445,13 @@ const PAINT_STROKES = [
 		return gameFruits.find((f) => !f.busy) ?? null;
 	}
 
-	function anyBusyFruit() {
-		return gameFruits.some((f) => f.busy);
-	}
-
-	function launchGameFruit(f: GameFruit, startX: number) {
+	function launchGameFruit(f: GameFruit, startX: number, level: number) {
 		const { w, h } = size();
 		const startY = h + 100;
-		const apexX = startX + rand(-w * 0.05, w * 0.05);
+		const apexX = startX + rand(-w * 0.015, w * 0.015);
 		const apexY = h * rand(0.32, 0.42);
-		const flight = rand(GAME.flightMin, GAME.flightMax);
-		const vx = (apexX - startX) / flight + rand(-30, 30);
+		const flight = rand(GAME.flightMin, GAME.flightMax) * ramp(DIFFICULTY.flightScale, level);
+		const vx = (apexX - startX) / flight;
 		const vy = (apexY - startY) / flight - 0.5 * GRAVITY * flight + rand(-40, 40);
 
 		f.lemon = {
@@ -1720,6 +2517,7 @@ const PAINT_STROKES = [
 
 		score += 1;
 		renderScoreDigits(score, true);
+		recordScore(score);
 
 		f.halfAState = {
 			x: f.lemon.x,
@@ -1807,11 +2605,8 @@ const PAINT_STROKES = [
 		);
 	}
 
-	function finishGameFruit(f: GameFruit, nowSec: number) {
+	function finishGameFruit(f: GameFruit) {
 		resetGameFruit(f);
-		if (!anyBusyFruit() && pendingLaunches.length === 0) {
-			scheduleNextWave(nowSec);
-		}
 	}
 
 	function updateGameFruit(f: GameFruit, nowSec: number, dt: number) {
@@ -1820,8 +2615,10 @@ const PAINT_STROKES = [
 		if (!f.sliced) {
 			integrate(f.lemon, dt);
 			setTransform(f.whole, f.lemon.x, f.lemon.y, f.lemon.rotation, 1);
-			if (offscreenBottom(f.lemon.y)) {
-				finishGameFruit(f, nowSec);
+			// Launches start below the fold, so only count it once it's falling back down.
+			if (f.lemon.vy > 0 && offscreenBottom(f.lemon.y)) {
+				finishGameFruit(f);
+				registerMiss();
 			}
 			return;
 		}
@@ -1831,28 +2628,41 @@ const PAINT_STROKES = [
 		renderGameHalves(f);
 
 		if (offscreenBottom(f.halfAState.y) && offscreenBottom(f.halfBState.y)) {
-			finishGameFruit(f, nowSec);
+			finishGameFruit(f);
 		}
 	}
 
 	function scheduleNextWave(fromSec: number) {
-		nextWaveAt = fromSec + rand(GAME.minGap, GAME.maxGap);
+		nextWaveAt = fromSec;
 		pendingLaunches = [];
 	}
 
 	function startWave(nowSec: number) {
 		ensureGameFruitPool();
+		ensureKoiPool();
+		const level = difficultyLevel(nowSec);
 		const free = gameFruits.filter((f) => !f.busy).length;
 		if (free <= 0) {
 			nextWaveAt = nowSec + 0.35;
 			return;
 		}
-		const count = Math.min(pickWaveCount(), free);
-		const xs = spawnXs(count);
-		pendingLaunches = xs.map((x, i) => ({
+		const fruitCount = Math.min(pickWaveCount(level), free);
+		const freeKoi = kois.filter((k) => !k.busy).length;
+		const koiCount = Math.min(pickKoiCount(nowSec, level), freeKoi);
+		const kinds: PendingLaunch['kind'][] = [
+			...Array<'fruit'>(fruitCount).fill('fruit'),
+			...Array<'koi'>(koiCount).fill('koi'),
+		];
+		// Shuffle so the koi isn't always last out of the wave.
+		for (let i = kinds.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[kinds[i], kinds[j]] = [kinds[j]!, kinds[i]!];
+		}
+		pendingLaunches = kinds.map((kind, i) => ({
 			at: nowSec + (i === 0 ? 0 : rand(GAME.waveStaggerMin, GAME.waveStaggerMax) * i),
-			x,
+			kind,
 		}));
+		nextWaveAt = nowSec + rand(ramp(DIFFICULTY.gapMin, level), ramp(DIFFICULTY.gapMax, level));
 	}
 
 	function sliceFruit(
@@ -2015,7 +2825,7 @@ const PAINT_STROKES = [
 	}
 
 	function trySliceFromSwipe(p0: PointerSample, p1: PointerSample, nowSec: number) {
-		if (phase !== 'game' || !gameActive) return;
+		if (phase !== 'game' || !gameActive || gameOver) return;
 
 		const segLen = dist(p0.x, p0.y, p1.x, p1.y);
 		if (segLen < GAME.minSegmentPx) return;
@@ -2023,6 +2833,14 @@ const PAINT_STROKES = [
 		const dt = Math.max(0.001, (p1.time - p0.time) / 1000);
 		const speed = segLen / dt;
 		if (speed < GAME.minSwipeSpeed) return;
+
+		for (const k of kois) {
+			if (!k.busy) continue;
+			const distance = pointSegmentDistance(k.p.x, k.p.y, p0.x, p0.y, p1.x, p1.y);
+			if (distance > koiHitRadius(k)) continue;
+			explodeKoi(k);
+			return;
+		}
 
 		const radius = hitRadius();
 		for (const f of gameFruits) {
@@ -2033,7 +2851,6 @@ const PAINT_STROKES = [
 				swipeDx: p1.x - p0.x,
 				swipeDy: p1.y - p0.y,
 			});
-			return;
 		}
 	}
 
@@ -2162,22 +2979,36 @@ const PAINT_STROKES = [
 
 	function updateGame(nowSec: number, dt: number) {
 		ensureGameFruitPool();
+		ensureKoiPool();
 
-		if (pendingLaunches.length === 0 && !anyBusyFruit() && nowSec >= nextWaveAt) {
+		if (!gameOver && pendingLaunches.length === 0 && nowSec >= nextWaveAt) {
 			startWave(nowSec);
 		}
 
-		while (pendingLaunches.length && pendingLaunches[0]!.at <= nowSec) {
-			const launch = pendingLaunches.shift()!;
+		const level = difficultyLevel(nowSec);
+		while (!gameOver && pendingLaunches.length && pendingLaunches[0]!.at <= nowSec) {
+			const launch = pendingLaunches[0]!;
+			const x = pickFreeLane();
+			if (x === null) {
+				// No clear lane yet; hold the rest of the wave until something lands.
+				launch.at = nowSec + GAME.laneRetrySec;
+				break;
+			}
+			pendingLaunches.shift();
+			if (launch.kind === 'koi') {
+				const koi = kois.find((k) => !k.busy);
+				if (koi) launchKoi(koi, x, level);
+				continue;
+			}
 			const slot = acquireGameFruit();
-			if (!slot) break;
-			launchGameFruit(slot, launch.x);
+			if (slot) launchGameFruit(slot, x, level);
 		}
 
 		for (const f of gameFruits) {
 			updateGameFruit(f, nowSec, dt);
 			applyGameFruitFx(f, nowSec);
 		}
+		for (const k of kois) updateKoi(k, dt);
 	}
 
 	function activateGame(nowSec: number) {
@@ -2186,17 +3017,22 @@ const PAINT_STROKES = [
 		revealTossDone = true;
 		freezeLogoAndCopy();
 		hideLemonActors();
-		ensureGameFruitPool();
-		for (const f of gameFruits) resetGameFruit(f);
-		pendingLaunches = [];
-		stage.classList.add('is-game-active');
 		showScoreHud();
 		resizeSwipeCanvas();
+		resizeOilCanvas();
 		bindGameplayInput();
-		scheduleNextWave(nowSec + 0.35);
+		startRun(nowSec);
 	}
 
-	let musicMuted = false;
+	function readMusicMutedPref() {
+		try {
+			return window.localStorage.getItem(MUSIC_PREF_KEY) === '1';
+		} catch {
+			return false;
+		}
+	}
+
+	let musicMuted = readMusicMutedPref();
 	let musicStarted = false;
 	let musicSeeking = false;
 	let musicDisposed = false;
@@ -2297,6 +3133,11 @@ const PAINT_STROKES = [
 
 	function renderSoundToggle() {
 		music.muted = musicMuted;
+		try {
+			window.localStorage.setItem(MUSIC_PREF_KEY, musicMuted ? '1' : '0');
+		} catch {
+			/* storage blocked — choice lasts this page view */
+		}
 		soundToggle.classList.toggle('is-muted', musicMuted);
 		soundToggle.setAttribute('aria-pressed', musicMuted ? 'true' : 'false');
 		soundToggle.setAttribute('aria-label', musicMuted ? 'Unmute music' : 'Mute music');
@@ -2624,6 +3465,7 @@ const PAINT_STROKES = [
 
 	function onResize() {
 		resizeSwipeCanvas();
+		resizeOilCanvas();
 		if (phase === 'game' || phase === 'reveal') {
 			freezeLogoAndCopy();
 		}
@@ -2647,6 +3489,39 @@ const PAINT_STROKES = [
 		stage.classList.remove('is-game-active');
 	}
 
+	/** Pre-round gate so players can pick music on/off before anything plays loudly. */
+	function waitForStart() {
+		const gate = document.getElementById('reveal-start') as HTMLElement;
+		const musicBtn = document.getElementById('reveal-start-music') as HTMLButtonElement;
+		const goBtn = document.getElementById('reveal-start-go') as HTMLButtonElement;
+
+		const renderMusicBtn = () => {
+			musicBtn.textContent = musicMuted ? 'Music: Off' : 'Music: On';
+			musicBtn.setAttribute('aria-pressed', musicMuted ? 'false' : 'true');
+		};
+		renderSoundToggle();
+		renderMusicBtn();
+		gate.hidden = false;
+		goBtn.focus({ preventScroll: true });
+
+		musicBtn.addEventListener('click', () => {
+			musicMuted = !musicMuted;
+			renderSoundToggle();
+			renderMusicBtn();
+		});
+
+		return new Promise<void>((resolve) => {
+			goBtn.addEventListener(
+				'click',
+				() => {
+					gate.hidden = true;
+					resolve();
+				},
+				{ once: true },
+			);
+		});
+	}
+
 	async function boot() {
 		preloadScoreDigits();
 		renderScoreDigits(0, false);
@@ -2659,11 +3534,13 @@ const PAINT_STROKES = [
 		await waitForPreroll();
 		if (musicDisposed) return;
 
+		revealLoading?.classList.add('is-done');
+		revealLoading?.setAttribute('aria-hidden', 'true');
+		await waitForStart();
+
 		revealArmed = true;
 		startMusic();
 		revealRoot.classList.add('is-visible');
-		revealLoading?.classList.add('is-done');
-		revealLoading?.setAttribute('aria-hidden', 'true');
 
 		if (reducedMotion) {
 			runReducedMotion();

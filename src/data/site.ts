@@ -22,6 +22,7 @@ export const PAGES = [
 		heading: 'Investors',
 	},
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
+	{ href: '/store', slug: 'store', label: 'Store', heading: 'The Store' },
 ] as const;
 
 export type PageHref = (typeof PAGES)[number]['href'];
@@ -35,6 +36,7 @@ export const NAV_LINKS = [
 	{ href: '/values', label: 'Our Values' },
 	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/investors-faq', label: 'For Investors' },
+	{ href: '/store', label: 'Store' },
 ] as const;
 
 export function getPage(href: PageHref) {

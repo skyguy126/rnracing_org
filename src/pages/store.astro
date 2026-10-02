@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getPage, pageTitle } from '../data/site';
+import { GAME_RULES, STORE_ITEMS, STORE_SALE, listPrice } from '../data/store';
+import '../styles/pages/store.css';
+
+const page = getPage('/store');
+const PLAY_HREF = '/design?from=store';
+---
+
+<BaseLayout
+	title={pageTitle(page.heading)}
+	description="RN Racing digital goods. No money accepted — pay with your Fruit Ninja high score."
+>
+	<PageHeader title={page.heading}>
+		<Fragment slot="lead">
+			<span class="store-lead">
+				Thanks to the overwhelming success of our{' '}
+				<a href="https://www.instagram.com/rosiesheroes/" target="_blank" rel="noopener noreferrer"
+					>fundraiser</a
+				>,{' '}
+				<strong>we don't accept money in our store.</strong> We take high scores. Slice lemons in
+				the dojo, dodge the koi, don't drop {GAME_RULES.maxMisses}, and your best run unlocks the
+				goods.
+			</span>
+		</Fragment>
+	</PageHeader>
+
+	<aside class="store-sale" aria-label="Sale">
+		<p class="store-sale__badge">
+			<span aria-hidden="true">🎉</span> {STORE_SALE.percentOff}% off everything{' '}
+			<span aria-hidden="true">🎉</span>
+		</p>
+		<p class="store-sale__text">
+			To celebrate winning {STORE_SALE.reason}, every item in the store is{' '}
+			{STORE_SALE.percentOff}% off. Prices have never been lower. Prices have never been
+			higher, either. Don't think about it.
+		</p>
+	</aside>
+
+	<section class="store-wallet" aria-label="Your score">
+		<div>
+			<p class="store-wallet__label">Your best run</p>
+			<p class="store-wallet__score" data-store-best>0</p>
+		</div>
+		<a class="btn-primary" href={PLAY_HREF}>Play the dojo</a>
+	</section>
+
+	<ul class="store-grid" aria-label="Digital goods">
+		{
+			STORE_ITEMS.map((item) => (
+				<li>
+					<article class="store-card is-locked" data-store-item data-cost={item.cost} data-file={item.file}>
+						<div class:list={['store-card__media', { 'store-card__media--light': item.lightPreview }]}>
+							<span class="store-card__deal">−{STORE_SALE.percentOff}%</span>
+							{item.thumb ? (
+								<img
+									src={item.thumb}
+									alt={`${item.name} preview`}
+									loading="lazy"
+									decoding="async"
+									draggable="false"
+								/>
+							) : (
+								<div class="store-card__stl" data-stl-viewer data-src={item.file}>
+									<p class="store-card__stl-status">Loading model…</p>
+								</div>
+							)}
+						</div>
+						<div class="store-card__body">
+							<p class="store-card__kind">{item.kind}</p>
+							<h2>{item.name}</h2>
+							<p class="store-card__blurb">{item.blurb}</p>
+							<div class="store-card__progress" aria-hidden="true">
+								<span data-store-progress />
+							</div>
+							<div class="store-card__footer">
+								<p class="store-card__cost">
+									<span>Costs</span>
+									<del aria-label={`Was ${listPrice(item.cost).toLocaleString('en-US')} score`}>
+										{listPrice(item.cost).toLocaleString('en-US')}
+									</del>{' '}
+									{item.cost} score
+								</p>
+								<a class="store-card__btn" href={PLAY_HREF} data-store-btn>
+									Play to unlock
+								</a>
+							</div>
+						</div>
+					</article>
+				</li>
+			))
+		}
+	</ul>
+
+	<p class="store-footnote">
+		Prices are your best single-run score. Scores are kept in this browser, so clearing site
+		data means slicing your way back. Slicing a koi or dropping {GAME_RULES.maxMisses} lemons ends the run. We
+		don't make the rules. We do, actually.
+	</p>
+</BaseLayout>
+
+<script>
+	import { readBestScore } from '../data/store';
+	import { initStlViewer } from '../lib/stl-viewer';
+
+	const best = readBestScore();
+	document.querySelectorAll<HTMLElement>('[data-store-best]').forEach((el) => {
+		el.textContent = String(best);
+	});
+
+	document.querySelectorAll<HTMLElement>('[data-store-item]').forEach((card) => {
+		const cost = Number(card.dataset.cost);
+		const file = card.dataset.file ?? '';
+		const btn = card.querySelector<HTMLAnchorElement>('[data-store-btn]');
+		const progress = card.querySelector<HTMLElement>('[data-store-progress]');
+		if (progress) progress.style.width = `${Math.min(100, (best / cost) * 100)}%`;
+		if (!btn || best < cost) {
+			if (btn) btn.textContent = `Play to unlock · ${cost - best} to go`;
+			return;
+		}
+		card.classList.remove('is-locked');
+		card.classList.add('is-unlocked');
+		btn.href = file;
+		btn.setAttribute('download', file.split('/').pop() ?? '');
+		btn.textContent = 'Download';
+	});
+
+	// Start the 3D preview as soon as the card is near the viewport.
+	const stlObserver = new IntersectionObserver(
+		(entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				stlObserver.unobserve(entry.target);
+				const el = entry.target as HTMLElement;
+				void initStlViewer(el, el.dataset.src ?? '');
+			}
+		},
+		{ rootMargin: '200px' },
+	);
+	document.querySelectorAll<HTMLElement>('[data-stl-viewer]').forEach((el) => stlObserver.observe(el));
+</script>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" width="240" height="200">
+	<g stroke="#2a1206" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+		<!-- tail -->
+		<path d="M58 100 C40 78 22 58 8 52 C14 74 18 88 30 100 C18 112 14 126 8 148 C22 142 40 122 58 100 Z" fill="#ff7a1a"/>
+		<path d="M14 62 C26 76 36 88 44 98 M14 138 C26 124 36 112 44 102" fill="none" stroke-width="3" opacity="0.55"/>
+		<!-- dorsal fin -->
+		<path d="M92 62 C108 30 140 26 160 50 C138 50 116 56 100 70 Z" fill="#ff8f3a"/>
+		<!-- pectoral fins -->
+		<path d="M150 128 C150 156 132 172 116 172 C122 156 130 142 140 130 Z" fill="#ffb067"/>
+		<!-- body -->
+		<path d="M52 100 C68 60 120 48 168 60 C204 70 226 86 228 104 C226 124 202 140 166 146 C118 154 68 140 52 100 Z" fill="#fff6ea"/>
+	</g>
+	<!-- koi patches (clipped to body) -->
+	<clipPath id="body">
+		<path d="M52 100 C68 60 120 48 168 60 C204 70 226 86 228 104 C226 124 202 140 166 146 C118 154 68 140 52 100 Z"/>
+	</clipPath>
+	<g clip-path="url(#body)">
+		<path d="M150 50 C190 52 236 72 236 98 C214 96 196 84 176 88 C160 92 146 80 150 50 Z" fill="#ff5a12"/>
+		<ellipse cx="110" cy="84" rx="26" ry="20" fill="#ff6a16" transform="rotate(-12 110 84)"/>
+		<ellipse cx="78" cy="112" rx="16" ry="12" fill="#ff7a1a"/>
+		<ellipse cx="140" cy="128" rx="18" ry="10" fill="#1e1410" opacity="0.85"/>
+		<ellipse cx="96" cy="70" rx="8" ry="6" fill="#1e1410" opacity="0.85"/>
+		<path d="M60 96 C90 80 150 78 214 92" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.5"/>
+	</g>
+	<path d="M52 100 C68 60 120 48 168 60 C204 70 226 86 228 104 C226 124 202 140 166 146 C118 154 68 140 52 100 Z" fill="none" stroke="#2a1206" stroke-width="6" stroke-linejoin="round"/>
+	<!-- gill -->
+	<path d="M176 76 C168 92 168 116 178 132" fill="none" stroke="#2a1206" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+	<!-- eye -->
+	<circle cx="198" cy="94" r="12" fill="#ffffff" stroke="#2a1206" stroke-width="4"/>
+	<circle cx="201" cy="95" r="6.5" fill="#1a0f08"/>
+	<circle cx="203.5" cy="92" r="2.4" fill="#ffffff"/>
+	<!-- cheeky mouth + whiskers -->
+	<path d="M216 114 C210 120 202 120 198 116" fill="none" stroke="#2a1206" stroke-width="4" stroke-linecap="round"/>
+	<path d="M222 110 C232 116 236 128 230 138" fill="none" stroke="#2a1206" stroke-width="3" stroke-linecap="round"/>
+	<path d="M218 118 C222 128 220 138 212 144" fill="none" stroke="#2a1206" stroke-width="3" stroke-linecap="round"/>
+	<!-- blush -->
+	<ellipse cx="190" cy="118" rx="7" ry="4" fill="#ff8aa0" opacity="0.7"/>
+</svg>
