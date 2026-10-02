@@ -44,7 +44,10 @@ const PLAY_HREF = '/design?from=store';
 			<p class="store-wallet__label">Your best run</p>
 			<p class="store-wallet__score" data-store-best>0</p>
 		</div>
-		<a class="btn-primary" href={PLAY_HREF}>Play the dojo</a>
+		<div class="store-wallet__actions">
+			<a class="btn-primary" href={PLAY_HREF}>Play the dojo</a>
+			<button type="button" class="store-reset" data-store-reset>Reset</button>
+		</div>
 	</section>
 
 	<ul class="store-grid" aria-label="Digital goods">
@@ -95,36 +98,52 @@ const PLAY_HREF = '/design?from=store';
 	</ul>
 
 	<p class="store-footnote">
-		Prices are your best single-run score. Scores are kept in this browser, so clearing site
-		data means slicing your way back. Slicing a koi or dropping {GAME_RULES.maxMisses} lemons ends the run. We
-		don't make the rules. We do, actually.
+		These prices are non-binding, unverified, and payable exclusively in fruit. We wrote them
+		down so the store looks intentional. If you can't afford something, you're wrong, and the
+		lemons agree.
 	</p>
 </BaseLayout>
 
 <script>
-	import { readBestScore } from '../data/store';
+	import { readBestScore, resetStoreSave } from '../data/store';
 	import { initStlViewer } from '../lib/stl-viewer';
 
-	const best = readBestScore();
-	document.querySelectorAll<HTMLElement>('[data-store-best]').forEach((el) => {
-		el.textContent = String(best);
-	});
+	const PLAY_LABEL = 'Play to unlock';
 
-	document.querySelectorAll<HTMLElement>('[data-store-item]').forEach((card) => {
-		const cost = Number(card.dataset.cost);
-		const file = card.dataset.file ?? '';
-		const btn = card.querySelector<HTMLAnchorElement>('[data-store-btn]');
-		const progress = card.querySelector<HTMLElement>('[data-store-progress]');
-		if (progress) progress.style.width = `${Math.min(100, (best / cost) * 100)}%`;
-		if (!btn || best < cost) {
-			if (btn) btn.textContent = `Play to unlock · ${cost - best} to go`;
-			return;
-		}
-		card.classList.remove('is-locked');
-		card.classList.add('is-unlocked');
-		btn.href = file;
-		btn.setAttribute('download', file.split('/').pop() ?? '');
-		btn.textContent = 'Download';
+	function paintStore(best: number) {
+		document.querySelectorAll<HTMLElement>('[data-store-best]').forEach((el) => {
+			el.textContent = String(best);
+		});
+
+		document.querySelectorAll<HTMLElement>('[data-store-item]').forEach((card) => {
+			const cost = Number(card.dataset.cost);
+			const file = card.dataset.file ?? '';
+			const btn = card.querySelector<HTMLAnchorElement>('[data-store-btn]');
+			const progress = card.querySelector<HTMLElement>('[data-store-progress]');
+			if (progress) progress.style.width = `${Math.min(100, (best / cost) * 100)}%`;
+			if (!btn || best < cost) {
+				card.classList.add('is-locked');
+				card.classList.remove('is-unlocked');
+				if (btn) {
+					btn.href = '/design?from=store';
+					btn.removeAttribute('download');
+					btn.textContent = `${PLAY_LABEL} · ${cost - best} to go`;
+				}
+				return;
+			}
+			card.classList.remove('is-locked');
+			card.classList.add('is-unlocked');
+			btn.href = file;
+			btn.setAttribute('download', file.split('/').pop() ?? '');
+			btn.textContent = 'Download';
+		});
+	}
+
+	paintStore(readBestScore());
+
+	document.querySelector('[data-store-reset]')?.addEventListener('click', () => {
+		resetStoreSave();
+		paintStore(0);
 	});
 
 	// Start the 3D preview as soon as the card is near the viewport.
