@@ -1,0 +1,131 @@
+---
+import { GALLERY_PHOTO_COUNT } from '../../data/gallery';
+---
+
+<section class="gallery-experience" data-gallery-root aria-label="RN Racing photo gallery">
+	<div class="gallery-stage" data-gallery-stage>
+		<div class="gallery-stage__atmosphere" aria-hidden="true"></div>
+		<div class="gallery-halo" data-gallery-halo aria-hidden="true">
+			<img src="/gallery-book/blue-halo.svg" alt="" width="1200" height="500" />
+		</div>
+		<div class="gallery-motes" data-gallery-motes aria-hidden="true"></div>
+
+		<div class="gallery-book-rig" data-gallery-rig>
+			<div class="gallery-book-shell" data-gallery-shell>
+				<div class="gallery-book-thickness" aria-hidden="true">
+					<span class="gallery-book-thickness__spine"></span>
+					<span class="gallery-book-thickness__block"></span>
+				</div>
+				<div class="gallery-book-preview" data-gallery-preview aria-hidden="true">
+					<div class="gallery-cover">
+						<img class="gallery-cover__frame" src="/gallery-book/cover-frame.svg" alt="" />
+						<div class="gallery-cover__content">
+							<img
+								class="gallery-cover__logo"
+								src="/rn-racing-logo.png"
+								alt=""
+								width="512"
+								height="512"
+							/>
+							<p class="gallery-cover__title">GALLERY</p>
+							<p class="gallery-cover__caption">RN RACING · #711</p>
+						</div>
+						<div class="gallery-cover__shimmer" data-gallery-preview-shimmer>
+							<img src="/gallery-book/shimmer.svg" alt="" width="900" height="1200" />
+						</div>
+					</div>
+				</div>
+				<div class="gallery-book" data-gallery-book></div>
+			</div>
+		</div>
+
+		<div class="gallery-page-source" data-gallery-page-source hidden>
+			<div class="gallery-page gallery-page--cover" data-gallery-cover-page data-density="hard">
+				<div class="gallery-cover">
+					<img class="gallery-cover__frame" src="/gallery-book/cover-frame.svg" alt="" aria-hidden="true" />
+					<div class="gallery-cover__content">
+						<img
+							class="gallery-cover__logo"
+							src="/rn-racing-logo.png"
+							alt="RN Racing"
+							width="512"
+							height="512"
+						/>
+						<p class="gallery-cover__title">GALLERY</p>
+						<p class="gallery-cover__caption">RN RACING · #711</p>
+					</div>
+					<div class="gallery-cover__shimmer" data-gallery-shimmer aria-hidden="true">
+						<img src="/gallery-book/shimmer.svg" alt="" width="900" height="1200" />
+					</div>
+				</div>
+			</div>
+
+			<div class="gallery-page gallery-page--end" data-gallery-end-page>
+				<div class="gallery-page__surface gallery-page__surface--end">
+					<p class="gallery-end__mark">RN</p>
+					<p class="gallery-end__text">End of album</p>
+					<p class="gallery-end__caption">RN Racing · #711</p>
+				</div>
+				<div class="gallery-page__grain" aria-hidden="true"></div>
+			</div>
+
+			<div class="gallery-page gallery-page--rear" data-gallery-rear-page data-density="hard">
+				<div class="gallery-cover gallery-cover--rear">
+					<img class="gallery-cover__frame" src="/gallery-book/cover-frame.svg" alt="" aria-hidden="true" />
+					<div class="gallery-cover__content gallery-cover__content--rear">
+						<img
+							class="gallery-cover__logo gallery-cover__logo--small"
+							src="/rn-racing-logo.png"
+							alt=""
+							aria-hidden="true"
+							width="512"
+							height="512"
+						/>
+						<p class="gallery-cover__caption">RN RACING</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="gallery-controls" data-gallery-controls>
+			<button type="button" class="gallery-nav-btn" data-gallery-prev aria-label="Previous page" disabled>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path
+						d="M15.5 4.5 8 12l7.5 7.5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.25"
+						stroke-linecap="round"
+						stroke-linejoin="round"></path>
+				</svg>
+			</button>
+			<div class="gallery-counter-stack">
+				<p class="gallery-counter" data-gallery-counter aria-live="polite">— / —</p>
+				<p class="gallery-photo-range" data-gallery-photo-range>{GALLERY_PHOTO_COUNT} photographs</p>
+			</div>
+			<button type="button" class="gallery-nav-btn" data-gallery-next aria-label="Next page" disabled>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path
+						d="M8.5 4.5 16 12l-7.5 7.5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.25"
+						stroke-linecap="round"
+						stroke-linejoin="round"></path>
+				</svg>
+			</button>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { bindGalleryPhotoTriggers, initGalleryBook, initGalleryLightbox } from '../../lib/gallery-book';
+
+	const root = document.querySelector<HTMLElement>('[data-gallery-root]');
+	const lightboxRoot = document.querySelector<HTMLElement>('[data-gallery-lightbox]');
+	if (root && lightboxRoot) {
+		const lightbox = initGalleryLightbox(lightboxRoot);
+		bindGalleryPhotoTriggers(document, lightbox);
+		initGalleryBook(root);
+	}
+</script>

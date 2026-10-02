@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GalleryBook from '../components/gallery/GalleryBook.astro';
+import GalleryLightbox from '../components/gallery/GalleryLightbox.astro';
+import { getPage, pageTitle } from '../data/site';
+import 'page-flip/src/Style/stPageFlip.css';
+import '../styles/pages/gallery.css';
+
+const page = getPage('/gallery');
+---
+
+<BaseLayout
+	fullWidth
+	title={pageTitle(page.heading)}
+	description="RN Racing gallery — championship photo album from the paddock and the track."
+>
+	<GalleryBook />
+	<GalleryLightbox />
+</BaseLayout>

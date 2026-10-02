@@ -1,0 +1,24 @@
+---
+/**
+ * Markup contract for dynamically generated photo pages.
+ * Pages are built at runtime by `src/lib/gallery-book.ts` after the layout engine
+ * inspects each photograph's natural dimensions. This component documents the
+ * structure and can be used as a static reference in tests or Story-like previews.
+ */
+interface Props {
+	template?: string;
+	pageNumber?: number;
+}
+
+const { template = 'hero', pageNumber = 1 } = Astro.props;
+---
+
+<div class="gallery-page gallery-page--photo" data-template={template}>
+	<div class="gallery-page__surface">
+		<div class={`gallery-collage gallery-collage--${template}`}>
+			<slot />
+		</div>
+		<span class="gallery-page__number" aria-hidden="true">{String(pageNumber).padStart(2, '0')}</span>
+	</div>
+	<div class="gallery-page__grain" aria-hidden="true"></div>
+</div>
