@@ -173,6 +173,12 @@ const PAINT_STROKES = [
 	<div class="reveal-flash" id="reveal-flash" aria-hidden="true"></div>
 	<canvas class="reveal-shrapnel" id="reveal-shrapnel" aria-hidden="true"></canvas>
 	<p class="reveal-toast" id="reveal-toast" aria-live="polite"></p>
+	<ul class="reveal-rules" aria-label="Rules">
+		<li>Slice the lemons</li>
+		<li>Don’t slice the koi</li>
+		<li>Drop {GAME_RULES.maxMisses} and you’re out</li>
+		<li>Every slice is 1 store credit</li>
+	</ul>
 </div>
 
 <div class="reveal-hud">
@@ -219,6 +225,7 @@ const PAINT_STROKES = [
 				))
 			}
 		</div>
+		<p class="reveal-best" id="reveal-best" aria-live="off">Best <span id="reveal-best-value">0</span></p>
 	</div>
 </div>
 
@@ -283,6 +290,10 @@ const PAINT_STROKES = [
 					<div>
 						<dt>Best</dt>
 						<dd id="reveal-over-best">0</dd>
+					</div>
+					<div>
+						<dt>Credit</dt>
+						<dd id="reveal-over-credit">0</dd>
 					</div>
 				</dl>
 				<p class="reveal-over__unlock" id="reveal-over-unlock"></p>
@@ -789,6 +800,30 @@ const PAINT_STROKES = [
 		transition: opacity 0.35s ease-out;
 	}
 
+	.reveal-best {
+		margin: 0;
+		padding: 3px 10px;
+		border-radius: 999px;
+		background: rgba(20, 10, 4, 0.72);
+		color: #fff4dc;
+		font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+		font-size: clamp(0.8rem, 1.4vw, 0.95rem);
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		font-variant-numeric: tabular-nums;
+		opacity: 0;
+		transition: opacity 0.35s ease-out;
+	}
+
+	.reveal-best span {
+		color: #f4c542;
+	}
+
+	.reveal-best.is-visible {
+		opacity: 1;
+	}
+
 	.reveal-strikes.is-visible {
 		opacity: 1;
 	}
@@ -907,6 +942,53 @@ const PAINT_STROKES = [
 		}
 	}
 
+	/* Rules stay pinned at the top centre, between the HUD corners, while a run is live. */
+	.reveal-rules {
+		position: absolute;
+		z-index: 8;
+		top: max(18px, env(safe-area-inset-top, 0px));
+		left: 50%;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px 14px;
+		width: max-content;
+		max-width: min(46vw, 560px);
+		margin: 0;
+		padding: 8px 16px;
+		border-radius: 14px;
+		background: rgba(20, 10, 4, 0.72);
+		color: #fff4dc;
+		font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+		font-size: clamp(0.85rem, 1.6vw, 1rem);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		list-style: none;
+		box-sizing: border-box;
+		opacity: 0;
+		transform: translateX(-50%);
+		transition: opacity 0.3s ease-out;
+		pointer-events: none;
+	}
+
+	.reveal-rules li + li::before {
+		content: '·';
+		margin-right: 14px;
+		color: #f4c542;
+	}
+
+	.reveal-stage.is-game-active .reveal-rules {
+		opacity: 1;
+	}
+
+	/* No room between the HUD corners on narrow screens; the start screen already lists the rules. */
+	@media (max-width: 760px) {
+		.reveal-rules {
+			display: none;
+		}
+	}
+
 	.reveal-toast {
 		position: absolute;
 		left: 50%;
@@ -1000,7 +1082,7 @@ const PAINT_STROKES = [
 
 	.reveal-over__stats {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: repeat(3, 1fr);
 		gap: 8px;
 		margin: 0 0 12px;
 	}
@@ -1233,7 +1315,7 @@ const PAINT_STROKES = [
 
 <script>
 	import type { CreateTypes, Shape } from 'canvas-confetti';
-	import { GAME_RULES, STORE_ITEMS, readBestScore, recordScore } from '../data/store';
+	import { GAME_RULES, STORE_ITEMS, earnCredit, readSave, recordRun } from '../data/store';
 
 	type Vec = { x: number; y: number };
 
@@ -1472,10 +1554,13 @@ const PAINT_STROKES = [
 	const overEl = document.getElementById('reveal-over') as HTMLElement;
 	const overScoreEl = document.getElementById('reveal-over-score') as HTMLElement;
 	const overBestEl = document.getElementById('reveal-over-best') as HTMLElement;
+	const overCreditEl = document.getElementById('reveal-over-credit') as HTMLElement;
 	const overUnlockEl = document.getElementById('reveal-over-unlock') as HTMLElement;
 	const overRetryBtn = document.getElementById('reveal-over-retry') as HTMLButtonElement;
 	const overTitleEl = document.getElementById('reveal-over-title') as HTMLElement;
 	const strikesEl = document.getElementById('reveal-strikes') as HTMLElement;
+	const bestEl = document.getElementById('reveal-best') as HTMLElement;
+	const bestValueEl = document.getElementById('reveal-best-value') as HTMLElement;
 	const strikeEls = Array.from(strikesEl.querySelectorAll<HTMLImageElement>('.reveal-strike'));
 
 	if (new URLSearchParams(window.location.search).get('from') === 'store') {
@@ -1568,6 +1653,7 @@ const PAINT_STROKES = [
 	let pendingLaunches: PendingLaunch[] = [];
 	let nextWaveAt = 0;
 	let runStartedAt = 0;
+	let runStartCredit = 0;
 	let runStartBest = 0;
 	let gameOver = false;
 	let misses = 0;
@@ -1844,8 +1930,14 @@ const PAINT_STROKES = [
 		}
 	}
 
+	function renderBest(best: number) {
+		bestValueEl.textContent = String(best);
+	}
+
 	function showScoreHud() {
 		strikesEl.classList.add('is-visible');
+		renderBest(readSave().best);
+		bestEl.classList.add('is-visible');
 		scoreVisible = true;
 		renderScoreDigits(score, false);
 		scoreEl.classList.add('is-visible');
@@ -2133,14 +2225,16 @@ const PAINT_STROKES = [
 		toastTimer = window.setTimeout(() => toastEl.classList.remove('is-visible'), ms);
 	}
 
-	function unlockMessage(best: number) {
-		const fresh = STORE_ITEMS.filter((item) => runStartBest < item.cost && best >= item.cost);
+	function unlockMessage(credit: number, owned: string[]) {
+		const unowned = STORE_ITEMS.filter((item) => !owned.includes(item.id));
+		if (!unowned.length) return 'You own everything in the store. Now you’re just showing off.';
+		const fresh = unowned.filter((item) => runStartCredit < item.cost && credit >= item.cost);
 		if (fresh.length) {
-			return `Unlocked in the store: ${fresh.map((item) => item.name).join(', ')}!`;
+			return `Now affordable in the store: ${fresh.map((item) => item.name).join(', ')}!`;
 		}
-		const next = [...STORE_ITEMS].sort((a, b) => a.cost - b.cost).find((item) => best < item.cost);
-		if (!next) return 'Everything in the store is unlocked. Now you’re just showing off.';
-		return `Score ${next.cost} in one run to unlock ${next.name}.`;
+		const next = [...unowned].sort((a, b) => a.cost - b.cost).find((item) => credit < item.cost);
+		if (!next) return 'You can afford everything left in the store. Go spend it.';
+		return `Earn ${next.cost - credit} more credit to buy ${next.name}.`;
 	}
 
 	function renderStrikes(popIndex = -1) {
@@ -2384,11 +2478,13 @@ const PAINT_STROKES = [
 		pendingLaunches = [];
 		shakeStage();
 
-		const best = recordScore(score);
-		overTitleEl.textContent = title;
+		const { save, place } = recordRun(score);
+		overTitleEl.textContent = place === 1 && score > runStartBest ? `New high score! ${title}` : title;
 		overScoreEl.textContent = String(score);
-		overBestEl.textContent = String(best);
-		overUnlockEl.textContent = unlockMessage(best);
+		overBestEl.textContent = String(save.best);
+		overCreditEl.textContent = String(save.credit);
+		overUnlockEl.textContent =
+			place > 1 ? `#${place} on your high scores. ${unlockMessage(save.credit, save.owned)}` : unlockMessage(save.credit, save.owned);
 
 		window.setTimeout(() => {
 			stage.classList.remove('is-game-active', 'is-shaking');
@@ -2399,7 +2495,9 @@ const PAINT_STROKES = [
 
 	function startRun(nowSec: number) {
 		runStartedAt = nowSec;
-		runStartBest = readBestScore();
+		const startSave = readSave();
+		runStartCredit = startSave.credit;
+		runStartBest = startSave.best;
 		gameOver = false;
 		score = 0;
 		misses = 0;
@@ -2517,7 +2615,7 @@ const PAINT_STROKES = [
 
 		score += 1;
 		renderScoreDigits(score, true);
-		recordScore(score);
+		renderBest(earnCredit(1, score).best);
 
 		f.halfAState = {
 			x: f.lemon.x,

@@ -13,17 +13,12 @@ const PLAY_HREF = '/design?from=store';
 	title={pageTitle(page.heading)}
 	description="RN Racing digital goods. No money accepted — pay with your Fruit Ninja high score."
 >
-	<PageHeader title={page.heading}>
+	<PageHeader title={page.heading} wide>
 		<Fragment slot="lead">
-			<span class="store-lead">
-				Thanks to the overwhelming success of our{' '}
-				<a href="https://www.instagram.com/rosiesheroes/" target="_blank" rel="noopener noreferrer"
-					>fundraiser</a
-				>,{' '}
-				<strong>we don't accept money in our store.</strong> We take high scores. Slice lemons in
-				the dojo, dodge the koi, don't drop {GAME_RULES.maxMisses}, and your best run unlocks the
-				goods.
-			</span>
+			Thanks to the overwhelming success of our <a href="/community">fundraiser</a>, we don't
+			accept money in our store. We take high scores. Slice lemons in the dojo, dodge the koi,
+			don't drop {GAME_RULES.maxMisses}. Every lemon you slice is a point of store credit, and
+			store credit buys the goods.
 		</Fragment>
 	</PageHeader>
 
@@ -39,10 +34,10 @@ const PLAY_HREF = '/design?from=store';
 		</p>
 	</aside>
 
-	<section class="store-wallet" aria-label="Your score">
+	<section class="store-wallet" aria-label="Your store credit">
 		<div>
-			<p class="store-wallet__label">Your best run</p>
-			<p class="store-wallet__score" data-store-best>0</p>
+			<p class="store-wallet__label">Store credit</p>
+			<p class="store-wallet__score" data-store-credit>0</p>
 		</div>
 		<div class="store-wallet__actions">
 			<a class="btn-primary" href={PLAY_HREF}>Play the dojo</a>
@@ -50,11 +45,25 @@ const PLAY_HREF = '/design?from=store';
 		</div>
 	</section>
 
+	<section class="store-scores" aria-labelledby="store-scores-title">
+		<h2 class="store-wallet__label" id="store-scores-title">High scores</h2>
+		<ol class="store-scores__list" data-store-scores></ol>
+		<p class="store-scores__empty" data-store-scores-empty>
+			No runs yet. Finish a run in the dojo to post your first score.
+		</p>
+	</section>
+
 	<ul class="store-grid" aria-label="Digital goods">
 		{
 			STORE_ITEMS.map((item) => (
 				<li>
-					<article class="store-card is-locked" data-store-item data-cost={item.cost} data-file={item.file}>
+					<article
+						class="store-card is-locked"
+						data-store-item
+						data-id={item.id}
+						data-cost={item.cost}
+						data-file={item.file}
+					>
 						<div class:list={['store-card__media', { 'store-card__media--light': item.lightPreview }]}>
 							<span class="store-card__deal">−{STORE_SALE.percentOff}%</span>
 							{item.thumb ? (
@@ -105,45 +114,88 @@ const PLAY_HREF = '/design?from=store';
 </BaseLayout>
 
 <script>
-	import { readBestScore, resetStoreSave } from '../data/store';
+	import { HIGH_SCORE_LIMIT, buyItem, readSave, resetStoreSave, type StoreSave } from '../data/store';
 	import { initStlViewer } from '../lib/stl-viewer';
 
-	const PLAY_LABEL = 'Play to unlock';
-
-	function paintStore(best: number) {
-		document.querySelectorAll<HTMLElement>('[data-store-best]').forEach((el) => {
-			el.textContent = String(best);
+	function paintStore(save: StoreSave) {
+		document.querySelectorAll<HTMLElement>('[data-store-credit]').forEach((el) => {
+			el.textContent = save.credit.toLocaleString('en-US');
 		});
+		paintHighScores(save);
 
 		document.querySelectorAll<HTMLElement>('[data-store-item]').forEach((card) => {
+			const id = card.dataset.id ?? '';
 			const cost = Number(card.dataset.cost);
 			const file = card.dataset.file ?? '';
+			const owned = save.owned.includes(id);
 			const btn = card.querySelector<HTMLAnchorElement>('[data-store-btn]');
 			const progress = card.querySelector<HTMLElement>('[data-store-progress]');
-			if (progress) progress.style.width = `${Math.min(100, (best / cost) * 100)}%`;
-			if (!btn || best < cost) {
-				card.classList.add('is-locked');
-				card.classList.remove('is-unlocked');
-				if (btn) {
-					btn.href = '/design?from=store';
-					btn.removeAttribute('download');
-					btn.textContent = `${PLAY_LABEL} · ${cost - best} to go`;
-				}
-				return;
+			if (progress) progress.style.width = `${owned ? 100 : Math.min(100, (save.credit / cost) * 100)}%`;
+			card.classList.toggle('is-locked', !owned);
+			card.classList.toggle('is-unlocked', owned);
+			if (!btn) return;
+			delete btn.dataset.buy;
+			btn.removeAttribute('download');
+			if (owned) {
+				btn.href = file;
+				btn.setAttribute('download', file.split('/').pop() ?? '');
+				btn.textContent = 'Download';
+			} else if (save.credit >= cost) {
+				btn.href = file;
+				btn.dataset.buy = id;
+				btn.textContent = `Buy for ${cost.toLocaleString('en-US')}`;
+			} else {
+				btn.href = '/design?from=store';
+				btn.textContent = `Play to earn · ${(cost - save.credit).toLocaleString('en-US')} to go`;
 			}
-			card.classList.remove('is-locked');
-			card.classList.add('is-unlocked');
-			btn.href = file;
-			btn.setAttribute('download', file.split('/').pop() ?? '');
-			btn.textContent = 'Download';
 		});
 	}
 
-	paintStore(readBestScore());
+	const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+	function paintHighScores(save: StoreSave) {
+		const list = document.querySelector<HTMLOListElement>('[data-store-scores]');
+		const empty = document.querySelector<HTMLElement>('[data-store-scores-empty]');
+		if (!list || !empty) return;
+		list.replaceChildren(
+			...save.highScores.slice(0, HIGH_SCORE_LIMIT).map((run, i) => {
+				const li = document.createElement('li');
+				li.className = 'store-scores__row';
+				const rank = document.createElement('span');
+				rank.className = 'store-scores__rank';
+				rank.textContent = `#${i + 1}`;
+				const score = document.createElement('span');
+				score.className = 'store-scores__score';
+				score.textContent = run.score.toLocaleString('en-US');
+				const date = document.createElement('time');
+				date.className = 'store-scores__date';
+				if (run.at) {
+					date.dateTime = new Date(run.at).toISOString();
+					date.textContent = dateFormat.format(run.at);
+				}
+				li.append(rank, score, date);
+				return li;
+			}),
+		);
+		list.hidden = save.highScores.length === 0;
+		empty.hidden = save.highScores.length > 0;
+	}
+
+	paintStore(readSave());
+
+	// Buying spends store credit, then starts the download from the same click.
+	document.addEventListener('click', (event) => {
+		const btn = (event.target as Element | null)?.closest<HTMLAnchorElement>('[data-store-btn][data-buy]');
+		if (!btn) return;
+		event.preventDefault();
+		const save = buyItem(btn.dataset.buy ?? '');
+		paintStore(save ?? readSave());
+		if (save) btn.click();
+	});
 
 	document.querySelector('[data-store-reset]')?.addEventListener('click', () => {
 		resetStoreSave();
-		paintStore(0);
+		paintStore(readSave());
 	});
 
 	// Start the 3D preview as soon as the card is near the viewport.
