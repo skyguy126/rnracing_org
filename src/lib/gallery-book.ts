@@ -79,10 +79,8 @@ function nextFrame() {
 	});
 }
 
-function isIOSDevice() {
-	const ua = navigator.userAgent;
-	if (/iPad|iPhone|iPod/i.test(ua)) return true;
-	return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+function isHandheld() {
+	return window.matchMedia('(pointer: coarse) and (hover: none), (max-width: 760px)').matches;
 }
 
 const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
@@ -256,7 +254,7 @@ function measureBook(camera: HTMLElement): MeasuredBook {
 		spread.width * 2 <= availableW + 1 &&
 		spread.height <= availableH + 1;
 
-	if (spreadUseful) {
+	if (!isHandheld() && spreadUseful) {
 		return {
 			mode: 'spread',
 			width: Math.round(spread.width),
@@ -515,7 +513,7 @@ function syncShell(els: GalleryElements, runtime: BookRuntime, index: number, an
 	const pose = coverPose(runtime, index);
 	els.root.dataset.bookSide = pose.side;
 	const vars = { x: pose.x, clipPath: pose.clip };
-	const instant = !animate || prefersReducedMotion() || els.root.dataset.lite === 'true';
+	const instant = !animate || prefersReducedMotion();
 	if (instant) {
 		gsap.set(els.shell, vars);
 		return;
@@ -528,7 +526,7 @@ function syncShell(els: GalleryElements, runtime: BookRuntime, index: number, an
 	});
 }
 
-async function playIntroReveal(els: GalleryElements, lite: boolean): Promise<void> {
+async function playIntroReveal(els: GalleryElements): Promise<void> {
 	const reduced = prefersReducedMotion();
 	els.root.dataset.intro = 'playing';
 	els.shimmer = els.book.querySelector<HTMLElement>('[data-gallery-shimmer]');
@@ -537,21 +535,6 @@ async function playIntroReveal(els: GalleryElements, lite: boolean): Promise<voi
 		gsap.set(els.stage, { opacity: 1 });
 		gsap.set(els.halo, { opacity: 0.32, scale: 1 });
 		gsap.set(els.rig, { opacity: 1, y: 0, rotateX: 0, rotateY: 0, scale: 1 });
-		return;
-	}
-
-	if (lite) {
-		gsap.set(els.stage, { opacity: 0 });
-		gsap.set(els.halo, { opacity: 0, scale: 0.92 });
-		gsap.set(els.rig, { opacity: 1, y: 28, scale: 0.98 });
-		const liteTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-		liteTl.to(els.stage, { opacity: 1, duration: 0.35 }, 0);
-		liteTl.to(els.halo, { opacity: 0.35, scale: 1, duration: 0.55 }, 0.05);
-		liteTl.to(els.rig, { y: 0, scale: 1, duration: 0.7 }, 0.05);
-		await liteTl.then(() => undefined);
-		gsap.set(els.stage, { opacity: 1 });
-		gsap.set(els.rig, { y: 0, scale: 1 });
-		gsap.set(els.halo, { opacity: 0.35, scale: 1 });
 		return;
 	}
 
@@ -696,7 +679,7 @@ function destroyPageFlip(book: HTMLElement, pageFlip: PageFlip) {
 	if (parent && !book.isConnected) parent.insertBefore(book, next);
 }
 
-function createPageFlip(book: HTMLElement, width: number, height: number, mode: BookMode, lite: boolean) {
+function createPageFlip(book: HTMLElement, width: number, height: number, mode: BookMode) {
 	const bookWidth = mode === 'spread' ? width * 2 : width;
 	book.style.width = `${bookWidth}px`;
 	book.style.height = `${height}px`;
@@ -710,7 +693,7 @@ function createPageFlip(book: HTMLElement, width: number, height: number, mode: 
 		maxWidth: width,
 		minHeight: height,
 		maxHeight: height,
-		drawShadow: !lite,
+		drawShadow: true,
 		flippingTime: prefersReducedMotion() ? 160 : FLIP_MS,
 		usePortrait: mode === 'single',
 		startZIndex: 2,
@@ -862,9 +845,6 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	let view: GalleryViewState = { mode: 'book' };
 	let focusedTrigger: HTMLElement | null = null;
 	let lastDirection: 1 | -1 = 1;
-	const lite = isIOSDevice();
-	flipLoopStopWhenIdle = lite;
-	if (lite) els.root.dataset.lite = 'true';
 
 	const navigationLocked = () => view.mode !== 'book' || els.root.dataset.view === 'returning';
 
@@ -884,17 +864,6 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 
 	const startFloat = () => {
 		if (floatTween || prefersReducedMotion() || els.root.dataset.view !== 'book') return;
-		if (lite) {
-			floatTween = gsap.to(els.rig, {
-				y: 8,
-				duration: 4.8,
-				ease: 'sine.inOut',
-				yoyo: true,
-				repeat: -1,
-				overwrite: 'auto',
-			});
-			return;
-		}
 		floatTween = gsap.to(els.rig, {
 			y: 12,
 			x: 8,
@@ -983,7 +952,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		els.book.replaceChildren();
 		if (els.preview) els.preview.hidden = true;
 
-		const pageFlip = createPageFlip(els.book, size.width, size.height, size.mode, lite);
+		const pageFlip = createPageFlip(els.book, size.width, size.height, size.mode);
 		const nextRuntime: BookRuntime = {
 			pageFlip,
 			pages,
@@ -1146,11 +1115,11 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		flipWatch = window.setTimeout(settleFlip, FLIP_MS + 700);
 		resumeFlipLoop();
 		if (direction === 'home') {
-			if (prefersReducedMotion() || lite) runtime.pageFlip.turnToPage(0);
+			if (prefersReducedMotion()) runtime.pageFlip.turnToPage(0);
 			else runtime.pageFlip.flip(0, 'bottom');
 			return;
 		}
-		if (prefersReducedMotion() || lite) {
+		if (prefersReducedMotion()) {
 			if (direction > 0) runtime.pageFlip.turnToNextPage();
 			else runtime.pageFlip.turnToPrevPage();
 		} else if (direction > 0) {
@@ -1189,7 +1158,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		try {
 			await mountBook(null, false);
 			if (destroyed) return;
-			await playIntroReveal(els, lite);
+			await playIntroReveal(els);
 		} catch (error) {
 			console.error('Gallery book failed to mount', error);
 			gsap.set(els.stage, { opacity: 1 });

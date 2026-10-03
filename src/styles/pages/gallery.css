@@ -848,22 +848,6 @@
 	will-change: transform;
 }
 
-.gallery-experience[data-lite='true'] .gallery-blob {
-	filter: none;
-	mix-blend-mode: normal;
-	opacity: 0.22;
-	animation: none;
-}
-
-.gallery-experience[data-lite='true'] .gallery-halo {
-	filter: none;
-	mix-blend-mode: normal;
-}
-
-.gallery-experience[data-lite='true'] .gallery-motes {
-	display: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
 	.gallery-mote,
 	.gallery-motes[data-live='true'] .gallery-mote {
