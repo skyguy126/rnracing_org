@@ -34,6 +34,21 @@ function nextFrame() {
 	});
 }
 
+async function loadThree() {
+	const load = () =>
+		Promise.all([import('three'), import('three/addons/loaders/SVGLoader.js')] as const);
+	try {
+		return await load();
+	} catch (error) {
+		await wait(500);
+		try {
+			return await load();
+		} catch {
+			throw error;
+		}
+	}
+}
+
 function watchNavOffset() {
 	const header = document.querySelector<HTMLElement>('.site-header');
 
@@ -372,8 +387,7 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 	async function playWebGL(gsap: GsapModule) {
 		webglCanvas.hidden = false;
 		webglCanvas.style.opacity = '';
-		const THREE = await import('three');
-		const { SVGLoader } = await import('three/addons/loaders/SVGLoader.js');
+		const [THREE, { SVGLoader }] = await loadThree();
 		const response = await fetch(EMBLEM_URL);
 		if (!response.ok) throw new Error('Could not fetch the Season 2 emblem');
 		const svgText = await response.text();
@@ -841,6 +855,13 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 			if (!face.getAttribute('src')) face.src = EMBLEM_URL;
 		}
 		fallback.hidden = false;
+		if (!reduced) {
+			try {
+				await armConfetti();
+			} catch (error) {
+				console.warn('Season 2 confetti failed to start.', error);
+			}
+		}
 		await wait(reduced ? 20 : 80);
 		if (dismissed) return;
 
@@ -895,6 +916,7 @@ function createSession(overlay: HTMLElement, reduced: boolean) {
 			);
 			tl.to(coin, { scale: restScale, duration: 0.7, ease: 'power2.out' }, 3.72);
 			tl.to(caption, { autoAlpha: 1, duration: 0.75, ease: 'power1.out' }, 4.15);
+			scheduleConfetti(gsap);
 			tl.call(() => {
 				if (dismissed) return;
 				coin.classList.add('is-idle');

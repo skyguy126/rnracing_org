@@ -48,7 +48,15 @@ html {
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	background: var(--bg);
+	background-color: var(--bg);
 	scrollbar-gutter: stable;
+}
+
+button,
+a,
+input,
+[role='button'] {
+	-webkit-tap-highlight-color: transparent;
 }
 
 body {

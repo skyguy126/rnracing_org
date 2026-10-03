@@ -8,4 +8,9 @@ export default defineConfig({
 	redirects: {
 		'/reveal': '/design',
 	},
+	vite: {
+		optimizeDeps: {
+			include: ['three', 'three/addons/loaders/SVGLoader.js', 'gsap', 'canvas-confetti'],
+		},
+	},
 });

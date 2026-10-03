@@ -1,3 +1,5 @@
+import { pinSafariChrome, watchSafariChrome } from './theme';
+
 const MOBILE_NAV_QUERY = '(max-width: 959px)';
 
 export function initNavMenu(root: HTMLElement) {
@@ -7,11 +9,14 @@ export function initNavMenu(root: HTMLElement) {
 
 	if (!toggle || !panel) return;
 
+	watchSafariChrome();
+
 	const close = () => {
 		panel.hidden = true;
 		toggle.setAttribute('aria-expanded', 'false');
 		toggle.setAttribute('aria-label', 'Open menu');
 		document.body.classList.remove('nav-menu-open');
+		pinSafariChrome();
 	};
 
 	const open = () => {
@@ -19,6 +24,7 @@ export function initNavMenu(root: HTMLElement) {
 		toggle.setAttribute('aria-expanded', 'true');
 		toggle.setAttribute('aria-label', 'Close menu');
 		document.body.classList.add('nav-menu-open');
+		pinSafariChrome();
 	};
 
 	toggle.addEventListener('click', () => {

@@ -7,12 +7,39 @@ export const THEME_CHROME: Record<Theme, string> = {
 	dark: '#09090b',
 };
 
+export function pinSafariChrome() {
+	const theme: Theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+	applySafariChrome(theme);
+}
+
+let safariChromeWatch: number | undefined;
+
+function restoreSafariChrome() {
+	pinSafariChrome();
+	window.cancelAnimationFrame(safariChromeWatch ?? 0);
+	safariChromeWatch = window.requestAnimationFrame(() => {
+		pinSafariChrome();
+		window.setTimeout(pinSafariChrome, 60);
+		window.setTimeout(pinSafariChrome, 280);
+	});
+}
+
+/** iOS Safari tints the toolbars from the control that was just touched. Put the page color back. */
+export function watchSafariChrome() {
+	if (typeof window === 'undefined') return;
+	const root = document.documentElement;
+	if (root.dataset.safariChrome === 'watched') return;
+	root.dataset.safariChrome = 'watched';
+	document.addEventListener('touchend', restoreSafariChrome, { capture: true, passive: true });
+	document.addEventListener('touchcancel', restoreSafariChrome, { capture: true, passive: true });
+}
+
 function applySafariChrome(theme: Theme) {
 	const themeColor = document.querySelector('meta[name="theme-color"]');
 	themeColor?.setAttribute('content', THEME_CHROME[theme]);
 
 	const statusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-	statusBar?.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
+	statusBar?.setAttribute('content', theme === 'dark' ? 'black' : 'default');
 
 	document.documentElement.style.colorScheme = theme;
 }

@@ -16,7 +16,7 @@
 		max(0.75rem, env(safe-area-inset-left));
 	border: 0;
 	border-bottom: 1px solid color-mix(in srgb, var(--blue) 72%, #000);
-	background: var(--blue);
+	background-color: var(--bg);
 	box-shadow: none;
 	color: #fff;
 	cursor: pointer;
@@ -35,14 +35,24 @@
 
 .s2-banner__text {
 	position: relative;
-	z-index: 1;
+	z-index: 2;
 	display: block;
 	max-width: 72rem;
+}
+
+.s2-banner::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background: var(--blue);
+	pointer-events: none;
 }
 
 .s2-banner::before {
 	content: '';
 	position: absolute;
+	z-index: 1;
 	inset: 0;
 	background: linear-gradient(
 		105deg,
@@ -54,12 +64,21 @@
 	pointer-events: none;
 }
 
-.s2-banner:hover {
+.s2-banner:hover,
+.s2-banner:active {
+	background-color: var(--bg);
+}
+
+.s2-banner:hover::after {
 	background: var(--blue-soft);
 }
 
-.s2-banner:active {
+.s2-banner:active::after {
 	background: color-mix(in srgb, var(--blue) 78%, #000);
+}
+
+body.nav-menu-open .s2-banner {
+	visibility: hidden;
 }
 
 .s2-banner:focus-visible {
@@ -157,6 +176,8 @@ html.s2-scroll-lock body {
 	pointer-events: none;
 }
 
+.s2-webgl[hidden],
+.s2-confetti[hidden],
 .s2-fallback[hidden] {
 	display: none !important;
 }
@@ -252,16 +273,17 @@ html.s2-scroll-lock body {
 .s2-coin.is-idle::after {
 	content: '';
 	position: absolute;
-	inset: -6%;
+	inset: 0;
 	background: linear-gradient(
 		105deg,
-		transparent 32%,
-		rgba(255, 255, 255, 0.16) 44%,
+		transparent 18%,
+		rgba(255, 255, 255, 0.16) 42%,
 		rgba(255, 255, 255, 0.55) 50%,
-		rgba(255, 255, 255, 0.16) 56%,
-		transparent 68%
+		rgba(255, 255, 255, 0.16) 58%,
+		transparent 82%
 	);
-	transform: translateX(-130%);
+	background-size: 240% 100%;
+	background-position: 120% 0;
 	pointer-events: none;
 	mix-blend-mode: screen;
 	animation: s2-coin-sheen 2.4s ease-in-out infinite alternate;
@@ -277,11 +299,11 @@ html.s2-scroll-lock body {
 
 @keyframes s2-coin-sheen {
 	from {
-		transform: translateX(-120%);
+		background-position: 120% 0;
 	}
 
 	to {
-		transform: translateX(120%);
+		background-position: -20% 0;
 	}
 }
 

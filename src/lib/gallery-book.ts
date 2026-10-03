@@ -79,10 +79,6 @@ function nextFrame() {
 	});
 }
 
-function isHandheld() {
-	return window.matchMedia('(pointer: coarse) and (hover: none), (max-width: 760px)').matches;
-}
-
 const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
 let flipLoopSession = 0;
 let flipLoopPaused = false;
@@ -248,25 +244,10 @@ function measureBook(camera: HTMLElement): MeasuredBook {
 	const availableH = Math.max(200, camera.clientHeight);
 
 	const spread = fitPage((availableW * 0.94) / 2, availableH * 0.9);
-	const spreadUseful =
-		spread.width >= 280 &&
-		spread.height >= 400 &&
-		spread.width * 2 <= availableW + 1 &&
-		spread.height <= availableH + 1;
-
-	if (!isHandheld() && spreadUseful) {
-		return {
-			mode: 'spread',
-			width: Math.round(spread.width),
-			height: Math.round(spread.height),
-		};
-	}
-
-	const single = fitPage(availableW * 0.98, availableH * 0.96);
 	return {
-		mode: 'single',
-		width: Math.max(140, Math.round(single.width)),
-		height: Math.max(200, Math.round(single.height)),
+		mode: 'spread',
+		width: Math.max(72, Math.round(spread.width)),
+		height: Math.max(100, Math.round(spread.height)),
 	};
 }
 
@@ -1206,6 +1187,14 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		void warmSpreads(runtime, runtime.pageFlip.getCurrentPageIndex(), 1);
 	});
 	els.prevBtn.addEventListener('click', () => beginFlip(-1));
+	els.homeBtn.addEventListener(
+		'touchend',
+		(event) => {
+			event.preventDefault();
+			goHome();
+		},
+		{ passive: false },
+	);
 	els.homeBtn.addEventListener('click', goHome);
 	els.nextBtn.addEventListener('click', () => beginFlip(1));
 

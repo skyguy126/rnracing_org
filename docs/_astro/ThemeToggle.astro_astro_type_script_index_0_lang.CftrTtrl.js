@@ -1,0 +1,1 @@
+import{t as e}from"./theme.tEMsbCtd.js";document.querySelectorAll(`[data-theme-toggle]`).forEach(t=>{e(t)});
