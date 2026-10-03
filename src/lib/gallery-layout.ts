@@ -232,8 +232,8 @@ function cropAmount(imageAspect: number, frameAspect: number): number {
 	return 1 - imageAspect / frameAspect;
 }
 
-function chooseObjectFit(imageAspect: number, frameAspect: number): 'cover' | 'contain' {
-	return cropAmount(imageAspect, frameAspect) <= 0.22 ? 'cover' : 'contain';
+function chooseObjectFit(): 'cover' {
+	return 'cover';
 }
 
 function scoreSlot(
@@ -245,7 +245,7 @@ function scoreSlot(
 	const frame = slotFrame(template, slot, geo);
 	const frameAspect = frame.w / frame.h;
 	const crop = cropAmount(photo.aspectRatio, frameAspect);
-	const objectFit = chooseObjectFit(photo.aspectRatio, frameAspect);
+	const objectFit = chooseObjectFit();
 	const area = (frame.w * frame.h) / Math.max(1, geo.usableWidth * geo.usableHeight);
 	const minEdge = Math.min(frame.w, frame.h);
 
@@ -411,7 +411,7 @@ export function createGalleryLayout(
 			pages.push({
 				photos: [photo],
 				template: 'hero',
-				slots: [{ photo, area: 'a', objectFit: 'contain' }],
+				slots: [{ photo, area: 'a', objectFit: 'cover' }],
 			});
 			cursor += 1;
 			continue;

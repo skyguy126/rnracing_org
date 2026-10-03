@@ -2,11 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import GalleryBook from '../components/gallery/GalleryBook.astro';
 import GalleryLightbox from '../components/gallery/GalleryLightbox.astro';
+import { galleryImages } from '../data/gallery';
 import { getPage, pageTitle } from '../data/site';
 import 'page-flip/src/Style/stPageFlip.css';
 import '../styles/pages/gallery.css';
 
 const page = getPage('/gallery');
+const prefetched = galleryImages.slice(0, 4);
 ---
 
 <BaseLayout
@@ -14,6 +16,19 @@ const page = getPage('/gallery');
 	title={pageTitle(page.heading)}
 	description="RN Racing gallery — championship photo album from the paddock and the track."
 >
+	<link slot="head" rel="preconnect" href="https://media.munixnet.org" />
+	<link slot="head" rel="dns-prefetch" href="https://media.munixnet.org" />
+	{
+		prefetched.map((image, index) => (
+			<link
+				slot="head"
+				rel="preload"
+				as="image"
+				href={image.src}
+				fetchpriority={index < 2 ? 'high' : 'low'}
+			/>
+		))
+	}
 	<GalleryBook />
 	<GalleryLightbox />
 </BaseLayout>

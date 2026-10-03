@@ -46,7 +46,6 @@ type GalleryElements = {
 	nextBtn: HTMLButtonElement;
 	counter: HTMLElement;
 	motes: HTMLElement;
-	hint: HTMLElement;
 	shimmer: HTMLElement | null;
 };
 
@@ -80,31 +79,148 @@ function nextFrame() {
 	});
 }
 
-const imageCache = new Map<string, HTMLImageElement>();
+function isIOSDevice() {
+	const ua = navigator.userAgent;
+	if (/iPad|iPhone|iPod/i.test(ua)) return true;
+	return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
 
-function cacheImage(src: string) {
-	const cached = imageCache.get(src);
-	if (cached) return cached;
+const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+let flipLoopSession = 0;
+let flipLoopPaused = false;
+let flipLoopStopWhenIdle = false;
+let flipLoopCallback: FrameRequestCallback | null = null;
+let flipLoopGuardInstalled = false;
+
+function isPageFlipFrame(callback: FrameRequestCallback) {
+	return Function.prototype.toString.call(callback).includes('this.render(');
+}
+
+function installFlipLoopGuard() {
+	if (flipLoopGuardInstalled) return;
+	flipLoopGuardInstalled = true;
+	window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+		if (!isPageFlipFrame(callback)) return nativeRequestAnimationFrame(callback);
+		const session = flipLoopSession;
+		flipLoopCallback = callback;
+		if (flipLoopPaused) return 0;
+		return nativeRequestAnimationFrame((time) => {
+			if (session !== flipLoopSession) return;
+			callback(time);
+		});
+	}) as typeof window.requestAnimationFrame;
+}
+
+function armFlipLoop() {
+	installFlipLoopGuard();
+	flipLoopPaused = false;
+}
+
+function pauseFlipLoop() {
+	if (flipLoopStopWhenIdle) flipLoopPaused = true;
+}
+
+function resumeFlipLoop() {
+	const wasPaused = flipLoopPaused;
+	flipLoopPaused = false;
+	if (!wasPaused) return;
+	const callback = flipLoopCallback;
+	const session = flipLoopSession;
+	if (!callback) return;
+	nativeRequestAnimationFrame((time) => {
+		if (session !== flipLoopSession) return;
+		callback(time);
+	});
+}
+
+function stopFlipLoop() {
+	flipLoopSession += 1;
+	flipLoopPaused = true;
+	flipLoopCallback = null;
+}
+
+const mountedBooks = new Set<HTMLElement>();
+
+type LivePhoto = {
+	img: HTMLImageElement;
+	ready: Promise<void>;
+};
+
+const livePhotos = new Map<string, LivePhoto>();
+let albumPrefetchId = 0;
+
+function retainImage(src: string) {
+	const existing = livePhotos.get(src);
+	if (existing) return existing.ready;
+
 	const img = new Image();
 	img.decoding = 'async';
+	img.fetchPriority = 'high';
+	let markReady = () => {};
+	const ready = new Promise<void>((resolve) => {
+		markReady = resolve;
+	}).then(async () => {
+		try {
+			await img.decode();
+		} catch {
+			/* the element can still paint from the network image */
+		}
+	});
+	img.addEventListener('load', () => markReady(), { once: true });
+	img.addEventListener('error', () => markReady(), { once: true });
 	img.src = src;
-	imageCache.set(src, img);
-	void img.decode?.().catch(() => undefined);
-	return img;
+	if (img.complete) markReady();
+	livePhotos.set(src, { img, ready });
+	return ready;
 }
 
-function preloadAllGalleryImages() {
-	for (const entry of galleryImages) cacheImage(entry.src);
+function releaseImage(src: string) {
+	const live = livePhotos.get(src);
+	if (!live) return;
+	live.img.removeAttribute('src');
+	livePhotos.delete(src);
 }
 
-preloadAllGalleryImages();
+function paintMountedBooks() {
+	for (const book of mountedBooks) {
+		if (!book.isConnected) {
+			mountedBooks.delete(book);
+			continue;
+		}
+		for (const node of book.querySelectorAll<HTMLImageElement>('img[data-gallery-src]')) {
+			const src = node.dataset.gallerySrc;
+			if (!src) continue;
+			if (livePhotos.has(src)) {
+				if (node.getAttribute('src') !== src) {
+					node.decoding = 'async';
+					node.src = src;
+				}
+			} else if (node.hasAttribute('src')) {
+				node.removeAttribute('src');
+			}
+		}
+	}
+}
 
 function whenCached(src: string) {
-	const img = cacheImage(src);
-	if (img.complete) return Promise.resolve();
-	return new Promise<void>((resolve) => {
-		img.addEventListener('load', () => resolve(), { once: true });
-		img.addEventListener('error', () => resolve(), { once: true });
+	return retainImage(src);
+}
+
+function prefetchAlbum() {
+	const schedule = window.requestIdleCallback ?? ((callback: IdleRequestCallback) => window.setTimeout(() => callback({ didTimeout: true, timeRemaining: () => 0 }), 400));
+	const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+	if (albumPrefetchId) cancel(albumPrefetchId);
+	albumPrefetchId = schedule(() => {
+		albumPrefetchId = 0;
+		const head = document.head;
+		for (const entry of galleryImages) {
+			if (head.querySelector(`link[rel="prefetch"][href="${CSS.escape(entry.src)}"]`)) continue;
+			const link = document.createElement('link');
+			link.rel = 'prefetch';
+			link.as = 'image';
+			link.href = entry.src;
+			head.appendChild(link);
+		}
 	});
 }
 
@@ -173,15 +289,8 @@ function applyGeometry(root: HTMLElement, geo: PageGeometry) {
 }
 
 function mountCachedImages(bookEl: HTMLElement) {
-	for (const img of bookEl.querySelectorAll<HTMLImageElement>('img[data-gallery-src]')) {
-		const src = img.dataset.gallerySrc;
-		if (!src) continue;
-		cacheImage(src);
-		img.loading = 'eager';
-		img.decoding = 'async';
-		if (img.getAttribute('src') !== src) img.src = src;
-		void img.decode?.().catch(() => undefined);
-	}
+	mountedBooks.add(bookEl);
+	paintMountedBooks();
 }
 
 function createMotes(container: HTMLElement, count: number) {
@@ -224,12 +333,11 @@ function renderPhotoPage(layout: GalleryPageLayout, pageNumber: number): HTMLEle
 
 		const img = document.createElement('img');
 		img.dataset.gallerySrc = slot.photo.src;
-		img.src = slot.photo.src;
-		img.loading = 'eager';
 		img.alt = 'RN Racing photograph';
 		img.decoding = 'async';
 		img.draggable = false;
-		img.style.objectFit = slot.objectFit;
+		img.style.objectFit = 'cover';
+		img.style.objectPosition = 'center';
 
 		button.appendChild(img);
 		collage.appendChild(button);
@@ -302,10 +410,77 @@ function stepIndex(current: number, total: number, mode: BookMode, direction: 1 
 	return starts[nextPosition] ?? current;
 }
 
-function shellOffsetFor(runtime: BookRuntime, index: number) {
-	if (runtime.mode !== 'spread') return 0;
-	if (index <= 0 || index >= runtime.totalPageCount - 1) return -runtime.width / 2;
-	return 0;
+function spreadFlipIndexes(runtime: BookRuntime, index: number) {
+	if (runtime.mode !== 'spread') return [index];
+	const starts = landscapeSpreadStarts(runtime.totalPageCount);
+	for (let i = 0; i < starts.length; i += 1) {
+		const start = starts[i]!;
+		const end = starts[i + 1] ?? runtime.totalPageCount;
+		if (index >= start && index < end) {
+			const indexes: number[] = [];
+			for (let page = start; page < end; page += 1) indexes.push(page);
+			return indexes;
+		}
+	}
+	return [index];
+}
+
+function spreadSrcs(runtime: BookRuntime, index: number) {
+	const srcs: string[] = [];
+	for (const flipIndex of spreadFlipIndexes(runtime, index)) {
+		const photoPage = photoPageIndexFromFlip(flipIndex, runtime.photoPageCount);
+		if (photoPage == null) continue;
+		for (const photo of runtime.pages[photoPage]?.photos ?? []) srcs.push(photo.src);
+	}
+	return srcs;
+}
+
+function warmIndexes(runtime: BookRuntime, indexes: number[]) {
+	const needed = new Set<string>();
+	for (const index of indexes) {
+		for (const src of spreadSrcs(runtime, index)) needed.add(src);
+	}
+	const pending = [...needed].map((src) => retainImage(src));
+	for (const src of [...livePhotos.keys()]) {
+		if (!needed.has(src)) releaseImage(src);
+	}
+	paintMountedBooks();
+	return Promise.all(pending).then(() => undefined);
+}
+
+function warmSpreads(runtime: BookRuntime, index: number, direction: 1 | -1) {
+	return warmIndexes(runtime, [
+		index,
+		stepIndex(index, runtime.totalPageCount, runtime.mode, direction),
+	]);
+}
+
+function coverPose(runtime: BookRuntime, index: number) {
+	const bleed = 72;
+	const open = {
+		x: 0,
+		clip: `inset(-${bleed}px -${bleed}px -${bleed}px -${bleed}px)`,
+		side: 'spread' as const,
+	};
+	if (runtime.mode !== 'spread') {
+		return { x: 0, clip: 'none', side: 'spread' as const };
+	}
+	const page = runtime.width;
+	if (index <= 0) {
+		return {
+			x: -page / 2,
+			clip: `inset(-${bleed}px -${bleed}px -${bleed}px ${page}px)`,
+			side: 'front' as const,
+		};
+	}
+	if (index >= runtime.totalPageCount - 1) {
+		return {
+			x: page / 2,
+			clip: `inset(-${bleed}px ${page}px -${bleed}px -${bleed}px)`,
+			side: 'back' as const,
+		};
+	}
+	return open;
 }
 
 function updateCounter(els: GalleryElements, runtime: BookRuntime, flipIndex: number) {
@@ -332,25 +507,28 @@ function updateControls(els: GalleryElements, runtime: BookRuntime, flipping: bo
 	els.homeBtn.setAttribute('aria-disabled', String(els.homeBtn.disabled));
 	els.nextBtn.setAttribute('aria-disabled', String(els.nextBtn.disabled));
 	updateCounter(els, runtime, index);
-	const onHardCover = index <= 0 || index >= runtime.totalPageCount - 1;
+	const onHardCover = !flipping && (index <= 0 || index >= runtime.totalPageCount - 1);
 	els.root.dataset.cover = onHardCover ? 'closed' : 'open';
 }
 
 function syncShell(els: GalleryElements, runtime: BookRuntime, index: number, animate: boolean) {
-	const x = shellOffsetFor(runtime, index);
-	if (!animate || prefersReducedMotion()) {
-		gsap.set(els.shell, { x });
+	const pose = coverPose(runtime, index);
+	els.root.dataset.bookSide = pose.side;
+	const vars = { x: pose.x, clipPath: pose.clip };
+	const instant = !animate || prefersReducedMotion() || els.root.dataset.lite === 'true';
+	if (instant) {
+		gsap.set(els.shell, vars);
 		return;
 	}
 	gsap.to(els.shell, {
-		x,
+		...vars,
 		duration: FLIP_MS / 1000,
 		ease: 'power2.inOut',
 		overwrite: 'auto',
 	});
 }
 
-async function playIntroReveal(els: GalleryElements): Promise<void> {
+async function playIntroReveal(els: GalleryElements, lite: boolean): Promise<void> {
 	const reduced = prefersReducedMotion();
 	els.root.dataset.intro = 'playing';
 	els.shimmer = els.book.querySelector<HTMLElement>('[data-gallery-shimmer]');
@@ -362,7 +540,22 @@ async function playIntroReveal(els: GalleryElements): Promise<void> {
 		return;
 	}
 
-	createMotes(els.motes, 96);
+	if (lite) {
+		gsap.set(els.stage, { opacity: 0 });
+		gsap.set(els.halo, { opacity: 0, scale: 0.92 });
+		gsap.set(els.rig, { opacity: 1, y: 28, scale: 0.98 });
+		const liteTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+		liteTl.to(els.stage, { opacity: 1, duration: 0.35 }, 0);
+		liteTl.to(els.halo, { opacity: 0.35, scale: 1, duration: 0.55 }, 0.05);
+		liteTl.to(els.rig, { y: 0, scale: 1, duration: 0.7 }, 0.05);
+		await liteTl.then(() => undefined);
+		gsap.set(els.stage, { opacity: 1 });
+		gsap.set(els.rig, { y: 0, scale: 1 });
+		gsap.set(els.halo, { opacity: 0.35, scale: 1 });
+		return;
+	}
+
+	createMotes(els.motes, 40);
 	gsap.set(els.motes, { opacity: 0 });
 	gsap.set(els.stage, { opacity: 0 });
 	gsap.set(els.halo, { opacity: 0, scale: 0.55 });
@@ -446,7 +639,6 @@ function queryElements(root: HTMLElement): GalleryElements | null {
 	const nextBtn = root.querySelector<HTMLButtonElement>('[data-gallery-next]');
 	const counter = root.querySelector<HTMLElement>('[data-gallery-counter]');
 	const motes = root.querySelector<HTMLElement>('[data-gallery-motes]');
-	const hint = root.querySelector<HTMLElement>('[data-gallery-focus-hint]');
 
 	if (
 		!stage ||
@@ -464,8 +656,7 @@ function queryElements(root: HTMLElement): GalleryElements | null {
 		!homeBtn ||
 		!nextBtn ||
 		!counter ||
-		!motes ||
-		!hint
+		!motes
 	) {
 		return null;
 	}
@@ -489,7 +680,6 @@ function queryElements(root: HTMLElement): GalleryElements | null {
 		nextBtn,
 		counter,
 		motes,
-		hint,
 		shimmer: null,
 	};
 }
@@ -497,6 +687,7 @@ function queryElements(root: HTMLElement): GalleryElements | null {
 function destroyPageFlip(book: HTMLElement, pageFlip: PageFlip) {
 	const parent = book.parentElement;
 	const next = book.nextSibling;
+	stopFlipLoop();
 	try {
 		pageFlip.destroy();
 	} catch {
@@ -505,7 +696,7 @@ function destroyPageFlip(book: HTMLElement, pageFlip: PageFlip) {
 	if (parent && !book.isConnected) parent.insertBefore(book, next);
 }
 
-function createPageFlip(book: HTMLElement, width: number, height: number, mode: BookMode) {
+function createPageFlip(book: HTMLElement, width: number, height: number, mode: BookMode, lite: boolean) {
 	const bookWidth = mode === 'spread' ? width * 2 : width;
 	book.style.width = `${bookWidth}px`;
 	book.style.height = `${height}px`;
@@ -519,7 +710,7 @@ function createPageFlip(book: HTMLElement, width: number, height: number, mode: 
 		maxWidth: width,
 		minHeight: height,
 		maxHeight: height,
-		drawShadow: true,
+		drawShadow: !lite,
 		flippingTime: prefersReducedMotion() ? 160 : FLIP_MS,
 		usePortrait: mode === 'single',
 		startZIndex: 2,
@@ -667,10 +858,13 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	let metas: GalleryImageMeta[] | null = null;
 	let runtime: BookRuntime | null = null;
 	let floatTween: gsap.core.Tween | null = null;
-	let hintTimer = 0;
 	let flipWatch = 0;
 	let view: GalleryViewState = { mode: 'book' };
 	let focusedTrigger: HTMLElement | null = null;
+	let lastDirection: 1 | -1 = 1;
+	const lite = isIOSDevice();
+	flipLoopStopWhenIdle = lite;
+	if (lite) els.root.dataset.lite = 'true';
 
 	const navigationLocked = () => view.mode !== 'book' || els.root.dataset.view === 'returning';
 
@@ -680,46 +874,27 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		});
 	};
 
-	const hideHint = () => {
-		window.clearTimeout(hintTimer);
-		gsap.killTweensOf(els.hint);
-		els.hint.hidden = true;
-		gsap.set(els.hint, { opacity: 0 });
-	};
-
-	const showHint = () => {
-		window.clearTimeout(hintTimer);
-		els.hint.hidden = false;
-		gsap.killTweensOf(els.hint);
-		gsap.fromTo(els.hint, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' });
-		hintTimer = window.setTimeout(() => {
-			gsap.to(els.hint, {
-				opacity: 0,
-				duration: 0.4,
-				ease: 'power2.out',
-				onComplete: () => {
-					els.hint.hidden = true;
-				},
-			});
-		}, 1500);
-	};
-
-	const pauseFloat = () => {
+	const pauseFloat = (immediate = false) => {
 		floatTween?.kill();
 		floatTween = null;
-		gsap.to(els.rig, {
-			x: 0,
-			y: 0,
-			rotateX: 0,
-			rotateY: 0,
-			duration: prefersReducedMotion() ? 0 : 0.35,
-			ease: 'power2.out',
-			overwrite: 'auto',
-		});
+		const vars = { x: 0, y: 0, rotateX: 0, rotateY: 0, overwrite: 'auto' as const };
+		if (immediate || prefersReducedMotion()) gsap.set(els.rig, vars);
+		else gsap.to(els.rig, { ...vars, duration: 0.35, ease: 'power2.out' });
 	};
 
 	const startFloat = () => {
 		if (floatTween || prefersReducedMotion() || els.root.dataset.view !== 'book') return;
+		if (lite) {
+			floatTween = gsap.to(els.rig, {
+				y: 8,
+				duration: 4.8,
+				ease: 'sine.inOut',
+				yoyo: true,
+				repeat: -1,
+				overwrite: 'auto',
+			});
+			return;
+		}
 		floatTween = gsap.to(els.rig, {
 			y: 12,
 			x: 8,
@@ -754,10 +929,14 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	const settleFlip = () => {
 		window.clearTimeout(flipWatch);
 		flipping = false;
+		pauseFlipLoop();
+		delete els.root.dataset.motion;
 		if (runtime) {
 			syncShell(els, runtime, runtime.pageFlip.getCurrentPageIndex(), false);
 			refreshControls();
+			void warmSpreads(runtime, runtime.pageFlip.getCurrentPageIndex(), lastDirection);
 		}
+		if (!destroyed && ready && els.root.dataset.view === 'book') resumeFloat();
 		if (resizeQueued && !destroyed) {
 			resizeQueued = false;
 			void rebuildFromResize();
@@ -804,7 +983,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		els.book.replaceChildren();
 		if (els.preview) els.preview.hidden = true;
 
-		const pageFlip = createPageFlip(els.book, size.width, size.height, size.mode);
+		const pageFlip = createPageFlip(els.book, size.width, size.height, size.mode, lite);
 		const nextRuntime: BookRuntime = {
 			pageFlip,
 			pages,
@@ -817,9 +996,11 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 
 		bindPageFlip(pageFlip);
 		const readyForShow = waitForInit(pageFlip);
+		armFlipLoop();
 		loadPages(pageFlip, nodes);
 		await readyForShow;
 		if (destroyed) {
+			stopFlipLoop();
 			try {
 				pageFlip.destroy();
 			} catch {
@@ -842,6 +1023,8 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		mountCachedImages(els.book);
 		els.shell.style.visibility = '';
 		refreshControls();
+		await nextFrame();
+		if (!flipping) pauseFlipLoop();
 	};
 
 	const captureTarget = (): RestoreTarget => {
@@ -859,10 +1042,9 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	const findTrigger = (photoIndex: number) =>
 		els.book.querySelector<HTMLElement>(`.gallery-photo-trigger[data-photo-index="${photoIndex}"]`);
 
-	const focusPhoto = (trigger: HTMLElement, options?: { quiet?: boolean }) => {
+	const focusPhoto = (trigger: HTMLElement) => {
 		const photoIndex = Number(trigger.dataset.photoIndex);
 		if (!Number.isFinite(photoIndex) || !runtime) return;
-		const entering = view.mode === 'book' && !options?.quiet;
 		pauseFloat();
 
 		const current = readCameraTransform(els.camera);
@@ -897,7 +1079,6 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		view = { mode: 'photo-focus', photoIndex, trigger };
 		els.root.dataset.view = 'photo-focus';
 		refreshControls();
-		if (entering) showHint();
 
 		gsap.to(els.camera, {
 			x,
@@ -913,7 +1094,6 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	const exitFocus = () => {
 		if (view.mode === 'book' || els.root.dataset.view === 'returning') return;
 		if (lightbox.isOpen()) lightbox.close();
-		hideHint();
 		clearFocused();
 		focusedTrigger = null;
 		els.root.dataset.view = 'returning';
@@ -942,7 +1122,6 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		const photoIndex = view.photoIndex;
 		view = { mode: 'lightbox', photoIndex };
 		els.root.dataset.view = 'lightbox';
-		hideHint();
 		void lightbox.open(photoIndex, focusedTrigger);
 	};
 
@@ -959,17 +1138,19 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		trigger.setAttribute('data-gallery-focused', '');
 	});
 
-	const beginFlip = (direction: 1 | -1) => {
-		if (destroyed || !ready || !runtime || flipping || rebuilding || navigationLocked()) return;
-		const current = runtime.pageFlip.getCurrentPageIndex();
-		const dest = stepIndex(current, runtime.totalPageCount, runtime.mode, direction);
-		if (dest === current) return;
-		flipping = true;
-		refreshControls();
+	const startVisualFlip = (direction: 1 | -1 | 'home', dest: number) => {
+		if (destroyed || !runtime || !flipping) return;
+		els.root.dataset.motion = 'flip';
 		syncShell(els, runtime, dest, true);
 		window.clearTimeout(flipWatch);
 		flipWatch = window.setTimeout(settleFlip, FLIP_MS + 700);
-		if (prefersReducedMotion()) {
+		resumeFlipLoop();
+		if (direction === 'home') {
+			if (prefersReducedMotion() || lite) runtime.pageFlip.turnToPage(0);
+			else runtime.pageFlip.flip(0, 'bottom');
+			return;
+		}
+		if (prefersReducedMotion() || lite) {
 			if (direction > 0) runtime.pageFlip.turnToNextPage();
 			else runtime.pageFlip.turnToPrevPage();
 		} else if (direction > 0) {
@@ -977,6 +1158,24 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		} else {
 			runtime.pageFlip.flipPrev('bottom');
 		}
+	};
+
+	const beginFlip = (direction: 1 | -1) => {
+		if (destroyed || !ready || !runtime || flipping || rebuilding || navigationLocked()) return;
+		const current = runtime.pageFlip.getCurrentPageIndex();
+		const dest = stepIndex(current, runtime.totalPageCount, runtime.mode, direction);
+		if (dest === current) return;
+		lastDirection = direction;
+		pauseFloat(true);
+		flipping = true;
+		refreshControls();
+		const imagesReady = warmSpreads(runtime, current, direction);
+		void Promise.race([
+			imagesReady,
+			new Promise<void>((resolve) => {
+				window.setTimeout(resolve, 140);
+			}),
+		]).then(() => startVisualFlip(direction, dest));
 	};
 
 	const boot = async () => {
@@ -990,7 +1189,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		try {
 			await mountBook(null, false);
 			if (destroyed) return;
-			await playIntroReveal(els);
+			await playIntroReveal(els, lite);
 		} catch (error) {
 			console.error('Gallery book failed to mount', error);
 			gsap.set(els.stage, { opacity: 1 });
@@ -1003,6 +1202,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		els.root.dataset.ready = 'true';
 		refreshControls();
 		startFloat();
+		prefetchAlbum();
 		if (resizeQueued) {
 			resizeQueued = false;
 			void rebuildFromResize();
@@ -1014,15 +1214,28 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	const goHome = () => {
 		if (destroyed || !ready || !runtime || flipping || rebuilding || navigationLocked()) return;
 		if (runtime.pageFlip.getCurrentPageIndex() <= 0) return;
+		const current = runtime.pageFlip.getCurrentPageIndex();
+		lastDirection = 1;
+		pauseFloat(true);
 		flipping = true;
 		refreshControls();
-		syncShell(els, runtime, 0, true);
-		window.clearTimeout(flipWatch);
-		flipWatch = window.setTimeout(settleFlip, FLIP_MS + 700);
-		if (prefersReducedMotion()) runtime.pageFlip.turnToPage(0);
-		else runtime.pageFlip.flip(0, 'bottom');
+		const imagesReady = warmIndexes(runtime, [current, 0, stepIndex(0, runtime.totalPageCount, runtime.mode, 1)]);
+		void Promise.race([
+			imagesReady,
+			new Promise<void>((resolve) => {
+				window.setTimeout(resolve, 140);
+			}),
+		]).then(() => startVisualFlip('home', 0));
 	};
 
+	els.prevBtn.addEventListener('pointerdown', () => {
+		if (!runtime || flipping || !ready) return;
+		void warmSpreads(runtime, runtime.pageFlip.getCurrentPageIndex(), -1);
+	});
+	els.nextBtn.addEventListener('pointerdown', () => {
+		if (!runtime || flipping || !ready) return;
+		void warmSpreads(runtime, runtime.pageFlip.getCurrentPageIndex(), 1);
+	});
 	els.prevBtn.addEventListener('click', () => beginFlip(-1));
 	els.homeBtn.addEventListener('click', goHome);
 	els.nextBtn.addEventListener('click', () => beginFlip(1));
@@ -1118,7 +1331,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 			if (returnToFocus && photoIndex != null) {
 				const trigger = findTrigger(photoIndex);
 				if (trigger) {
-					focusPhoto(trigger, { quiet: true });
+					focusPhoto(trigger);
 					if (lightboxOpen) {
 						view = { mode: 'lightbox', photoIndex };
 						els.root.dataset.view = 'lightbox';
@@ -1148,8 +1361,13 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	return () => {
 		destroyed = true;
 		ready = false;
+		stopFlipLoop();
+		if (albumPrefetchId) {
+			window.cancelIdleCallback?.(albumPrefetchId);
+			window.clearTimeout(albumPrefetchId);
+			albumPrefetchId = 0;
+		}
 		window.clearTimeout(resizeTimer);
-		window.clearTimeout(hintTimer);
 		window.clearTimeout(flipWatch);
 		document.removeEventListener('keydown', onKeyDown);
 		window.removeEventListener('resize', onResize);
@@ -1157,7 +1375,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		lightbox.setOnClose(null);
 		floatTween?.kill();
 		floatTween = null;
-		gsap.killTweensOf([els.stage, els.camera, els.halo, els.rig, els.shell, els.motes, els.hint, els.shimmer].filter(Boolean));
+		gsap.killTweensOf([els.stage, els.camera, els.halo, els.rig, els.shell, els.motes, els.shimmer].filter(Boolean));
 		if (runtime) destroyPageFlip(els.book, runtime.pageFlip);
 	};
 }

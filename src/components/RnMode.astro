@@ -3,6 +3,18 @@
 	RN Mode Enabled
 </p>
 
+<div class="rn-splash" hidden>
+	<div class="rn-splash__card">
+		<div class="rn-splash__copy">
+			<p class="rn-splash__title">
+				<span class="rn-splash__title-icon" aria-hidden="true">🥷</span>
+				RN Mode Enabled
+			</p>
+			<p class="rn-splash__quote">A retard in motion is better than a genius at rest</p>
+		</div>
+	</div>
+</div>
+
 <script is:inline>
 	(function () {
 		var COOKIE = 'rnracing-rn-mode';
@@ -53,6 +65,34 @@
 			return !!el.closest('input, textarea, select, [contenteditable="true"]');
 		}
 
+		var splashHideTimer = 0;
+
+		function splashEl() {
+			return document.querySelector('.rn-splash');
+		}
+
+		function hideSplash() {
+			var el = splashEl();
+			window.clearTimeout(splashHideTimer);
+			if (!el) return;
+			el.hidden = true;
+			el.classList.remove('is-playing');
+		}
+
+		function showSplash() {
+			var el = splashEl();
+			if (!el) return;
+			window.clearTimeout(splashHideTimer);
+			el.hidden = false;
+			el.classList.remove('is-playing');
+			void el.offsetWidth;
+			el.classList.add('is-playing');
+			splashHideTimer = window.setTimeout(function () {
+				el.hidden = true;
+				el.classList.remove('is-playing');
+			}, 5650);
+		}
+
 		apply(read());
 
 		if (!window.__rnModeBound) {
@@ -64,7 +104,10 @@
 					if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
 					if (isTypingTarget(event.target)) return;
 					event.preventDefault();
-					set(!document.documentElement.hasAttribute('data-rn-mode'));
+					var enabling = !document.documentElement.hasAttribute('data-rn-mode');
+					set(enabling);
+					if (enabling) showSplash();
+					else hideSplash();
 				},
 				true,
 			);
@@ -111,5 +154,136 @@
 	.rn-mode-window-icon {
 		font-size: 0.95rem;
 		line-height: 1;
+	}
+
+	.rn-splash {
+		position: fixed;
+		inset: 0;
+		z-index: 4000;
+		display: grid;
+		place-items: center;
+		padding: clamp(0.75rem, 3vw, 2rem);
+		background: color-mix(in srgb, var(--bg, #09090b) 72%, transparent);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.rn-splash[hidden] {
+		display: none;
+	}
+
+	.rn-splash.is-playing {
+		animation: rn-splash-scrim 5.65s ease forwards;
+	}
+
+	.rn-splash__card {
+		position: relative;
+		width: min(94vw, 72rem);
+		overflow: hidden;
+		border: 1px solid var(--border, #27272a);
+		border-radius: 1.35rem;
+		background: var(--surface, #111114);
+		color: var(--text, #fafafa);
+		box-shadow:
+			0 28px 80px color-mix(in srgb, var(--bg, #09090b) 55%, transparent),
+			inset 0 0 0 1px color-mix(in srgb, var(--text, #fafafa) 6%, transparent);
+		opacity: 0;
+		transform: scale(0.32);
+	}
+
+	.rn-splash.is-playing .rn-splash__card {
+		animation: rn-splash-card 5.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	.rn-splash__copy {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: clamp(1rem, 2.4vw, 1.75rem);
+		padding: clamp(1.75rem, 5vw, 3.5rem) clamp(1.25rem, 4vw, 3.25rem);
+		text-align: center;
+	}
+
+	.rn-splash__title {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.28em;
+		margin: 0;
+		color: var(--text, #fafafa);
+		font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+		font-size: clamp(2.5rem, 6.8vw, 6rem);
+		font-weight: 400;
+		line-height: 0.92;
+		letter-spacing: 0.01em;
+		text-wrap: balance;
+		text-shadow: 0 2px 18px color-mix(in srgb, var(--bg, #09090b) 45%, transparent);
+	}
+
+	.rn-splash__title-icon {
+		font-size: 0.82em;
+		line-height: 1;
+		text-shadow: none;
+	}
+
+	.rn-splash__quote {
+		margin: 0;
+		max-width: 28ch;
+		color: var(--muted, var(--text, #fafafa));
+		font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+		font-size: clamp(1rem, 2.1vw, 1.35rem);
+		font-weight: 500;
+		line-height: 1.35;
+		letter-spacing: 0.01em;
+		text-wrap: balance;
+	}
+
+	@keyframes rn-splash-scrim {
+		0% {
+			opacity: 0;
+		}
+		10% {
+			opacity: 1;
+		}
+		88.5% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes rn-splash-card {
+		0% {
+			opacity: 0;
+			transform: scale(0.32);
+		}
+		10% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		88.5% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1.06);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rn-splash.is-playing {
+			animation: none;
+			opacity: 1;
+		}
+
+		.rn-splash.is-playing .rn-splash__card {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
 	}
 </style>
