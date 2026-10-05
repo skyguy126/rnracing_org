@@ -71,6 +71,10 @@ function prefersReducedMotion() {
 	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function isCoarsePointer() {
+	return window.matchMedia('(pointer: coarse)').matches;
+}
+
 function pad(n: number) {
 	return String(n).padStart(2, '0');
 }
@@ -1130,19 +1134,26 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		window.clearTimeout(flipWatch);
 		flipWatch = window.setTimeout(settleFlip, FLIP_MS + 700);
 		resumeFlipLoop();
-		if (direction === 'home') {
-			if (prefersReducedMotion()) runtime.pageFlip.turnToPage(0);
-			else runtime.pageFlip.flip(0, 'bottom');
+
+		// Portrait PageFlip animated flips are unreliable on many phones.
+		// Keep the large single-page layout, but use instant turns on touch.
+		const instantTurn =
+			prefersReducedMotion() || (runtime.mode === 'single' && isCoarsePointer());
+
+		if (instantTurn) {
+			if (direction === 'home') runtime.pageFlip.turnToPage(0);
+			else if (direction > 0) runtime.pageFlip.turnToNextPage();
+			else runtime.pageFlip.turnToPrevPage();
+			settleFlip();
 			return;
 		}
-		if (prefersReducedMotion()) {
-			if (direction > 0) runtime.pageFlip.turnToNextPage();
-			else runtime.pageFlip.turnToPrevPage();
-		} else if (direction > 0) {
-			runtime.pageFlip.flipNext('bottom');
-		} else {
-			runtime.pageFlip.flipPrev('bottom');
+
+		if (direction === 'home') {
+			runtime.pageFlip.flip(0, 'bottom');
+			return;
 		}
+		if (direction > 0) runtime.pageFlip.flipNext('bottom');
+		else runtime.pageFlip.flipPrev('bottom');
 	};
 
 	const beginFlip = (direction: 1 | -1) => {
@@ -1221,17 +1232,23 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		if (!runtime || flipping || !ready) return;
 		void warmSpreads(runtime, runtime.pageFlip.getCurrentPageIndex(), 1);
 	});
-	els.prevBtn.addEventListener('click', () => beginFlip(-1));
-	els.homeBtn.addEventListener(
-		'touchend',
-		(event) => {
-			event.preventDefault();
-			goHome();
-		},
-		{ passive: false },
-	);
-	els.homeBtn.addEventListener('click', goHome);
-	els.nextBtn.addEventListener('click', () => beginFlip(1));
+
+	const bindNavTap = (button: HTMLButtonElement, action: () => void) => {
+		button.addEventListener(
+			'touchend',
+			(event) => {
+				if (button.disabled) return;
+				event.preventDefault();
+				action();
+			},
+			{ passive: false },
+		);
+		button.addEventListener('click', action);
+	};
+
+	bindNavTap(els.prevBtn, () => beginFlip(-1));
+	bindNavTap(els.homeBtn, goHome);
+	bindNavTap(els.nextBtn, () => beginFlip(1));
 
 	els.stage.addEventListener('click', (event) => {
 		if (!ready || destroyed || lightbox.isOpen()) return;
