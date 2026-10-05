@@ -71,10 +71,6 @@ function prefersReducedMotion() {
 	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function isCoarsePointer() {
-	return window.matchMedia('(pointer: coarse)').matches;
-}
-
 function pad(n: number) {
 	return String(n).padStart(2, '0');
 }
@@ -854,6 +850,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 
 	let destroyed = false;
 	let flipping = false;
+	let suppressFlipSettle = false;
 	let rebuilding = false;
 	let resizeQueued = false;
 	let ready = false;
@@ -915,6 +912,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 	};
 
 	const settleFlip = () => {
+		if (els.book.querySelector('[data-gallery-turning]')) return;
 		window.clearTimeout(flipWatch);
 		flipping = false;
 		pauseFlipLoop();
@@ -933,7 +931,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 
 	const bindPageFlip = (pageFlip: PageFlip) => {
 		pageFlip.on('flip', () => {
-			if (pageFlip !== runtime?.pageFlip) return;
+			if (suppressFlipSettle || pageFlip !== runtime?.pageFlip) return;
 			settleFlip();
 		});
 		pageFlip.on('changeState', (event) => {
@@ -1127,20 +1125,84 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		trigger.setAttribute('data-gallery-focused', '');
 	});
 
+	const placeSingleSheet = (el: HTMLElement, z: number) => {
+		if (!runtime) return;
+		el.style.cssText = `
+			position: absolute;
+			display: block;
+			left: 0;
+			top: 0;
+			width: ${runtime.width}px;
+			height: ${runtime.height}px;
+			z-index: ${z};
+			transform-origin: left center;
+			backface-visibility: hidden;
+			-webkit-backface-visibility: hidden;
+		`;
+	};
+
+	const runSinglePageFlip = async (dest: number) => {
+		if (!runtime) return;
+		const pages = [...els.book.querySelectorAll<HTMLElement>('.stf__block > .stf__item')];
+		const index = runtime.pageFlip.getCurrentPageIndex();
+		const from = pages[index];
+		const to = pages[dest];
+		if (!from || !to || dest === index) {
+			suppressFlipSettle = true;
+			runtime.pageFlip.turnToPage(dest);
+			suppressFlipSettle = false;
+			settleFlip();
+			return;
+		}
+
+		const forward = dest > index;
+		const turning = forward ? from : to;
+		const resting = forward ? to : from;
+		flipLoopPaused = true;
+		try {
+			await nextFrame();
+			if (destroyed || !runtime) return;
+
+			placeSingleSheet(resting, 2);
+			placeSingleSheet(turning, 6);
+			resting.setAttribute('data-gallery-under', '');
+			turning.setAttribute('data-gallery-turning', '');
+
+			const hinge = { transformOrigin: 'left center', transformPerspective: 2200, force3D: true };
+			if (forward) {
+				await gsap.fromTo(
+					turning,
+					{ rotateY: 0, ...hinge },
+					{ rotateY: -180, ...hinge, duration: FLIP_MS / 1000, ease: 'power2.inOut' },
+				);
+			} else {
+				gsap.set(turning, { rotateY: -180, ...hinge });
+				await gsap.to(turning, { rotateY: 0, ...hinge, duration: FLIP_MS / 1000, ease: 'power2.inOut' });
+			}
+		} finally {
+			turning.removeAttribute('data-gallery-turning');
+			resting.removeAttribute('data-gallery-under');
+			gsap.killTweensOf([from, to]);
+			if (!destroyed && runtime) {
+				suppressFlipSettle = true;
+				runtime.pageFlip.turnToPage(dest);
+				suppressFlipSettle = false;
+			}
+			if (flipLoopPaused) resumeFlipLoop();
+		}
+
+		await nextFrame();
+		if (!destroyed) settleFlip();
+	};
+
 	const startVisualFlip = (direction: 1 | -1 | 'home', dest: number) => {
 		if (destroyed || !runtime || !flipping) return;
 		els.root.dataset.motion = 'flip';
 		syncShell(els, runtime, dest, true);
 		window.clearTimeout(flipWatch);
 		flipWatch = window.setTimeout(settleFlip, FLIP_MS + 700);
-		resumeFlipLoop();
 
-		// Portrait PageFlip animated flips are unreliable on many phones.
-		// Keep the large single-page layout, but use instant turns on touch.
-		const instantTurn =
-			prefersReducedMotion() || (runtime.mode === 'single' && isCoarsePointer());
-
-		if (instantTurn) {
+		if (prefersReducedMotion()) {
 			if (direction === 'home') runtime.pageFlip.turnToPage(0);
 			else if (direction > 0) runtime.pageFlip.turnToNextPage();
 			else runtime.pageFlip.turnToPrevPage();
@@ -1148,6 +1210,14 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 			return;
 		}
 
+		// Portrait curls need a second page of space and fall off a phone screen.
+		// Hinge the sheet inside the single page instead. Spread mode is unchanged.
+		if (runtime.mode === 'single') {
+			void runSinglePageFlip(dest);
+			return;
+		}
+
+		resumeFlipLoop();
 		if (direction === 'home') {
 			runtime.pageFlip.flip(0, 'bottom');
 			return;
