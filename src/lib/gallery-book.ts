@@ -17,6 +17,8 @@ const FLIP_MS = 780;
 const CAMERA_IN_MS = 0.55;
 const CAMERA_OUT_MS = 0.42;
 const MAX_CAMERA_SCALE = 4.75;
+/** Below this usable width, always show one physical page (never a tiny spread). */
+const SINGLE_PAGE_MAX_WIDTH = 900;
 
 type BookMode = 'single' | 'spread';
 
@@ -242,12 +244,42 @@ function fitPage(maxWidth: number, maxHeight: number) {
 function measureBook(camera: HTMLElement): MeasuredBook {
 	const availableW = Math.max(160, camera.clientWidth);
 	const availableH = Math.max(200, camera.clientHeight);
+	const forceSingle =
+		availableW < SINGLE_PAGE_MAX_WIDTH ||
+		window.matchMedia(`(max-width: ${SINGLE_PAGE_MAX_WIDTH - 1}px)`).matches;
 
-	const spread = fitPage((availableW * 0.94) / 2, availableH * 0.9);
+	if (!forceSingle) {
+		const spread = fitPage((availableW * 0.94) / 2, availableH * 0.9);
+		const spreadUseful =
+			spread.width >= 300 &&
+			spread.height >= 420 &&
+			spread.width * 2 <= availableW + 1 &&
+			spread.height <= availableH + 1;
+
+		if (spreadUseful) {
+			return {
+				mode: 'spread',
+				width: Math.round(spread.width),
+				height: Math.round(spread.height),
+			};
+		}
+	}
+
+	// One page: use nearly the full camera so mobile/tablet pages read large.
+	const widthBudget = forceSingle ? availableW * 0.98 : availableW * 0.98;
+	const heightBudget = forceSingle ? availableH * 0.98 : availableH * 0.96;
+	const single = fitPage(widthBudget, heightBudget);
+	let width = Math.max(140, Math.round(single.width));
+	let height = Math.max(200, Math.round(single.height));
+	width = Math.min(width, Math.floor(availableW));
+	height = Math.min(height, Math.floor(availableH));
+	if (width / height > PAGE_ASPECT) width = Math.max(140, Math.round(height * PAGE_ASPECT));
+	else height = Math.max(200, Math.round(width / PAGE_ASPECT));
+
 	return {
-		mode: 'spread',
-		width: Math.max(72, Math.round(spread.width)),
-		height: Math.max(100, Math.round(spread.height)),
+		mode: 'single',
+		width,
+		height,
 	};
 }
 
@@ -665,6 +697,7 @@ function createPageFlip(book: HTMLElement, width: number, height: number, mode: 
 	book.style.width = `${bookWidth}px`;
 	book.style.height = `${height}px`;
 	book.style.maxWidth = 'none';
+	book.dataset.bookMode = mode;
 
 	return new PageFlip(book, {
 		width,
@@ -676,6 +709,7 @@ function createPageFlip(book: HTMLElement, width: number, height: number, mode: 
 		maxHeight: height,
 		drawShadow: true,
 		flippingTime: prefersReducedMotion() ? 160 : FLIP_MS,
+		// Single-page mode must never expand into a compressed two-page spread.
 		usePortrait: mode === 'single',
 		startZIndex: 2,
 		autoSize: false,
@@ -919,6 +953,7 @@ export function initGalleryBook(root: HTMLElement, lightbox: GalleryLightboxApi)
 		if (destroyed) return;
 
 		const size = measureBook(els.camera);
+		els.root.dataset.bookMode = size.mode;
 		const geo = pageGeometry(size.width, size.height);
 		applyGeometry(els.root, geo);
 		const pages = createGalleryLayout(metas, layoutOptions(size));
