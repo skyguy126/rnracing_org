@@ -34,13 +34,13 @@ export const NAV_LINKS = [
 	{ href: '/who-we-are', label: 'Who We Are' },
 	{ href: '/the-car', label: 'The Car' },
 	{ href: '/crew', label: 'The Crew' },
-	{ href: '/gallery', label: 'Gallery' },
 	{ href: '/community', label: 'The Community' },
 	{ href: '/timeline', label: 'The Timeline' },
-	{ href: '/design', label: 'The Design' },
+	{ href: '/design', label: 'The Dojo' },
 	{ href: '/values', label: 'Our Values' },
 	{ href: '/investors-faq', label: 'For Investors' },
 	{ href: '/store', label: 'Store' },
+	{ href: '/gallery', label: 'Gallery' },
 ] as const;
 
 export function getPage(href: PageHref) {
