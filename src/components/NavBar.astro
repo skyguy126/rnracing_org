@@ -1,9 +1,10 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
-import { NAV_LINKS } from '../data/site';
+import { NAV_ITEMS } from '../data/site';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentPath;
+const groupActive = (items: readonly { href: string }[]) => items.some((item) => isActive(item.href));
 ---
 
 <header class="site-header" data-nav-menu>
@@ -16,22 +17,76 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		<div class="nav-actions">
 			<ul class="nav-links nav-links--inline">
 				{
-					NAV_LINKS.map((link) => {
-						const isDesign = link.href === '/design';
+					NAV_ITEMS.map((item) => {
+						if (item.type === 'link') {
+							return (
+								<li>
+									<a
+										class:list={['nav-link', { 'is-active': isActive(item.href) }]}
+										href={item.href}
+										aria-current={isActive(item.href) ? 'page' : undefined}
+									>
+										{item.label}
+									</a>
+								</li>
+							);
+						}
+
+						const active = groupActive(item.items);
+						const panelId = `nav-dropdown-${item.id}`;
+
 						return (
-							<li class:list={[{ 'nav-item--design': isDesign }]}>
-								<a
-									class:list={[
-										'nav-link',
-										{ 'is-active': isActive(link.href), 'nav-link--design': isDesign },
-									]}
-									href={link.href}
-									aria-current={isActive(link.href) ? 'page' : undefined}
-									data-lemon-rain={isDesign ? '' : undefined}
+							<li
+								class:list={['nav-dropdown', { 'has-active': active }]}
+								data-nav-dropdown={item.id}
+							>
+								<button
+									type="button"
+									class:list={['nav-link', 'nav-dropdown-trigger', { 'is-active': active }]}
+									aria-expanded="false"
+									aria-haspopup="true"
+									aria-controls={panelId}
 								>
-									{link.label}
-									{isDesign && <span class="lemon-rain" aria-hidden="true" />}
-								</a>
+									<span>{item.label}</span>
+									<svg class="nav-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+										<path
+											d="M2.5 4.5 L6 8 L9.5 4.5"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.5"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+									</svg>
+								</button>
+								<div id={panelId} class="nav-dropdown-panel" hidden role="menu">
+									<ul class="nav-dropdown-list">
+										{item.items.map((link) => {
+											const isDesign = !!link.lemonRain;
+											return (
+												<li role="none" class:list={[{ 'nav-item--design': isDesign }]}>
+													<a
+														class:list={[
+															'nav-link',
+															'nav-dropdown-link',
+															{
+																'is-active': isActive(link.href),
+																'nav-link--design': isDesign,
+															},
+														]}
+														href={link.href}
+														role="menuitem"
+														aria-current={isActive(link.href) ? 'page' : undefined}
+														data-lemon-rain={isDesign ? '' : undefined}
+													>
+														{link.label}
+														{isDesign && <span class="lemon-rain" aria-hidden="true" />}
+													</a>
+												</li>
+											);
+										})}
+									</ul>
+								</div>
 							</li>
 						);
 					})
@@ -59,17 +114,75 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	<div id="nav-menu-panel" class="nav-menu-panel" hidden>
 		<ul class="nav-links nav-links--menu">
 			{
-				NAV_LINKS.map((link) => (
-					<li>
-						<a
-							class:list={['nav-link', 'nav-link--menu', { 'is-active': isActive(link.href) }]}
-							href={link.href}
-							aria-current={isActive(link.href) ? 'page' : undefined}
-						>
-							{link.label}
-						</a>
-					</li>
-				))
+				NAV_ITEMS.map((item) => {
+					if (item.type === 'link') {
+						return (
+							<li>
+								<a
+									class:list={['nav-link', 'nav-link--menu', { 'is-active': isActive(item.href) }]}
+									href={item.href}
+									aria-current={isActive(item.href) ? 'page' : undefined}
+								>
+									{item.label}
+								</a>
+							</li>
+						);
+					}
+
+					const active = groupActive(item.items);
+					const regionId = `nav-accordion-${item.id}`;
+
+					return (
+						<li class:list={['nav-accordion', { 'has-active': active, 'is-open': active }]}>
+							<button
+								type="button"
+								class:list={['nav-accordion-trigger', { 'is-active': active }]}
+								aria-expanded={active ? 'true' : 'false'}
+								aria-controls={regionId}
+							>
+								<span>{item.label}</span>
+								<svg class="nav-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+									<path
+										d="M2.5 4.5 L6 8 L9.5 4.5"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</button>
+							<div
+								id={regionId}
+								class="nav-accordion-panel"
+								role="region"
+								aria-label={item.label}
+								inert={active ? undefined : true}
+							>
+								<div class="nav-accordion-inner">
+									<ul class="nav-accordion-list">
+										{item.items.map((link) => (
+											<li>
+												<a
+													class:list={[
+														'nav-link',
+														'nav-link--menu',
+														'nav-link--nested',
+														{ 'is-active': isActive(link.href) },
+													]}
+													href={link.href}
+													aria-current={isActive(link.href) ? 'page' : undefined}
+												>
+													{link.label}
+												</a>
+											</li>
+										))}
+									</ul>
+								</div>
+							</div>
+						</li>
+					);
+				})
 			}
 		</ul>
 	</div>
@@ -170,7 +283,9 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	.nav-link {
 		display: inline-flex;
 		align-items: center;
+		gap: 0.35rem;
 		padding: 0.4375rem 0.75rem;
+		border: 0;
 		border-radius: 0.375rem;
 		color: var(--muted);
 		font-family: var(--font-display);
@@ -179,6 +294,7 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		line-height: var(--display-line);
 		text-decoration: none;
 		background: transparent;
+		cursor: pointer;
 		transition: color 0.15s ease;
 	}
 
@@ -187,13 +303,109 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		white-space: nowrap;
 	}
 
-	.nav-link:hover:not(.is-active) {
+	.nav-link:hover:not(.is-active),
+	.nav-dropdown-trigger:hover:not(.is-active) {
 		color: var(--text);
 	}
 
+	.nav-link:focus-visible,
+	.nav-dropdown-trigger:focus-visible,
+	.nav-accordion-trigger:focus-visible,
+	.nav-menu-toggle:focus-visible {
+		outline: 2px solid color-mix(in srgb, var(--blue) 70%, transparent);
+		outline-offset: 2px;
+	}
+
 	.nav-link.is-active,
-	.nav-link.is-active:hover {
+	.nav-link.is-active:hover,
+	.nav-dropdown-trigger.is-active,
+	.nav-dropdown-trigger.is-active:hover {
 		color: var(--blue-soft);
+	}
+
+	.nav-dropdown {
+		position: relative;
+	}
+
+	/* Buttons must share .nav-link type — UA styles otherwise fall back to body font. */
+	button.nav-link,
+	.nav-dropdown-trigger {
+		font-family: var(--font-display);
+		font-size: 1rem;
+		font-weight: 500;
+		line-height: var(--display-line);
+		letter-spacing: normal;
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	.nav-chevron {
+		display: block;
+		width: 0.7rem;
+		height: 0.7rem;
+		flex-shrink: 0;
+		opacity: 0.72;
+		transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.nav-dropdown.is-open > .nav-dropdown-trigger .nav-chevron,
+	.nav-accordion.is-open > .nav-accordion-trigger .nav-chevron {
+		transform: rotate(180deg);
+	}
+
+	.nav-dropdown-panel {
+		position: absolute;
+		top: calc(100% + 0.35rem);
+		right: 0;
+		z-index: 120;
+		min-width: 11.5rem;
+		padding: 0.35rem;
+		border: 1px solid var(--border);
+		border-radius: 0.625rem;
+		background: var(--surface);
+		box-shadow:
+			0 10px 28px color-mix(in srgb, var(--black) 18%, transparent),
+			0 2px 6px color-mix(in srgb, var(--black) 8%, transparent);
+		opacity: 0;
+		transform: translate3d(0, -0.35rem, 0) scale(0.98);
+		transform-origin: top right;
+		pointer-events: none;
+		transition:
+			opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.nav-dropdown-panel.is-visible {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+		pointer-events: auto;
+	}
+
+	.nav-dropdown-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.nav-dropdown-link {
+		display: flex;
+		width: 100%;
+		justify-content: flex-start;
+		padding: 0.55rem 0.75rem;
+		border-radius: 0.4rem;
+		white-space: nowrap;
+	}
+
+	.nav-dropdown-link:hover {
+		background: color-mix(in srgb, var(--bg) 70%, var(--surface));
+		color: var(--text);
+	}
+
+	.nav-dropdown-link.is-active {
+		background: color-mix(in srgb, var(--blue) 12%, var(--surface));
 	}
 
 	.nav-item--design {
@@ -321,7 +533,7 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	.nav-links--menu {
 		flex-direction: column;
 		align-items: stretch;
-		gap: 0.25rem;
+		gap: 0.15rem;
 		width: 100%;
 		max-width: var(--layout-max-width);
 		margin: 0 auto;
@@ -336,6 +548,80 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 		text-align: left;
 	}
 
+	.nav-accordion {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.nav-accordion-trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		width: 100%;
+		padding: 0.75rem 0;
+		border: 0;
+		background: transparent;
+		color: var(--muted);
+		font-family: var(--font-display);
+		font-size: 1.25rem;
+		font-weight: 500;
+		line-height: var(--display-line);
+		text-align: left;
+		cursor: pointer;
+		transition: color 0.15s ease;
+	}
+
+	.nav-accordion-trigger:hover,
+	.nav-accordion-trigger.is-active {
+		color: var(--text);
+	}
+
+	.nav-accordion-trigger.is-active {
+		color: var(--blue-soft);
+	}
+
+	.nav-accordion-trigger .nav-chevron {
+		width: 0.85rem;
+		height: 0.85rem;
+	}
+
+	.nav-accordion-panel {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.nav-accordion.is-open > .nav-accordion-panel {
+		grid-template-rows: 1fr;
+	}
+
+	.nav-accordion-inner {
+		overflow: hidden;
+		min-height: 0;
+	}
+
+	.nav-accordion-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.05rem;
+		margin: 0;
+		padding: 0 0 0.35rem;
+		list-style: none;
+	}
+
+	.nav-link--nested {
+		padding: 0.55rem 0 0.55rem 0.85rem;
+		font-size: 1.05rem;
+		color: var(--muted);
+		border-left: 1px solid var(--border);
+		border-radius: 0;
+	}
+
+	.nav-link--nested:hover:not(.is-active) {
+		color: var(--text);
+	}
+
 	.site-header.is-nav-collapsed .nav-links--inline {
 		display: none;
 	}
@@ -346,8 +632,8 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 
 	@media (min-width: 900px) and (max-width: 1100px) {
 		.nav-links--inline .nav-link {
-			padding-inline: 0.25rem;
-			font-size: 0.8125rem;
+			padding-inline: 0.35rem;
+			font-size: 0.9375rem;
 		}
 	}
 
@@ -372,6 +658,21 @@ const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentP
 	@media (max-width: 480px) {
 		.brand-name {
 			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.nav-chevron,
+		.nav-dropdown-panel,
+		.nav-accordion-panel,
+		.nav-menu-toggle-icon span,
+		.nav-link,
+		.nav-accordion-trigger {
+			transition: none;
+		}
+
+		.nav-dropdown-panel {
+			transform: none;
 		}
 	}
 </style>

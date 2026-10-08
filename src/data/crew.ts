@@ -96,7 +96,7 @@ const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; p
 	Khadijah: { fit: 'cover', position: 'center' },
 	Claude: { fit: 'cover', position: 'center' },
 	Israel: { fit: 'cover', position: 'center' },
-	Jesus: { fit: 'cover', position: 'center' },
+	Jesus: { fit: 'cover', position: 'center bottom' },
 	Bavina: { fit: 'cover', position: 'center 30%' },
 	Anmol: { fit: 'cover', position: 'center' },
 };

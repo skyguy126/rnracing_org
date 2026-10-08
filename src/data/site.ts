@@ -29,19 +29,56 @@ export const PAGES = [
 
 export type PageHref = (typeof PAGES)[number]['href'];
 
-export const NAV_LINKS = [
-	{ href: '/', label: 'Home' },
-	{ href: '/who-we-are', label: 'Who We Are' },
-	{ href: '/the-car', label: 'The Car' },
-	{ href: '/crew', label: 'The Crew' },
-	{ href: '/community', label: 'The Community' },
-	{ href: '/timeline', label: 'The Timeline' },
-	{ href: '/design', label: 'The Dojo' },
-	{ href: '/values', label: 'Our Values' },
-	{ href: '/investors-faq', label: 'For Investors' },
-	{ href: '/store', label: 'Store' },
-	{ href: '/gallery', label: 'Gallery' },
-] as const;
+export type NavLink = {
+	type: 'link';
+	href: string;
+	label: string;
+};
+
+export type NavDropdown = {
+	type: 'dropdown';
+	id: string;
+	label: string;
+	items: readonly { href: string; label: string; lemonRain?: boolean }[];
+};
+
+export type NavItem = NavLink | NavDropdown;
+
+/** Grouped navbar: top-level labels + dropdown children (Cloudflare-style). */
+export const NAV_ITEMS = [
+	{ type: 'link', href: '/', label: 'Home' },
+	{
+		type: 'dropdown',
+		id: 'crew',
+		label: 'The Crew',
+		items: [
+			{ href: '/who-we-are', label: 'Who We Are' },
+			{ href: '/crew', label: 'Lineup' },
+			{ href: '/values', label: 'Our Values' },
+		],
+	},
+	{
+		type: 'dropdown',
+		id: 'garage',
+		label: 'The Garage',
+		items: [
+			{ href: '/the-car', label: 'The Car' },
+			{ href: '/timeline', label: 'The Timeline' },
+			{ href: '/gallery', label: 'Gallery' },
+		],
+	},
+	{
+		type: 'dropdown',
+		id: 'scene',
+		label: 'The Scene',
+		items: [
+			{ href: '/community', label: 'The Community' },
+			{ href: '/design', label: 'The Dojo', lemonRain: true },
+			{ href: '/store', label: 'Store' },
+		],
+	},
+	{ type: 'link', href: '/investors-faq', label: 'For Investors' },
+] as const satisfies readonly NavItem[];
 
 export function getPage(href: PageHref) {
 	const page = PAGES.find((entry) => entry.href === href);
