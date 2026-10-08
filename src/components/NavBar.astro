@@ -136,7 +136,7 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 						<li class:list={['nav-accordion', { 'has-active': active, 'is-open': active }]}>
 							<button
 								type="button"
-								class:list={['nav-accordion-trigger', { 'is-active': active }]}
+								class="nav-accordion-trigger"
 								aria-expanded={active ? 'true' : 'false'}
 								aria-controls={regionId}
 							>
@@ -286,7 +286,7 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 		gap: 0.35rem;
 		padding: 0.4375rem 0.75rem;
 		border: 0;
-		border-radius: 0.375rem;
+		border-radius: 0.625rem;
 		color: var(--muted);
 		font-family: var(--font-display);
 		font-size: 1rem;
@@ -295,17 +295,21 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 		text-decoration: none;
 		background: transparent;
 		cursor: pointer;
-		transition: color 0.15s ease;
+		transition:
+			color 0.15s ease,
+			background-color 0.15s ease,
+			box-shadow 0.15s ease;
 	}
 
 	.nav-links--inline .nav-link {
-		padding-inline: 0.5rem;
+		padding-inline: 0.7rem;
 		white-space: nowrap;
 	}
 
 	.nav-link:hover:not(.is-active),
 	.nav-dropdown-trigger:hover:not(.is-active) {
 		color: var(--text);
+		background: color-mix(in srgb, var(--surface) 72%, transparent);
 	}
 
 	.nav-link:focus-visible,
@@ -321,6 +325,13 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 	.nav-dropdown-trigger.is-active,
 	.nav-dropdown-trigger.is-active:hover {
 		color: var(--blue-soft);
+		background: color-mix(in srgb, var(--blue) 22%, var(--surface));
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
+	}
+
+	.nav-dropdown.is-open > .nav-dropdown-trigger:not(.is-active) {
+		color: var(--text);
+		background: color-mix(in srgb, var(--surface) 78%, var(--border));
 	}
 
 	.nav-dropdown {
@@ -395,17 +406,20 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 		width: 100%;
 		justify-content: flex-start;
 		padding: 0.55rem 0.75rem;
-		border-radius: 0.4rem;
+		border-radius: 0.45rem;
 		white-space: nowrap;
 	}
 
-	.nav-dropdown-link:hover {
-		background: color-mix(in srgb, var(--bg) 70%, var(--surface));
+	.nav-dropdown-link:hover:not(.is-active) {
+		background: color-mix(in srgb, var(--bg) 65%, var(--surface));
 		color: var(--text);
 	}
 
-	.nav-dropdown-link.is-active {
-		background: color-mix(in srgb, var(--blue) 12%, var(--surface));
+	.nav-dropdown-link.is-active,
+	.nav-dropdown-link.is-active:hover {
+		color: var(--blue-soft);
+		background: color-mix(in srgb, var(--blue) 22%, var(--surface));
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
 	}
 
 	.nav-item--design {
@@ -531,26 +545,57 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 	}
 
 	.nav-links--menu {
+		--nav-pill-radius: 0.625rem;
+		--nav-pill-pad-y: 0.7rem;
+		--nav-pill-pad-x: 0.85rem;
+		--nav-item-gap: 0.35rem;
+		--nav-nest-inset: 1rem;
+
 		flex-direction: column;
 		align-items: stretch;
-		gap: 0.15rem;
+		gap: var(--nav-item-gap);
 		width: 100%;
 		max-width: var(--layout-max-width);
 		margin: 0 auto;
-		padding: 0.75rem var(--page-gutter) 1rem;
+		padding: 0.85rem var(--page-gutter) 1.15rem;
 	}
 
-	.nav-link--menu {
+	.nav-link--menu,
+	.nav-accordion-trigger {
 		justify-content: flex-start;
 		width: 100%;
-		padding: 0.75rem 0;
+		padding: var(--nav-pill-pad-y) var(--nav-pill-pad-x);
+		border-radius: var(--nav-pill-radius);
 		font-size: 1.25rem;
 		text-align: left;
+		transition:
+			color 0.15s ease,
+			background-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	.nav-link--menu:hover:not(.is-active),
+	.nav-accordion-trigger:hover,
+	.nav-link--nested:hover:not(.is-active) {
+		color: var(--text);
+		background: color-mix(in srgb, var(--surface) 72%, transparent);
+	}
+
+	.nav-link--menu.is-active,
+	.nav-link--menu.is-active:hover {
+		color: var(--blue-soft);
+		background: color-mix(in srgb, var(--blue) 22%, var(--surface));
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
 	}
 
 	.nav-accordion {
 		display: flex;
 		flex-direction: column;
+		gap: 0;
+	}
+
+	.nav-accordion.is-open {
+		gap: var(--nav-item-gap);
 	}
 
 	.nav-accordion-trigger {
@@ -558,26 +603,16 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.75rem;
-		width: 100%;
-		padding: 0.75rem 0;
 		border: 0;
 		background: transparent;
 		color: var(--muted);
 		font-family: var(--font-display);
-		font-size: 1.25rem;
 		font-weight: 500;
 		line-height: var(--display-line);
-		text-align: left;
 		cursor: pointer;
-		transition: color 0.15s ease;
 	}
 
-	.nav-accordion-trigger:hover,
-	.nav-accordion-trigger.is-active {
-		color: var(--text);
-	}
-
-	.nav-accordion-trigger.is-active {
+	.nav-accordion.has-active > .nav-accordion-trigger {
 		color: var(--blue-soft);
 	}
 
@@ -604,22 +639,18 @@ const groupActive = (items: readonly { href: string }[]) => items.some((item) =>
 	.nav-accordion-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.05rem;
+		gap: var(--nav-item-gap);
 		margin: 0;
-		padding: 0 0 0.35rem;
+		padding: 0 0 0 var(--nav-nest-inset);
 		list-style: none;
 	}
 
 	.nav-link--nested {
-		padding: 0.55rem 0 0.55rem 0.85rem;
-		font-size: 1.05rem;
+		/* Same pill geometry as top-level menu links; inset comes from the list. */
+		padding: var(--nav-pill-pad-y) var(--nav-pill-pad-x);
+		border-radius: var(--nav-pill-radius);
+		font-size: 1.25rem;
 		color: var(--muted);
-		border-left: 1px solid var(--border);
-		border-radius: 0;
-	}
-
-	.nav-link--nested:hover:not(.is-active) {
-		color: var(--text);
 	}
 
 	.site-header.is-nav-collapsed .nav-links--inline {
