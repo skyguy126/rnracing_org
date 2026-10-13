@@ -53,7 +53,7 @@ export const NAV_ITEMS = [
 		label: 'The Crew',
 		items: [
 			{ href: '/who-we-are', label: 'Who We Are' },
-			{ href: '/crew', label: 'Lineup' },
+			{ href: '/crew', label: 'The Roster' },
 			{ href: '/values', label: 'Our Values' },
 		],
 	},
@@ -73,8 +73,8 @@ export const NAV_ITEMS = [
 		label: 'The Scene',
 		items: [
 			{ href: '/community', label: 'The Community' },
-			{ href: '/design', label: 'The Dojo', lemonRain: true },
-			{ href: '/store', label: 'Store' },
+			{ href: '/store', label: 'Store', lemonRain: true },
+
 		],
 	},
 	{ type: 'link', href: '/investors-faq', label: 'For Investors' },
