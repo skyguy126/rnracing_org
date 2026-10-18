@@ -41,10 +41,8 @@ const PAINT_STROKES = [
 <audio
 	id="reveal-music"
 	class="reveal-music"
-	src="https://media.munixnet.org/rnracing/vision.mp3"
-	autoplay
 	playsinline
-	preload="auto"
+	preload="none"
 ></audio>
 <p class="reveal-loading" id="reveal-loading" role="status">Loading...</p>
 <div class="reveal-over reveal-start" id="reveal-start" role="dialog" aria-labelledby="reveal-start-title" hidden>
@@ -1316,6 +1314,7 @@ const PAINT_STROKES = [
 <script>
 	import type { CreateTypes, Shape } from 'canvas-confetti';
 	import { GAME_RULES, STORE_ITEMS, earnCredit, readSave, recordRun } from '../data/store';
+	import { isRnModeEnabled } from '../lib/rn-mode';
 
 	type Vec = { x: number; y: number };
 
@@ -1369,6 +1368,8 @@ const PAINT_STROKES = [
 	} as const;
 
 	const SONG_URL = 'https://media.munixnet.org/rnracing/vision.mp3';
+	/** CDN track is RN Mode only — do not fetch or play otherwise. */
+	const musicAllowed = isRnModeEnabled();
 	/** Playback position when the intro lemon reaches the blade. */
 	const SONG_AT_SLICE = 52;
 	/** Bass-onset times in the track, seconds. */
@@ -1574,13 +1575,18 @@ const PAINT_STROKES = [
 	const music = document.getElementById('reveal-music') as HTMLAudioElement;
 	if (!music) throw new Error('Reveal music missing');
 	music.loop = false;
-	music.preload = 'auto';
-	music.autoplay = true;
-	music.volume = MUSIC_FLOOR;
-	music.muted = readMusicMutedPref();
 	music.setAttribute('playsinline', '');
 	music.setAttribute('webkit-playsinline', '');
-	void music.play();
+	if (musicAllowed) {
+		music.preload = 'auto';
+		music.autoplay = true;
+		music.src = SONG_URL;
+		music.volume = MUSIC_FLOOR;
+		music.muted = readMusicMutedPref();
+		void music.play();
+	} else {
+		soundToggle.hidden = true;
+	}
 
 	const REVEAL_BOOT = {
 		minDelayMs: 600,
@@ -3130,10 +3136,10 @@ const PAINT_STROKES = [
 		}
 	}
 
-	let musicMuted = readMusicMutedPref();
+	let musicMuted = musicAllowed ? readMusicMutedPref() : true;
 	let musicStarted = false;
 	let musicSeeking = false;
-	let musicDisposed = false;
+	let musicDisposed = !musicAllowed;
 	let audioOrigin = 0;
 	let musicRaf = 0;
 	let musicRetryTimer = 0;
@@ -3155,7 +3161,7 @@ const PAINT_STROKES = [
 	}
 
 	function seekPreroll() {
-		if (music.readyState < 1) return;
+		if (!musicAllowed || music.readyState < 1) return;
 		const target = prerollTime();
 		try {
 			if (Math.abs(music.currentTime - target) > 0.2) music.currentTime = target;
@@ -3164,14 +3170,16 @@ const PAINT_STROKES = [
 		}
 	}
 
-	music.addEventListener(
-		'loadedmetadata',
-		() => {
-			void music.play();
-		},
-		{ once: true },
-	);
-	if (music.readyState >= 1) void music.play();
+	if (musicAllowed) {
+		music.addEventListener(
+			'loadedmetadata',
+			() => {
+				void music.play();
+			},
+			{ once: true },
+		);
+		if (music.readyState >= 1) void music.play();
+	}
 
 	function prerollBuffered() {
 		const target = prerollTime();
@@ -3283,7 +3291,7 @@ const PAINT_STROKES = [
 	}
 
 	function startMusic() {
-		if (musicDisposed || music.ended) return;
+		if (!musicAllowed || musicDisposed || music.ended) return;
 		// Already running. Keep the user's mute choice without touching play().
 		if (musicStarted && !music.paused) {
 			music.muted = musicMuted;
@@ -3597,16 +3605,19 @@ const PAINT_STROKES = [
 			musicBtn.textContent = musicMuted ? 'Music: Off' : 'Music: On';
 			musicBtn.setAttribute('aria-pressed', musicMuted ? 'false' : 'true');
 		};
-		renderSoundToggle();
-		renderMusicBtn();
-		gate.hidden = false;
-		goBtn.focus({ preventScroll: true });
-
-		musicBtn.addEventListener('click', () => {
-			musicMuted = !musicMuted;
+		if (musicAllowed) {
 			renderSoundToggle();
 			renderMusicBtn();
-		});
+			musicBtn.addEventListener('click', () => {
+				musicMuted = !musicMuted;
+				renderSoundToggle();
+				renderMusicBtn();
+			});
+		} else {
+			musicBtn.hidden = true;
+		}
+		gate.hidden = false;
+		goBtn.focus({ preventScroll: true });
 
 		return new Promise<void>((resolve) => {
 			goBtn.addEventListener(
@@ -3629,8 +3640,10 @@ const PAINT_STROKES = [
 		document.addEventListener('visibilitychange', onVisibilityChange);
 		window.addEventListener('pagehide', cleanup, { once: true });
 
-		await waitForPreroll();
-		if (musicDisposed) return;
+		if (musicAllowed) {
+			await waitForPreroll();
+			if (musicDisposed) return;
+		}
 
 		revealLoading?.classList.add('is-done');
 		revealLoading?.setAttribute('aria-hidden', 'true');
