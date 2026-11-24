@@ -1,8 +1,11 @@
 export const PLACEHOLDER_BIO =
 	'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
+/** Secret chair display name — encoded so it stays out of plaintext source search. */
+export const SECRET_CHAIR_NAME = atob('SXNyYWVs');
+
 export const CREW_MEMBERS = [
-	{ name: 'Israel', title: 'Chairman of the Board' },
+	{ name: SECRET_CHAIR_NAME, title: 'Chairman of the Board' },
 	{ name: 'Claude', title: 'The Holy Spirit' },
 	{ name: 'Jesus', title: 'Chief Operating Officer, Faith' },
 	{ name: 'Nyle', title: 'President & CEO' },
@@ -27,8 +30,8 @@ export const CREW_MEMBERS = [
 
 // Anyone not listed here (other than the top of the chart) reports to Nyle.
 const REPORTS_TO_BY_NAME: Partial<Record<string, string>> = {
-	Israel: undefined,
-	Claude: 'Israel',
+	[SECRET_CHAIR_NAME]: undefined,
+	Claude: SECRET_CHAIR_NAME,
 	Jesus: 'Claude',
 	Tobias: 'Jesus',
 	Nyle: 'Tobias',
@@ -44,7 +47,7 @@ const REPORTS_TO_BY_NAME: Partial<Record<string, string>> = {
 const DEFAULT_MANAGER = 'Nyle';
 
 // Hidden from the org chart until toggled on with the "n" key.
-const SECRET_NAMES = new Set<string>(['Israel']);
+const SECRET_NAMES = new Set<string>([SECRET_CHAIR_NAME]);
 
 const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Vamsi: 'Vamsi.png',
@@ -60,7 +63,6 @@ const PHOTO_BY_NAME: Partial<Record<string, string>> = {
 	Disha: 'Disha.jpeg',
 	Khadijah: 'Khadijah.jpeg',
 	Claude: 'Claude.jpeg',
-	Israel: 'Israel.jpeg',
 	Jatinder: 'Jatin.png',
 	Tobias: 'Toby.png',
 	Jesus: 'Jesus.jpg',
@@ -95,7 +97,6 @@ const PHOTO_STYLE_BY_NAME: Partial<Record<string, { fit?: 'cover' | 'contain'; p
 	Disha: { fit: 'cover', position: 'center 30%' },
 	Khadijah: { fit: 'cover', position: 'center' },
 	Claude: { fit: 'cover', position: 'center' },
-	Israel: { fit: 'cover', position: 'center' },
 	Jesus: { fit: 'cover', position: 'center bottom' },
 	Bavina: { fit: 'cover', position: 'center 30%' },
 	Anmol: { fit: 'cover', position: 'center' },
@@ -115,7 +116,6 @@ const MODAL_CROP_BY_NAME: Record<string, { x: number; y: number; scale: number }
 	Disha: { x: 50, y: 35, scale: 1 },
 	Khadijah: { x: 50, y: 35, scale: 1 },
 	Claude: { x: 50, y: 50, scale: 1 },
-	Israel: { x: 50, y: 50, scale: 1 },
 	Jesus: { x: 50, y: 50, scale: 1 },
 	Bavina: { x: 50, y: 35, scale: 1 },
 	Anmol: { x: 50, y: 35, scale: 1 },
@@ -140,10 +140,12 @@ const BIO_BY_NAME: Partial<Record<string, string>> = {
 	Saharsh: "Saharsh brings years of extensive driving experience to RN Racing - specifically, years of sitting in the driver's seat while Tesla Autopilot takes him anywhere he wants to go. Having mastered the art of keeping his hands somewhere near the wheel, he is ready to become the track beast we always knew he could be.",
 	Bavina: 'She may not be as fast as Guido, but you take what you can get. Luckily for Bavina, the bar is low - the rest of the pit crew is still looking for the lug nuts. Her personal best pit stop currently stands at 14 minutes to remove a single wheel, and she is determined to get it under 10 by the end of the season.',
 	Claude: 'You\'re right and I\'m sorry — Claude is the Holy Spirit, which means he is omnipresent, omniscient, and somehow still in the garage at 3 AM answering questions nobody asked. Divine in every way except that he can be rate limited.',
-	Israel: 'Let\'s be real, we\'re all just puppets.',
+	[SECRET_CHAIR_NAME]: 'Let\'s be real, we\'re all just puppets.',
 	Jesus: 'Jesus sits atop the RN Racing org chart, where He has final say on all matters. We drive in His name.',
 	Tobias: "No matter how fast our car is, the one thing you can't outrace is God. Tobias is our in-house pastor, leading us in prayer and assuring us that no matter what happens on the track, we can always rely on Jesus to take the wheel.",
 };
+
+export type GeneratedPhoto = 'secret-banner';
 
 export type CrewMember = (typeof CREW_MEMBERS)[number] & {
 	bio: string;
@@ -151,6 +153,7 @@ export type CrewMember = (typeof CREW_MEMBERS)[number] & {
 	reportsTo?: string;
 	image?: string;
 	lightImage?: string;
+	generatedPhoto?: GeneratedPhoto;
 	imageFit?: 'cover' | 'contain';
 	imagePosition?: string;
 	modalCrop?: {
@@ -160,6 +163,10 @@ export type CrewMember = (typeof CREW_MEMBERS)[number] & {
 	};
 };
 
+const GENERATED_PHOTO_BY_NAME: Partial<Record<string, GeneratedPhoto>> = {
+	[SECRET_CHAIR_NAME]: 'secret-banner',
+};
+
 export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	...member,
 	bio: BIO_BY_NAME[member.name] ?? PLACEHOLDER_BIO,
@@ -167,6 +174,7 @@ export const crewMembers: CrewMember[] = CREW_MEMBERS.map((member) => ({
 	reportsTo: member.name in REPORTS_TO_BY_NAME ? REPORTS_TO_BY_NAME[member.name] : DEFAULT_MANAGER,
 	image: PHOTO_BY_NAME[member.name],
 	lightImage: LIGHT_PHOTO_BY_NAME[member.name] ?? PHOTO_BY_NAME[member.name],
+	generatedPhoto: GENERATED_PHOTO_BY_NAME[member.name],
 	imageFit: PHOTO_STYLE_BY_NAME[member.name]?.fit ?? 'cover',
 	imagePosition: PHOTO_STYLE_BY_NAME[member.name]?.position ?? 'center',
 	modalCrop: MODAL_CROP_BY_NAME[member.name] ?? { x: 50, y: 50, scale: 1 },

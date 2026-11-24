@@ -1,5 +1,6 @@
 ---
 import PhotoPlaceholder from '../PhotoPlaceholder.astro';
+import SecretBannerPhoto from './SecretBannerPhoto.astro';
 import type { CrewMember } from '../../data/crew';
 
 interface Props {
@@ -26,6 +27,7 @@ const { members } = Astro.props;
 			<div class="member-modal-photo" id="member-modal-photo">
 				<img class="member-modal-image" data-theme-photo="dark" alt="" hidden />
 				<img class="member-modal-image" data-theme-photo="light" alt="" hidden />
+				<SecretBannerPhoto className="member-modal-image" hidden />
 				<PhotoPlaceholder initials="RN" large />
 			</div>
 			<div class="member-modal-content">
@@ -48,6 +50,7 @@ const { members } = Astro.props;
 		bio: string;
 		image?: string;
 		lightImage?: string;
+		generatedPhoto?: string;
 		imageFit?: 'cover' | 'contain';
 		imagePosition?: string;
 	}>;
@@ -58,7 +61,8 @@ const { members } = Astro.props;
 	const titleEl = document.getElementById('member-modal-title');
 	const bioEl = document.getElementById('member-modal-bio');
 	const photoEl = document.getElementById('member-modal-photo');
-	const photoImgs = photoEl?.querySelectorAll<HTMLImageElement>('.member-modal-image');
+	const photoImgs = photoEl?.querySelectorAll<HTMLImageElement>('img.member-modal-image');
+	const photoGenerated = photoEl?.querySelectorAll<SVGElement>('svg.member-modal-image');
 	const photoPlaceholder = photoEl?.querySelector<HTMLElement>('.photo-placeholder');
 	const triggers = document.querySelectorAll<HTMLButtonElement>('.photo-trigger');
 
@@ -68,12 +72,24 @@ const { members } = Astro.props;
 	const photoSrc = (filename: string, lightFilename: string | undefined, theme: string) =>
 		theme === 'light' ? `/team/light/${lightFilename ?? filename}` : `/team/${filename}`;
 
+	const setSvgHidden = (el: SVGElement, hide: boolean) => {
+		// SVG often ignores the hidden IDL property; drive the attribute + display.
+		if (hide) {
+			el.setAttribute('hidden', '');
+			el.style.display = 'none';
+		} else {
+			el.removeAttribute('hidden');
+			el.style.display = '';
+		}
+	};
+
 	const clearPhoto = () => {
 		photoImgs?.forEach((photoImg) => {
 			photoImg.hidden = true;
 			photoImg.removeAttribute('src');
 			photoImg.alt = '';
 		});
+		photoGenerated?.forEach((el) => setSvgHidden(el, true));
 	};
 
 	const preloadImage = (src: string) =>
@@ -116,7 +132,15 @@ const { members } = Astro.props;
 		clearPhoto();
 		photoPlaceholder.hidden = true;
 
-		if (member.image) {
+		if (member.generatedPhoto === 'secret-banner') {
+			photoGenerated?.forEach((el) => {
+				setSvgHidden(el, false);
+				if (el.dataset.themePhoto !== 'light') {
+					el.setAttribute('aria-label', `${member.name} headshot`);
+				}
+			});
+			photoPlaceholder.hidden = true;
+		} else if (member.image) {
 			try {
 				await Promise.all(
 					[...photoImgs].map((photoImg) =>
@@ -225,7 +249,8 @@ const { members } = Astro.props;
 		min-width: 0;
 	}
 
-	.member-modal-image {
+	/* :global so set:html SVGs (no Astro cid) still theme/hide correctly */
+	:global(.member-modal-image) {
 		display: block;
 		width: 100%;
 		max-height: min(50dvh, 22rem);
@@ -236,14 +261,14 @@ const { members } = Astro.props;
 		background: var(--surface);
 	}
 
-	.member-modal-image[hidden],
+	:global(.member-modal-image[hidden]),
 	.member-modal-photo :global(.photo-placeholder[hidden]) {
-		display: none;
+		display: none !important;
 	}
 
-	:global(html[data-theme='light']) .member-modal-image[data-theme-photo='dark'],
-	:global(html[data-theme='dark']) .member-modal-image[data-theme-photo='light'] {
-		display: none;
+	:global(html[data-theme='light'] .member-modal-image[data-theme-photo='dark']),
+	:global(html[data-theme='dark'] .member-modal-image[data-theme-photo='light']) {
+		display: none !important;
 	}
 
 	.member-modal-content {

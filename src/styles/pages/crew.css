@@ -32,14 +32,19 @@
 	border: 1px solid var(--border);
 	border-radius: 0.5rem;
 	background: var(--surface);
+	overflow: hidden;
 	transition:
 		background 0.15s ease,
 		transform 0.15s ease;
 }
 
+svg.crew-photo {
+	object-fit: unset;
+}
+
 html[data-theme='light'] .crew-photo[data-theme-photo='dark'],
 html[data-theme='dark'] .crew-photo[data-theme-photo='light'] {
-	display: none;
+	display: none !important;
 }
 
 .photo-trigger:hover .photo-placeholder,

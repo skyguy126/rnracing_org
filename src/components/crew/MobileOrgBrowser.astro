@@ -1,6 +1,7 @@
 ---
 import PhotoPlaceholder from '../PhotoPlaceholder.astro';
 import CrewPhoto from './CrewPhoto.astro';
+import SecretBannerPhoto from './SecretBannerPhoto.astro';
 import {
 	crewMembers,
 	crewSlug,
@@ -118,7 +119,14 @@ const manager = chain[chain.length - 1];
 								hidden={!selected.image}
 								style={`object-fit: ${selected.imageFit ?? 'cover'}; object-position: ${selected.imagePosition ?? 'center'};`}
 							/>
-							<PhotoPlaceholder initials={getInitials(selected.name)} hidden={Boolean(selected.image)} />
+							<SecretBannerPhoto
+								alt={`${selected.name} headshot`}
+								hidden={selected.generatedPhoto !== 'secret-banner'}
+							/>
+							<PhotoPlaceholder
+								initials={getInitials(selected.name)}
+								hidden={Boolean(selected.image || selected.generatedPhoto)}
+							/>
 						</button>
 					</div>
 				)
@@ -192,6 +200,8 @@ const manager = chain[chain.length - 1];
 		type CrewMember,
 	} from '../../data/crew';
 	import { RN_MODE_EVENT, type RnModeChangeDetail } from '../../lib/rn-mode';
+
+	const isGenerated = (member: CrewMember) => member.generatedPhoto === 'secret-banner';
 
 	const browser = document.querySelector<HTMLElement>('[data-org-browser]');
 	const stage = browser?.querySelector<HTMLElement>('.org-browser-stage');
@@ -287,8 +297,21 @@ const manager = chain[chain.length - 1];
 		function paintPhoto(member: CrewMember) {
 			selectedPhoto.dataset.memberIndex = String(getCrewIndex(member.name));
 			selectedPhoto.setAttribute('aria-label', `View profile for ${member.name}`);
-			const images = selectedPhoto.querySelectorAll<HTMLImageElement>('.crew-photo');
+			const images = selectedPhoto.querySelectorAll<HTMLImageElement>('img.crew-photo');
+			const generated = selectedPhoto.querySelectorAll<SVGElement>('svg.crew-photo');
 			const placeholder = selectedPhoto.querySelector<HTMLElement>('.photo-placeholder');
+			const showGenerated = isGenerated(member);
+
+			generated.forEach((el) => {
+				if (showGenerated) {
+					el.removeAttribute('hidden');
+					el.style.display = '';
+				} else {
+					el.setAttribute('hidden', '');
+					el.style.display = 'none';
+				}
+			});
+
 			if (member.image) {
 				images.forEach((image) => {
 					const light = image.dataset.themePhoto === 'light';
@@ -306,7 +329,7 @@ const manager = chain[chain.length - 1];
 					image.removeAttribute('src');
 				});
 				if (placeholder) {
-					placeholder.hidden = false;
+					placeholder.hidden = showGenerated;
 					const initials = placeholder.querySelector('.photo-icon');
 					if (initials) initials.textContent = getInitials(member.name);
 				}

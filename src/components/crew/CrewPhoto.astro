@@ -1,5 +1,6 @@
 ---
 import PhotoPlaceholder from '../PhotoPlaceholder.astro';
+import SecretBannerPhoto from './SecretBannerPhoto.astro';
 import { getInitials, type CrewMember } from '../../data/crew';
 
 interface Props {
@@ -18,7 +19,9 @@ const { member, index } = Astro.props;
 	aria-label={`View profile for ${member.name}`}
 >
 	{
-		member.image ? (
+		member.generatedPhoto === 'secret-banner' ? (
+			<SecretBannerPhoto alt={`${member.name} headshot`} />
+		) : member.image ? (
 			<>
 				<img
 					class="crew-photo"
