@@ -2,9 +2,8 @@
    Stack inside the overlay: dimmer < confetti < emblem < dismiss.
    The overlay itself is above the navbar (100) and the RN mode badge (500). */
 
-.s2-banner {
-	position: sticky;
-	top: var(--s2-nav-bottom, 4.5rem);
+.season-banner {
+	position: relative;
 	z-index: 90;
 	display: flex;
 	align-items: center;
@@ -15,7 +14,7 @@
 	padding: 0.5rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
 		max(0.75rem, env(safe-area-inset-left));
 	border: 0;
-	border-bottom: 1px solid color-mix(in srgb, var(--blue) 72%, #000);
+	border-bottom: 1px solid color-mix(in srgb, var(--season-banner-color, var(--blue)) 72%, #000);
 	background-color: var(--bg);
 	box-shadow: none;
 	color: #fff;
@@ -33,23 +32,28 @@
 	overflow: hidden;
 }
 
-.s2-banner__text {
+.s2-banner {
+	position: sticky;
+	top: var(--s2-nav-bottom, 4.5rem);
+}
+
+.season-banner__text {
 	position: relative;
 	z-index: 2;
 	display: block;
 	max-width: 72rem;
 }
 
-.s2-banner::after {
+.season-banner::after {
 	content: '';
 	position: absolute;
 	inset: 0;
 	z-index: 0;
-	background: var(--blue);
+	background: var(--season-banner-color, var(--blue));
 	pointer-events: none;
 }
 
-.s2-banner::before {
+.season-banner::before {
 	content: '';
 	position: absolute;
 	z-index: 1;
@@ -64,39 +68,39 @@
 	pointer-events: none;
 }
 
-.s2-banner:hover,
-.s2-banner:active {
+.season-banner:hover,
+.season-banner:active {
 	background-color: var(--bg);
 }
 
-.s2-banner:hover::after {
-	background: var(--blue-soft);
+.season-banner:hover::after {
+	background: var(--season-banner-hover, var(--blue-soft));
 }
 
-.s2-banner:active::after {
-	background: color-mix(in srgb, var(--blue) 78%, #000);
+.season-banner:active::after {
+	background: color-mix(in srgb, var(--season-banner-color, var(--blue)) 78%, #000);
 }
 
-body.nav-menu-open .s2-banner {
+body.nav-menu-open .season-banner {
 	visibility: hidden;
 }
 
-.s2-banner:focus-visible {
+.season-banner:focus-visible {
 	outline: 2px solid #fff;
 	outline-offset: -3px;
 }
 
-.s2-banner:disabled {
+.season-banner:disabled {
 	cursor: default;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	.s2-banner::before {
-		animation: s2-banner-sheen 3.8s ease-in-out infinite;
+	.season-banner::before {
+		animation: season-banner-sheen 3.8s ease-in-out infinite;
 	}
 }
 
-@keyframes s2-banner-sheen {
+@keyframes season-banner-sheen {
 	0%,
 	58% {
 		transform: translateX(-130%);

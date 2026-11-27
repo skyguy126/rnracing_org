@@ -1,0 +1,61 @@
+---
+import '../styles/season3-announcement.css';
+---
+
+<button type="button" class="season-banner s3-banner" data-s3-open aria-haspopup="dialog" aria-controls="s3-announcement">
+	<span class="season-banner__text">🎉 SEASON 3 - SPECIAL ANNOUNCEMENT 🎊</span>
+</button>
+
+<dialog id="s3-announcement" class="s3-show" aria-label="RN Racing Season 3 is funded by Notable Capital">
+	<div class="s3-controls">
+		<button type="button" data-s3-mute aria-pressed="false">Mute</button>
+		<form method="dialog">
+			<button type="submit" aria-label="Close announcement" autofocus>✕</button>
+		</form>
+	</div>
+
+	<div class="s3-money" aria-hidden="true">
+		{Array.from({ length: 32 }, (_, index) => (
+			<span
+				class="s3-bill"
+				style={`--bill-x: ${(index * 37) % 101}%; --bill-drift: ${(index * 19) % 31 - 15}vw; --bill-duration: ${5 + (index * 13) % 27 / 10}s; --bill-delay: ${(index * 23 % 45) / 10}s; --bill-tilt: ${(index * 43) % 110 - 55}deg;`}
+			>$</span>
+		))}
+	</div>
+	<div class="s3-reveal">
+		<h2 class="s3-headline">RN Racing has been funded</h2>
+		<div class="s3-logo-fade">
+			<img class="s3-logo" src="/season-3/notable-capital.png" width="682" height="360" alt="By Notable Capital" />
+		</div>
+	</div>
+
+	<audio src="/season-3/final-countdown.mp3" preload="metadata" loop></audio>
+</dialog>
+
+<script>
+	const banner = document.querySelector<HTMLButtonElement>('[data-s3-open]');
+	const dialog = document.querySelector<HTMLDialogElement>('#s3-announcement');
+
+	if (banner && dialog) {
+		const audio = dialog.querySelector('audio')!;
+		const mute = dialog.querySelector<HTMLButtonElement>('[data-s3-mute]')!;
+
+		banner.addEventListener('click', () => {
+			if (dialog.open) return;
+
+			dialog.showModal();
+			audio.currentTime = 0;
+			void audio.play().catch(() => {});
+		});
+
+		mute.addEventListener('click', () => {
+			audio.muted = !audio.muted;
+			mute.setAttribute('aria-pressed', String(audio.muted));
+		});
+
+		dialog.addEventListener('close', () => {
+			audio.pause();
+			banner.focus();
+		});
+	}
+</script>
