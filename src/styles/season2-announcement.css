@@ -32,11 +32,6 @@
 	overflow: hidden;
 }
 
-.s2-banner {
-	position: sticky;
-	top: var(--s2-nav-bottom, 4.5rem);
-}
-
 .season-banner__text {
 	position: relative;
 	z-index: 2;

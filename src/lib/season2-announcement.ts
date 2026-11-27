@@ -49,26 +49,6 @@ async function loadThree() {
 	}
 }
 
-function watchNavOffset() {
-	const header = document.querySelector<HTMLElement>('.site-header');
-
-	const apply = () => {
-		const height = header?.getBoundingClientRect().height ?? 0;
-		const top = Math.max(0, Math.round(height) - 1);
-		document.documentElement.style.setProperty('--s2-nav-bottom', `${top}px`);
-	};
-
-	apply();
-	const observer = new ResizeObserver(apply);
-	if (header) observer.observe(header);
-	window.addEventListener('resize', apply);
-
-	return () => {
-		observer.disconnect();
-		window.removeEventListener('resize', apply);
-	};
-}
-
 function targetArtPixels(viewportWidth: number, viewportHeight: number, aspect: number) {
 	const compact = viewportWidth < 900 || viewportHeight < 560;
 	let width = compact
@@ -205,7 +185,6 @@ export function initSeason2Announcement() {
 	if (!banner || !overlay || banner.dataset.s2Bound === 'true') return;
 
 	banner.dataset.s2Bound = 'true';
-	watchNavOffset();
 
 	banner.addEventListener('click', () => {
 		if (banner.disabled) return;
