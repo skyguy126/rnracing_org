@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { formatReleaseDate, pressReleases } from '../../data/press-releases';
+import { pageTitle } from '../../data/site';
+import '../../styles/pages/press-releases.css';
+
+export function getStaticPaths() {
+	return pressReleases.map((release) => ({
+		params: { slug: release.slug },
+		props: { release },
+	}));
+}
+
+const { release } = Astro.props;
+---
+
+<BaseLayout title={pageTitle(release.title)} description={release.summary}>
+	<article class="press-article">
+		<a class="press-back" href="/press-releases">← All press releases</a>
+		<PageHeader title={release.title}>
+			<time slot="lead" class="press-date" datetime={release.published}>{formatReleaseDate(release.published)}</time>
+		</PageHeader>
+		<p>{release.intro ?? release.summary}</p>
+		{release.body.map((paragraph) => (
+			<p>{paragraph.split(/\*([^*]+)\*/).map((part, index) => index % 2 ? <em>{part}</em> : part)}</p>
+		))}
+	</article>
+</BaseLayout>

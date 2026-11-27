@@ -1,0 +1,34 @@
+.press-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.press-list li {
+	border-top: 1px solid var(--border);
+	padding-block: 1.5rem;
+}
+
+.press-date {
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.press-list h2 {
+	margin: 0.35rem 0;
+	font-size: clamp(1.25rem, 3vw, 1.65rem);
+}
+
+.press-list p {
+	margin: 0;
+	max-width: 65ch;
+}
+
+.press-article {
+	max-width: 70ch;
+}
+
+.press-back {
+	display: inline-block;
+	margin-bottom: 1rem;
+}

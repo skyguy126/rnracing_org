@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { formatReleaseDate, pressReleases } from '../../data/press-releases';
+import { getPage, pageTitle } from '../../data/site';
+import '../../styles/pages/press-releases.css';
+
+const page = getPage('/press-releases');
+---
+
+<BaseLayout title={pageTitle(page.heading)} description="Official announcements from RN Racing.">
+	<PageHeader title={page.heading} />
+	<ul class="press-list">
+		{pressReleases.map((release) => (
+			<li>
+				<time class="press-date" datetime={release.published}>{formatReleaseDate(release.published)}</time>
+				<h2><a href={`/press-releases/${release.slug}`}>{release.title}</a></h2>
+				<p>{release.summary}</p>
+			</li>
+		))}
+	</ul>
+</BaseLayout>

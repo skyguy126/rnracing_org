@@ -23,6 +23,7 @@ export const PAGES = [
 		heading: 'Investors',
 	},
 	{ href: '/who-we-are', slug: 'who-we-are', label: 'Who We Are', heading: 'Who We Are' },
+	{ href: '/press-releases', slug: 'press-releases', label: 'Press Releases', heading: 'Press Releases' },
 	{ href: '/community', slug: 'community', label: 'The Community', heading: 'The Community' },
 	{ href: '/store', slug: 'store', label: 'Store', heading: 'The Store' },
 ] as const;
@@ -73,6 +74,7 @@ export const NAV_ITEMS = [
 		label: 'The Scene',
 		items: [
 			{ href: '/community', label: 'The Community' },
+			{ href: '/press-releases', label: 'Press Releases' },
 			{ href: '/store', label: 'Store', lemonRain: true },
 
 		],
