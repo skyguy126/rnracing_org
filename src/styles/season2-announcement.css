@@ -39,6 +39,25 @@
 	max-width: 72rem;
 }
 
+.season-press-tag {
+	display: table;
+	margin: 0.75rem auto 0;
+	padding: 0.2rem 0.65rem;
+	border: 1px solid #fff5;
+	border-radius: 999px;
+	background: rgb(0 0 0 / 35%);
+	color: #fff;
+	font: 500 0.875rem/1.4 var(--font-body);
+	white-space: nowrap;
+}
+
+.season-press-tag a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+	pointer-events: auto;
+}
+
 .season-banner::after {
 	content: '';
 	position: absolute;
