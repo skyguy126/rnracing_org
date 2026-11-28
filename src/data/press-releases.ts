@@ -4,7 +4,7 @@ export const pressReleases = [
 		title: 'Board Removes New CEO After Falling for Honeypot',
 		published: '2026-11-22T12:00',
 		summary: 'RN Racing’s board removed its newly appointed CEO after the executive fell for a honeypot.',
-		intro: "RN Racing's board decided to remove Sid from his position after the newly appointed CEO immediately fell for a woman who turned out to be a spy from a rival racing team.",
+		intro: "RN Racing's board decided to remove Siddharthen Sridhar from his position after the newly appointed CEO immediately fell for a woman who turned out to be a spy from a rival racing team.",
 		body: [
 			"The decision came at noon, two hours after the board announced the appointment. Sid's first morning on the job was also his last.",
 		],
@@ -14,7 +14,7 @@ export const pressReleases = [
 		title: 'Board Appoints New CEO',
 		published: '2026-11-22T10:00',
 		summary: 'RN Racing’s board announced the appointment of a new chief executive officer.',
-		intro: 'In a stunning move by the new board brought in by Notable Capital, CEO Nyle Arora has been exited and replaced by former HR intern, Sid.',
+		intro: 'In a stunning move by the new board brought in by Notable Capital, CEO Nyle Arora has been exited and replaced by former HR intern, Siddharthen Sridhar.',
 		body: [
 			"It's a meteoric rise for the new CEO, who is now the boss of everyone who once made him get their coffee. Sid has promised to lead RN Racing into a bold new future by cutting revenue and increasing costs",
 		],
